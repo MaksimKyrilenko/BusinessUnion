@@ -1,0 +1,44 @@
+{
+  "name": "union",
+  "version": "1.0.0",
+  "description": "",
+  "author": "",
+  "scripts": {
+    "start": "concurrently \"cd backend && npm run start\" \"cd frontend && npm run serve\"",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "@mdi/font": "5.9.55",
+    "@nestjs/common": "^11.0.11",
+    "@nestjs/config": "^4.0.1",
+    "@nestjs/jwt": "^11.0.0",
+    "@nestjs/passport": "^11.0.5",
+    "@nestjs/typeorm": "^11.0.0",
+    "@vue/compiler-sfc": "^3.5.13",
+    "axios": "^1.8.3",
+    "bcrypt": "^5.1.1",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.1",
+    "dotenv": "^16.4.7",
+    "mysql2": "^3.13.0",
+    "package-name": "^0.1.0",
+    "passport": "^0.7.0",
+    "passport-jwt": "^4.0.1",
+    "reflect-metadata": "^0.2.2",
+    "roboto-fontface": "*",
+    "typeorm": "^0.3.21",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.0",
+    "vuetify": "^3.7.0-beta.1",
+    "webfontloader": "^1.0.0"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "sass": "~1.32.0",
+    "sass-loader": "^10.5.2",
+    "vue-loader": "16.0"
+  },
+  "keywords": [],
+  "license": "ISC"
+}
