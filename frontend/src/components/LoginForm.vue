@@ -17,6 +17,13 @@
     <div class="register-link">
       <p>Нет аккаунта? <router-link to="/register">Зарегистрироваться</router-link></p>
     </div>
+
+    <div class="social-login">
+      <button @click="loginWithVK" class="vk-button">
+        <img src="@/assets/vk-logo.svg" alt="VK Logo" class="vk-icon" />
+        Войти через ВКонтакте
+      </button>
+    </div>
   </div>
 </template>
 
@@ -58,6 +65,9 @@ export default defineComponent({
         this.message = 'Ошибка при входе: ' + (error.response?.data?.message || error.message);
       }
     },
+    loginWithVK() {
+      window.location.href = 'http://localhost:3000/auth/vk';
+    }
   },
 });
 </script>
@@ -122,5 +132,35 @@ p {
 
 .register-link a:hover {
   text-decoration: underline;
+}
+
+.social-login {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.vk-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #4680C2;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  width: 100%;
+  transition: background-color 0.2s;
+}
+
+.vk-button:hover {
+  background-color: #3B6798;
+}
+
+.vk-icon {
+  width: 24px;
+  height: 24px;
+  margin-right: 10px;
 }
 </style>

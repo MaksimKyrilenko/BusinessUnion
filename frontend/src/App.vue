@@ -2,12 +2,13 @@
   <div id="app">
     <!-- Проверка, отображается ли что-то -->
     <h1 v-if="!isAuthenticated">Добро пожаловать!</h1>
-    <router-view />
+    <router-view></router-view>
   </div>
 </template>
 
 <script>
 export default {
+  name: 'App',
   data() {
     return {
       isAuthenticated: localStorage.getItem('token') !== null,

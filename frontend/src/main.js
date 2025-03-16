@@ -1,7 +1,7 @@
 import { createApp } from 'vue';
 import App from './App.vue';
-import router from './router/index'; // Импортируем файл index.js из папки router
+import router from './router';
 
-createApp(App)
-  .use(router) // Используем роутер
-  .mount('#app'); // Монтируем приложение в #app
+const app = createApp(App);
+app.use(router);
+app.mount('#app');
