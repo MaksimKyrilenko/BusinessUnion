@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 import Users from '../components/UsersList.vue';
 import Dashboard from '../views/UserDashboard.vue';
 import Login from '../components/LoginForm.vue';
+import Register from '../components/RegisterForm.vue';
 
 // Проверка авторизации
 const isAuthenticated = () => {
@@ -32,6 +33,11 @@ const routes = [
     path: '/login', 
     component: Login 
   },
+  {
+    path: '/register',
+    name: 'Register',
+    component: Register
+  }
 ];
 
 const router = createRouter({

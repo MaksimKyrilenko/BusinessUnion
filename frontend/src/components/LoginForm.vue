@@ -1,5 +1,5 @@
 <template>
-  <div class="login-form">
+  <div class="login-container">
     <h2>Вход</h2>
     <form @submit.prevent="login">
       <div>
@@ -13,13 +13,19 @@
       <button type="submit">Войти</button>
     </form>
     <p v-if="message">{{ message }}</p>
+    
+    <div class="register-link">
+      <p>Нет аккаунта? <router-link to="/register">Зарегистрироваться</router-link></p>
+    </div>
   </div>
 </template>
 
 <script>
+import { defineComponent } from 'vue';
 import api from '@/axios';
 
-export default {
+export default defineComponent({
+  name: 'LoginForm',
   data() {
     return {
       credentials: {
@@ -31,33 +37,33 @@ export default {
   },
   methods: {
     async login() {
-      console.log('Начало метода login'); // Логирование: начало метода
-      console.log('Данные для входа:', this.credentials); // Логирование: данные формы
+      console.log('Начало метода login');
+      console.log('Данные для входа:', this.credentials);
 
       try {
-        console.log('Отправка запроса на сервер...'); // Логирование: перед запросом
+        console.log('Отправка запроса на сервер...');
         const response = await api.post('/users/login', this.credentials);
-        console.log('Ответ сервера:', response); // Логирование: ответ сервера
+        console.log('Ответ сервера:', response);
 
         this.message = 'Вход выполнен успешно!';
-        console.log('Токен получен:', response.data.access_token); // Логирование: токен
+        console.log('Токен получен:', response.data.access_token);
 
         localStorage.setItem('token', response.data.access_token);
-        console.log('Токен сохранен в localStorage'); // Логирование: токен сохранен
+        console.log('Токен сохранен в localStorage');
 
         this.$router.push('/dashboard');
-        console.log('Перенаправление на /dashboard'); // Логирование: перенаправление
+        console.log('Перенаправление на /dashboard');
       } catch (error) {
-        console.error('Ошибка при входе:', error); // Логирование: ошибка
+        console.error('Ошибка при входе:', error);
         this.message = 'Ошибка при входе: ' + (error.response?.data?.message || error.message);
       }
     },
   },
-};
+});
 </script>
 
 <style scoped>
-.login-form {
+.login-container {
   max-width: 400px;
   margin: 0 auto;
   padding: 20px;
@@ -102,5 +108,19 @@ button:hover {
 p {
   color: red;
   text-align: center;
+}
+
+.register-link {
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.register-link a {
+  color: #2c3e50;
+  text-decoration: none;
+}
+
+.register-link a:hover {
+  text-decoration: underline;
 }
 </style>
