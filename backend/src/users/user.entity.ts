@@ -1,4 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToOne } from 'typeorm';
+import { UserType } from './enums/user-type.enum';
+import { Profile } from './entities/profile.entity';
 
 @Entity()
 export class User {
@@ -8,12 +10,34 @@ export class User {
   @Column()
   username: string;
 
-  @Column()
+  @Column({ unique: true })
   email: string;
 
   @Column()
   password: string;
 
-  @Column({ default: 'user' })
-  role: string; // Роль пользователя (например, бизнесмен, инвестор и т.д.)
+  @Column({
+    type: 'enum',
+    enum: UserType,
+    default: UserType.BUSINESSMAN
+  })
+  userType: UserType;
+
+  @Column({ default: true })
+  isActive: boolean;
+
+  @Column({ default: false })
+  isVerified: boolean;
+
+  @OneToOne(() => Profile, profile => profile.user, { cascade: true })
+  profile: Profile;
+
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  createdAt: Date;
+
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' })
+  updatedAt: Date;
+
+  @Column({ type: 'timestamp', nullable: true })
+  lastLoginAt: Date;
 }

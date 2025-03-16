@@ -1,7 +1,8 @@
 import axios from 'axios';
+import router from './router'; // Импортируем роутер напрямую
 
 const api = axios.create({
-  baseURL: '/api',  // Базовый URL для всех запросов
+  baseURL: '/api',  // Это правильно, оставляем как есть
   headers: {
     'Content-Type': 'application/json',  // Стандартный тип содержимого для REST API
   },
@@ -24,15 +25,20 @@ api.interceptors.request.use(
 // Добавляем интерцептор для обработки ответов
 api.interceptors.response.use(
   (response) => {
-    return response;  // Успешные ответы просто возвращаем
+    if (response.data.user) {
+      localStorage.setItem('userId', response.data.user.id);
+      localStorage.setItem('userType', response.data.user.userType);
+    }
+    return response;
   },
   (error) => {
-    // Можно добавить глобальную обработку ошибок, например:
-    if (error.response && error.response.status === 401) {
-      // 401 - Ошибка авторизации (например, если токен истек)
-      console.error('Токен недействителен или истек. Пожалуйста, войдите снова.');
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('userId');
+      localStorage.removeItem('userType');
+      router.push('/login');
     }
-    return Promise.reject(error);  // Передаем ошибку дальше
+    return Promise.reject(error);
   }
 );
 

@@ -1,24 +1,46 @@
 <template>
-  <div class="register-container">
+  <div class="register-container" v-animate="'fadeIn'">
     <h2>Регистрация</h2>
-    <form @submit.prevent="register">
-      <div>
-        <label for="username">Имя пользователя:</label>
-        <input type="text" v-model="user.username" required />
-      </div>
-      <div>
-        <label for="email">Email:</label>
-        <input type="email" v-model="user.email" required />
-      </div>
-      <div>
-        <label for="password">Пароль:</label>
-        <input type="password" v-model="user.password" required />
-      </div>
-      <button type="submit">Зарегистрироваться</button>
+    <form @submit.prevent="register" class="register-form">
+      <BaseInput
+        v-model="user.username"
+        label="Имя пользователя"
+        :error="v$.username.$errors[0]?.message"
+        required
+      />
+      
+      <BaseInput
+        v-model="user.email"
+        type="email"
+        label="Email"
+        :error="v$.email.$errors[0]?.message"
+        required
+      />
+      
+      <BaseInput
+        v-model="user.password"
+        type="password"
+        label="Пароль"
+        :error="v$.password.$errors[0]?.message"
+        required
+      />
+      
+      <BaseSelect
+        v-model="user.userType"
+        label="Тип пользователя"
+        :options="userTypes"
+        :error="v$.userType.$errors[0]?.message"
+        required
+      />
+      
+      <BaseButton 
+        type="submit"
+        :loading="isLoading"
+      >
+        Зарегистрироваться
+      </BaseButton>
     </form>
-    <p v-if="message">{{ message }}</p>
-    
-    <!-- Добавляем ссылку на логин -->
+
     <div class="login-link">
       <p>Уже есть аккаунт? <router-link to="/login">Войти</router-link></p>
     </div>
@@ -26,116 +48,114 @@
 </template>
 
 <script>
-import axios from 'axios';
+import { defineComponent, reactive } from 'vue'
+import { useVuelidate } from '@vuelidate/core'
+import { required, email, minLength } from '@vuelidate/validators'
+import { useUserStore } from '@/stores/user'
+import { useNotification } from '@/utils/notification'
+import BaseInput from '@/components/ui/BaseInput.vue'
+import BaseSelect from '@/components/ui/BaseSelect.vue'
+import BaseButton from '@/components/ui/BaseButton.vue'
 
-export default {
+export default defineComponent({
   name: 'RegisterForm',
+  components: {
+    BaseInput,
+    BaseSelect,
+    BaseButton
+  },
+  setup() {
+    const user = reactive({
+      username: '',
+      email: '',
+      password: '',
+      userType: 'businessman'
+    })
+    
+    const rules = {
+      username: { required, minLength: minLength(3) },
+      email: { required, email },
+      password: { required, minLength: minLength(6) },
+      userType: { required }
+    }
+    
+    const v$ = useVuelidate(rules, user)
+    const userStore = useUserStore()
+    const notification = useNotification()
+
+    return { 
+      v$,
+      userStore,
+      notification,
+      user
+    }
+  },
   data() {
     return {
-      user: {
-        username: '',
-        email: '',
-        password: '',
-      },
-      message: '',
-    };
+      userTypes: [
+        { value: 'businessman', label: 'Бизнесмен' },
+        { value: 'investor', label: 'Инвестор' },
+        { value: 'crypto_trader', label: 'Крипто-трейдер' },
+        { value: 'startup_founder', label: 'Основатель стартапа' }
+      ],
+      isLoading: false
+    }
   },
   methods: {
     async register() {
       try {
-        const response = await axios.post('/api/users/register', this.user);
-        this.message = 'Регистрация успешна!';
-        console.log('Регистрация успешна:', response.data);
-        // Добавляем редирект на страницу логина после успешной регистрации
-        setTimeout(() => {
-          this.$router.push('/login');
-        }, 1500);
+        const isValid = await this.v$.$validate()
+        if (!isValid) {
+          this.notification.error('Пожалуйста, заполните все поля корректно')
+          return
+        }
+
+        this.isLoading = true
+        await this.userStore.register(this.user)
+        
+        this.notification.success('Регистрация успешна!')
+        this.$router.push('/dashboard')
       } catch (error) {
-        this.message = 'Ошибка при регистрации';
-        console.error('Ошибка:', error.response?.data || error.message);
+        this.notification.error(
+          error.response?.data?.message || 'Ошибка при регистрации'
+        )
+      } finally {
+        this.isLoading = false
       }
-    },
-  },
-};
+    }
+  }
+})
 </script>
 
 <style scoped>
 .register-container {
   max-width: 400px;
-  margin: 0 auto;
-  padding: 20px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  background-color: #f9f9f9;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin: 2rem auto;
+  padding: 2rem;
+  background: var(--card-background);
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 h2 {
   text-align: center;
-  color: #2c3e50;
-  margin-bottom: 20px;
+  color: var(--text-color);
+  margin-bottom: 2rem;
 }
 
-form div {
-  margin-bottom: 15px;
-}
-
-label {
-  display: block;
-  margin-bottom: 5px;
-  color: #2c3e50;
-  font-weight: 500;
-}
-
-input {
-  width: 100%;
-  padding: 10px;
-  box-sizing: border-box;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 14px;
-}
-
-input:focus {
-  outline: none;
-  border-color: #28a745;
-  box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.2);
-}
-
-button {
-  width: 100%;
-  padding: 12px;
-  background-color: #28a745;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: 500;
-  transition: background-color 0.2s;
-}
-
-button:hover {
-  background-color: #218838;
-}
-
-p {
-  text-align: center;
-  margin-top: 10px;
-}
-
-p[v-if="message"] {
-  color: #28a745;
-  font-weight: 500;
+.register-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .login-link {
-  margin-top: 1rem;
+  margin-top: 1.5rem;
   text-align: center;
 }
 
 .login-link a {
-  color: #28a745;
+  color: var(--primary-color);
   text-decoration: none;
   font-weight: 500;
 }

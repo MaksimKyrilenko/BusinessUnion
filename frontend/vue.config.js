@@ -1,11 +1,14 @@
-module.exports = {
+const { defineConfig } = require('@vue/cli-service')
+
+module.exports = defineConfig({
+  transpileDependencies: true,
   devServer: {
+    port: 8081,
     proxy: {
       '/api': {
-        target: 'http://localhost:3000', // Сервер Nest.js
+        target: 'http://localhost:3000',
         changeOrigin: true,
-        pathRewrite: { '^/api': '' }, // Убирает /api из запроса
       },
     },
   },
-};
+});
