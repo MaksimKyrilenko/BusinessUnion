@@ -56,12 +56,48 @@ export default defineComponent({
 </script>
 
 <style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  color: #2c3e50;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap');
+
+:root {
+  --primary-color: #7C4DFF;
+  --primary-hover: #651FFF;
+  --text-primary: #ffffff;
+  --text-secondary: #B3B3B3;
+  --background: #000000;
+  --card-background: rgba(45, 45, 45, 0.5);
+  --card-hover: rgba(51, 51, 51, 0.7);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
   min-height: 100vh;
+  background: var(--background);
+  overflow-x: hidden;
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--text-primary);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Poppins', sans-serif;
+  letter-spacing: -0.02em;
+}
+
+#app {
+  width: 100%;
+  min-height: 100vh;
+  background: var(--background);
+  margin: 0;
+  padding: 0;
 }
 
 .main-content {

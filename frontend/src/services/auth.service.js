@@ -18,13 +18,42 @@ export default {
   },
 
   async register(userData) {
-    const response = await axios.post(`${API_URL}/auth/register`, userData);
-    if (response.data.token && response.data.user) {
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('userId', response.data.user.id);
-      localStorage.setItem('userType', response.data.user.userType);
+    try {
+      console.log('Отправляемые данные:', userData);
+      
+      const response = await axios.post(`${API_URL}/auth/register`, userData);
+      console.log('Ответ сервера:', response.data);
+      
+      if (response.data.token && response.data.user) {
+        localStorage.setItem('token', response.data.token);
+        localStorage.setItem('userId', response.data.user.id);
+        localStorage.setItem('userType', response.data.user.userType);
+      }
+      return response.data;
+    } catch (error) {
+      console.error('Детали ошибки регистрации:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        config: error.config,
+        stack: error.stack
+      });
+      
+      // Добавляем проверку на наличие ответа от сервера
+      if (error.response) {
+        console.error('Ответ сервера с ошибкой:', {
+          data: error.response.data,
+          status: error.response.status,
+          headers: error.response.headers
+        });
+      } else if (error.request) {
+        console.error('Запрос был сделан, но ответ не получен:', error.request);
+      } else {
+        console.error('Ошибка при настройке запроса:', error.message);
+      }
+      
+      throw error;
     }
-    return response.data;
   },
 
   logout() {

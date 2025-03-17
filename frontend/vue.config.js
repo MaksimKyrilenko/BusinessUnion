@@ -16,7 +16,15 @@ module.exports = defineConfig({
       '/api': {
         target: 'http://localhost:3000',
         changeOrigin: true,
-      },
-    },
+        ws: true,
+        logLevel: 'debug',
+        onError: (err) => {
+          console.log('Proxy error:', err);
+        },
+        onProxyReq: (proxyReq, req) => {
+          console.log('Proxy request:', req.method, req.url);
+        }
+      }
+    }
   },
 });
