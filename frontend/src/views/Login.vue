@@ -38,10 +38,6 @@
 
         <button type="submit" class="btn-login">Войти</button>
       </form>
-
-      <div class="login-footer">
-        <p>Нет аккаунта? <router-link to="/register">Зарегистрироваться</router-link></p>
-      </div>
     </div>
   </div>
 </template>
@@ -92,10 +88,7 @@ export default {
           localStorage.setItem('userType', user.userType);
           localStorage.setItem('userId', user.id);
 
-          // Добавляем небольшую задержку перед редиректом
-          setTimeout(() => {
-            this.$router.push('/dashboard');
-          }, 100);
+          this.$emit('success');
         } else {
           throw new Error('Отсутствуют необходимые данные в ответе');
         }
@@ -115,87 +108,136 @@ export default {
 
 <style scoped>
 .login-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  padding: 2rem;
+  width: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 .login-card {
-  background: white;
-  padding: 2rem;
-  border-radius: 1rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  box-shadow: none;
   width: 100%;
-  max-width: 400px;
-}
-
-h2 {
-  text-align: center;
-  color: #2c3e50;
-  margin-bottom: 2rem;
 }
 
 .login-form {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.8rem;
+}
+
+h2 {
+  color: #2196F3;
+  margin-bottom: 2.5rem;
+  font-family: 'Raleway', sans-serif;
+  font-size: 2.5rem;
+  text-align: center;
+  position: relative;
+}
+
+h2::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 3px;
+  background: linear-gradient(90deg, #2196F3, #64B5F6);
+  border-radius: 4px;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.8rem;
 }
 
 label {
-  color: #2c3e50;
+  color: #b3b3b3;
+  font-size: 1.1rem;
   font-weight: 500;
+  margin-left: 0.5rem;
 }
 
 input, select {
-  padding: 0.8rem;
-  border: 1px solid #ddd;
-  border-radius: 0.5rem;
-  font-size: 1rem;
+  background: rgba(25, 25, 25, 0.9);
+  border: 1px solid rgba(33, 150, 243, 0.2);
+  color: #ffffff;
+  transition: all 0.3s ease;
+  padding: 1rem 1.2rem;
+  border-radius: 0.8rem;
+  font-size: 1.1rem;
+  width: 100%;
 }
 
 input:focus, select:focus {
+  border-color: #2196F3;
+  box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
   outline: none;
-  border-color: #28a745;
-  box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.2);
+}
+
+input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
 }
 
 .btn-login {
-  background-color: #28a745;
-  color: white;
-  padding: 1rem;
+  background: linear-gradient(45deg, #2196F3, #64B5F6);
   border: none;
-  border-radius: 0.5rem;
-  font-size: 1rem;
-  font-weight: bold;
+  border-radius: 0.8rem;
+  color: white;
+  padding: 1.2rem;
+  font-size: 1.2rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: all 0.3s ease;
+  margin-top: 1rem;
 }
 
 .btn-login:hover {
-  background-color: #218838;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 15px rgba(33, 150, 243, 0.3);
+}
+
+.btn-login:active {
+  transform: translateY(1px);
 }
 
 .login-footer {
+  margin-top: 2rem;
   text-align: center;
-  margin-top: 1.5rem;
-  color: #666;
+  color: #b3b3b3;
+  font-size: 1.1rem;
 }
 
 .login-footer a {
-  color: #28a745;
+  color: #2196F3;
   text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease;
 }
 
 .login-footer a:hover {
+  color: #64B5F6;
   text-decoration: underline;
+}
+
+.error-message {
+  background: rgba(220, 53, 69, 0.1);
+  color: #ff6b6b;
+  padding: 1rem 1.2rem;
+  border-radius: 0.8rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid rgba(220, 53, 69, 0.2);
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.error-message::before {
+  content: '⚠';
+  font-size: 1.2rem;
 }
 </style> 

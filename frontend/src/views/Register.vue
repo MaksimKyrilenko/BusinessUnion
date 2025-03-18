@@ -92,10 +92,6 @@
 
         <button type="submit" class="btn-register">Зарегистрироваться</button>
       </form>
-
-      <div class="register-footer">
-        <p>Уже есть аккаунт? <router-link to="/login">Войти</router-link></p>
-      </div>
     </div>
   </div>
 </template>
@@ -147,10 +143,7 @@ export default {
           localStorage.setItem('userId', response.user.id);
           localStorage.setItem('userType', response.user.userType);
           
-          // Добавляем небольшую задержку перед редиректом
-          setTimeout(() => {
-            this.$router.push('/dashboard');
-          }, 100);
+          this.$emit('success');
         } else {
           throw new Error('Отсутствуют необходимые данные в ответе');
         }
@@ -174,108 +167,167 @@ export default {
 
 <style scoped>
 .register-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  padding: 2rem;
+  width: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 .register-card {
-  background: white;
-  padding: 2rem;
-  border-radius: 1rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  box-shadow: none;
   width: 100%;
-  max-width: 500px;
 }
 
 h2 {
+  color: #2196F3;
+  margin-bottom: 2.5rem;
+  font-family: 'Raleway', sans-serif;
+  font-size: 2.5rem;
   text-align: center;
-  color: #2c3e50;
-  margin-bottom: 2rem;
+  position: relative;
+}
+
+h2::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 3px;
+  background: linear-gradient(90deg, #2196F3, #64B5F6);
+  border-radius: 4px;
 }
 
 .register-form {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.8rem;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-}
-
-label {
-  color: #2c3e50;
-  font-weight: 500;
+  gap: 0.8rem;
 }
 
 input, select, textarea {
-  padding: 0.8rem;
-  border: 1px solid #ddd;
-  border-radius: 0.5rem;
-  font-size: 1rem;
+  background: rgba(25, 25, 25, 0.9);
+  border: 1px solid rgba(33, 150, 243, 0.2);
+  color: #ffffff;
+  transition: all 0.3s ease;
+  padding: 1rem 1.2rem;
+  border-radius: 0.8rem;
+  font-size: 1.1rem;
+  width: 100%;
 }
 
 textarea {
   resize: vertical;
-  min-height: 100px;
+  min-height: 120px;
+  font-family: inherit;
 }
 
 input:focus, select:focus, textarea:focus {
+  border-color: #2196F3;
+  box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
   outline: none;
-  border-color: #28a745;
-  box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.2);
+}
+
+input::placeholder, textarea::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+label {
+  color: #b3b3b3;
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin-left: 0.5rem;
 }
 
 .btn-register {
-  background-color: #28a745;
-  color: white;
-  padding: 1rem;
+  background: linear-gradient(45deg, #2196F3, #64B5F6);
   border: none;
-  border-radius: 0.5rem;
-  font-size: 1rem;
-  font-weight: bold;
+  border-radius: 0.8rem;
+  color: white;
+  padding: 1.2rem;
+  font-size: 1.2rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: all 0.3s ease;
+  margin-top: 1rem;
 }
 
 .btn-register:hover {
-  background-color: #218838;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 15px rgba(33, 150, 243, 0.3);
+}
+
+.btn-register:active {
+  transform: translateY(1px);
 }
 
 .register-footer {
+  margin-top: 2rem;
+  color: #b3b3b3;
   text-align: center;
-  margin-top: 1.5rem;
-  color: #666;
+  font-size: 1.1rem;
 }
 
 .register-footer a {
-  color: #28a745;
+  color: #2196F3;
   text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease;
 }
 
 .register-footer a:hover {
+  color: #64B5F6;
   text-decoration: underline;
 }
 
-.error {
-  color: #dc3545;
-  font-size: 0.9rem;
-  margin-top: 0.5rem;
+.error-message {
+  background: rgba(220, 53, 69, 0.1);
+  color: #ff6b6b;
+  padding: 1rem 1.2rem;
+  border-radius: 0.8rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid rgba(220, 53, 69, 0.2);
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.error-message {
-  background-color: #f8d7da;
-  color: #721c24;
-  padding: 1rem;
-  border-radius: 0.5rem;
-  margin-bottom: 1rem;
-  border: 1px solid #f5c6cb;
-  font-size: 0.9rem;
+.error-message::before {
+  content: '⚠';
+  font-size: 1.2rem;
 }
+
+/* Анимация для полей формы */
+@keyframes formFieldAppear {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.form-group {
+  animation: formFieldAppear 0.3s ease-out forwards;
+}
+
+.form-group:nth-child(1) { animation-delay: 0.1s; }
+.form-group:nth-child(2) { animation-delay: 0.2s; }
+.form-group:nth-child(3) { animation-delay: 0.3s; }
+.form-group:nth-child(4) { animation-delay: 0.4s; }
+.form-group:nth-child(5) { animation-delay: 0.5s; }
+.form-group:nth-child(6) { animation-delay: 0.6s; }
+.form-group:nth-child(7) { animation-delay: 0.7s; }
+.form-group:nth-child(8) { animation-delay: 0.8s; }
 </style> 
