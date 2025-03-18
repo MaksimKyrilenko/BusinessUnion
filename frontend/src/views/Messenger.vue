@@ -1,224 +1,373 @@
 <template>
   <div class="messenger">
-    <div class="messenger-container">
-      <!-- Список чатов -->
-      <div class="chats-list">
-        <div class="chats-header">
-          <h2>Сообщения</h2>
-          <button class="btn btn-primary" @click="startNewChat">
-            Новый чат
+    <div class="messenger-sidebar">
+      <div class="search-bar">
+        <input 
+          type="text" 
+          v-model="searchQuery" 
+          placeholder="Поиск чатов..."
+          @input="searchChats"
+        >
+      </div>
+
+      <div class="chat-tabs">
+        <button 
+          :class="['tab-btn', { active: activeTab === 'personal' }]"
+          @click="activeTab = 'personal'"
+        >
+          Личные
+        </button>
+        <button 
+          :class="['tab-btn', { active: activeTab === 'group' }]"
+          @click="activeTab = 'group'"
+        >
+          Групповые
+        </button>
+      </div>
+
+      <div class="chat-list">
+        <div 
+          v-for="chat in filteredChats" 
+          :key="chat.id"
+          :class="['chat-item', { active: selectedChat?.id === chat.id }]"
+          @click="selectChat(chat)"
+        >
+          <div class="chat-avatar">
+            <img :src="chat.avatar || '/default-avatar.png'" :alt="chat.name">
+            <span class="status-indicator" :class="chat.status"></span>
+          </div>
+          <div class="chat-info">
+            <div class="chat-header">
+              <h3>{{ chat.name }}</h3>
+              <span class="chat-time">{{ formatTime(chat.lastMessage?.timestamp) }}</span>
+            </div>
+            <p class="chat-preview">{{ chat.lastMessage?.text || 'Нет сообщений' }}</p>
+            <span v-if="chat.unreadCount" class="unread-badge">{{ chat.unreadCount }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="create-group" v-if="activeTab === 'group'">
+        <button class="create-group-btn" @click="showCreateGroupModal = true">
+          <i class="fas fa-plus"></i> Создать группу
+        </button>
+      </div>
+    </div>
+
+    <div class="messenger-main" v-if="selectedChat">
+      <div class="chat-header">
+        <div class="chat-info">
+          <img :src="selectedChat.avatar || '/default-avatar.png'" :alt="selectedChat.name">
+          <div>
+            <h2>{{ selectedChat.name }}</h2>
+            <span class="status">{{ selectedChat.status === 'online' ? 'В сети' : 'Не в сети' }}</span>
+          </div>
+        </div>
+        <div class="chat-actions">
+          <button v-if="selectedChat.type === 'group'" @click="showGroupInfo = true">
+            <i class="fas fa-info-circle"></i>
+          </button>
+          <button @click="showChatSettings = true">
+            <i class="fas fa-ellipsis-v"></i>
           </button>
         </div>
+      </div>
 
-        <div class="chats-search">
-          <input
-            type="text"
-            v-model="searchQuery"
-            placeholder="Поиск чатов..."
-            class="search-input"
-          />
-        </div>
-
-        <div class="chats">
-          <div
-            v-for="chat in filteredChats"
-            :key="chat.id"
-            class="chat-item"
-            :class="{ active: currentChat?.id === chat.id }"
-            @click="selectChat(chat)"
-          >
-            <div class="chat-avatar">
-              {{ chat.name[0] }}
+      <div class="messages-container" ref="messagesContainer">
+        <div 
+          v-for="message in selectedChat.messages" 
+          :key="message.id"
+          :class="['message', { 'message-own': message.senderId === currentUserId }]"
+        >
+          <div class="message-content">
+            <div v-if="message.type === 'text'" class="message-text">
+              {{ message.text }}
             </div>
-            <div class="chat-info">
-              <div class="chat-name">{{ chat.name }}</div>
-              <div class="chat-preview">{{ chat.lastMessage }}</div>
+            <div v-else-if="message.type === 'image'" class="message-image">
+              <img :src="message.url" @click="showImagePreview(message.url)">
             </div>
-            <div class="chat-meta">
-              <div class="chat-time">{{ formatTime(chat.lastMessageTime) }}</div>
-              <div v-if="chat.unreadCount" class="unread-badge">
-                {{ chat.unreadCount }}
-              </div>
+            <div v-else-if="message.type === 'file'" class="message-file">
+              <i class="fas fa-file"></i>
+              <span>{{ message.fileName }}</span>
+              <button @click="downloadFile(message.url, message.fileName)">
+                <i class="fas fa-download"></i>
+              </button>
+            </div>
+            <div class="message-meta">
+              <span class="message-time">{{ formatTime(message.timestamp) }}</span>
+              <span v-if="message.senderId === currentUserId" class="message-status">
+                <i :class="['fas', message.status === 'read' ? 'fa-check-double' : 'fa-check']"></i>
+              </span>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Область чата -->
-      <div class="chat-area" v-if="currentChat">
-        <div class="chat-header">
-          <div class="chat-user-info">
-            <div class="chat-avatar">{{ currentChat.name[0] }}</div>
-            <div class="chat-name">{{ currentChat.name }}</div>
-          </div>
-          <div class="chat-actions">
-            <button class="btn btn-icon" @click="toggleChatInfo">
-              <i class="fas fa-info-circle"></i>
-            </button>
-            <button class="btn btn-icon" @click="toggleChatSettings">
-              <i class="fas fa-cog"></i>
-            </button>
-          </div>
-        </div>
-
-        <div class="messages-container" ref="messagesContainer">
-          <div
-            v-for="message in currentChat.messages"
-            :key="message.id"
-            class="message"
-            :class="{ 'message-out': message.isOutgoing }"
-          >
-            <div class="message-content">
-              {{ message.text }}
-            </div>
-            <div class="message-time">
-              {{ formatTime(message.time) }}
-            </div>
-          </div>
-        </div>
-
-        <div class="message-input">
-          <textarea
-            v-model="newMessage"
+      <div class="message-input">
+        <button class="attach-btn" @click="showAttachMenu = true">
+          <i class="fas fa-paperclip"></i>
+        </button>
+        <div class="input-wrapper">
+          <textarea 
+            v-model="newMessage" 
             placeholder="Введите сообщение..."
-            @keyup.enter.exact="sendMessage"
-            @keyup.enter.shift.exact="newLine"
+            @keydown.enter.prevent="sendMessage"
             rows="1"
             ref="messageInput"
           ></textarea>
-          <button
-            class="btn btn-primary"
-            @click="sendMessage"
-            :disabled="!newMessage.trim()"
-          >
-            Отправить
+          <button class="emoji-btn" @click="showEmojiPicker = true">
+            <i class="far fa-smile"></i>
           </button>
         </div>
+        <button class="send-btn" @click="sendMessage" :disabled="!newMessage.trim()">
+          <i class="fas fa-paper-plane"></i>
+        </button>
       </div>
+    </div>
 
-      <!-- Информация о чате -->
-      <div class="chat-info-panel" v-if="showChatInfo">
-        <div class="info-header">
-          <h3>Информация о чате</h3>
-          <button class="btn btn-icon" @click="showChatInfo = false">
-            <i class="fas fa-times"></i>
-          </button>
-        </div>
-        <div class="info-content">
-          <div class="info-section">
-            <h4>Участники</h4>
-            <div class="participants-list">
-              <div
-                v-for="participant in currentChat.participants"
-                :key="participant.id"
-                class="participant"
+    <div class="messenger-placeholder" v-else>
+      <div class="placeholder-content">
+        <i class="fas fa-comments"></i>
+        <h2>Выберите чат для начала общения</h2>
+      </div>
+    </div>
+
+    <!-- Модальные окна -->
+    <modal v-if="showCreateGroupModal" @close="showCreateGroupModal = false">
+      <template #header>
+        <h3>Создание группы</h3>
+      </template>
+      <template #default>
+        <form @submit.prevent="createGroup" class="create-group-form">
+          <div class="form-group">
+            <label>Название группы</label>
+            <input v-model="newGroup.name" type="text" required>
+          </div>
+          <div class="form-group">
+            <label>Описание</label>
+            <textarea v-model="newGroup.description"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Участники</label>
+            <div class="selected-users">
+              <div v-for="user in newGroup.users" :key="user.id" class="selected-user">
+                {{ user.name }}
+                <button @click="removeUser(user)">×</button>
+              </div>
+            </div>
+            <input 
+              type="text" 
+              v-model="userSearch" 
+              @input="searchUsers" 
+              placeholder="Поиск пользователей..."
+            >
+            <div v-if="searchResults.length" class="search-results">
+              <div 
+                v-for="user in searchResults" 
+                :key="user.id"
+                class="search-result"
+                @click="addUser(user)"
               >
-                <div class="participant-avatar">
-                  {{ participant.name[0] }}
-                </div>
-                <div class="participant-info">
-                  <div class="participant-name">{{ participant.name }}</div>
-                  <div class="participant-role">{{ participant.role }}</div>
-                </div>
+                {{ user.name }}
               </div>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
+        </form>
+      </template>
+      <template #footer>
+        <button class="btn-secondary" @click="showCreateGroupModal = false">Отмена</button>
+        <button class="btn-primary" @click="createGroup">Создать</button>
+      </template>
+    </modal>
   </div>
 </template>
 
 <script>
-import api from '@/axios';
+import { ref, computed, onMounted, nextTick } from 'vue'
+import { useUserStore } from '@/stores/user'
+import Modal from '@/components/ui/Modal.vue'
+import api from '@/axios'
 
 export default {
   name: 'Messenger',
-  data() {
-    return {
-      chats: [],
-      currentChat: null,
-      searchQuery: '',
-      newMessage: '',
-      showChatInfo: false,
-      showChatSettings: false
-    }
+  components: {
+    Modal
   },
-  computed: {
-    filteredChats() {
-      if (!this.searchQuery) return this.chats;
-      const query = this.searchQuery.toLowerCase();
-      return this.chats.filter(chat =>
-        chat.name.toLowerCase().includes(query)
-      );
-    }
-  },
-  async created() {
-    await this.loadChats();
-    // Здесь можно добавить подключение к WebSocket для получения сообщений в реальном времени
-  },
-  methods: {
-    async loadChats() {
+  setup() {
+    const userStore = useUserStore()
+    const currentUserId = ref(userStore.userId)
+    
+    const activeTab = ref('personal')
+    const searchQuery = ref('')
+    const chats = ref([])
+    const selectedChat = ref(null)
+    const newMessage = ref('')
+    const showCreateGroupModal = ref(false)
+    const showAttachMenu = ref(false)
+    const showEmojiPicker = ref(false)
+    const messagesContainer = ref(null)
+    
+    const newGroup = ref({
+      name: '',
+      description: '',
+      users: []
+    })
+    
+    const userSearch = ref('')
+    const searchResults = ref([])
+
+    const filteredChats = computed(() => {
+      return chats.value
+        .filter(chat => 
+          (activeTab.value === 'personal' ? !chat.isGroup : chat.isGroup) &&
+          chat.name.toLowerCase().includes(searchQuery.value.toLowerCase())
+        )
+        .sort((a, b) => {
+          const timeA = a.lastMessage?.timestamp || 0
+          const timeB = b.lastMessage?.timestamp || 0
+          return timeB - timeA
+        })
+    })
+
+    const loadChats = async () => {
       try {
-        const response = await api.get('/chats');
-        this.chats = response.data;
+        const response = await api.get('/chats')
+        chats.value = response.data
       } catch (error) {
-        console.error('Ошибка при загрузке чатов:', error);
+        console.error('Ошибка при загрузке чатов:', error)
       }
-    },
-    selectChat(chat) {
-      this.currentChat = chat;
-      this.loadMessages(chat.id);
-    },
-    async loadMessages(chatId) {
-      try {
-        const response = await api.get(`/chats/${chatId}/messages`);
-        this.currentChat.messages = response.data;
-        this.$nextTick(() => {
-          this.scrollToBottom();
-        });
-      } catch (error) {
-        console.error('Ошибка при загрузке сообщений:', error);
+    }
+
+    const selectChat = async (chat) => {
+      selectedChat.value = chat
+      if (chat.unreadCount > 0) {
+        try {
+          await api.post(`/chats/${chat.id}/read`)
+          chat.unreadCount = 0
+        } catch (error) {
+          console.error('Ошибка при отметке сообщений как прочитанных:', error)
+        }
       }
-    },
-    async sendMessage() {
-      if (!this.newMessage.trim()) return;
+      await nextTick()
+      scrollToBottom()
+    }
+
+    const sendMessage = async () => {
+      if (!newMessage.value.trim()) return
 
       try {
-        const response = await api.post(`/chats/${this.currentChat.id}/messages`, {
-          text: this.newMessage
-        });
-        this.currentChat.messages.push(response.data);
-        this.newMessage = '';
-        this.$nextTick(() => {
-          this.scrollToBottom();
-        });
+        const message = {
+          chatId: selectedChat.value.id,
+          text: newMessage.value,
+          type: 'text',
+          timestamp: Date.now()
+        }
+
+        const response = await api.post('/messages', message)
+        selectedChat.value.messages.push(response.data)
+        newMessage.value = ''
+        
+        await nextTick()
+        scrollToBottom()
       } catch (error) {
-        console.error('Ошибка при отправке сообщения:', error);
+        console.error('Ошибка при отправке сообщения:', error)
       }
-    },
-    newLine(e) {
-      e.preventDefault();
-      this.newMessage += '\n';
-    },
-    scrollToBottom() {
-      const container = this.$refs.messagesContainer;
-      container.scrollTop = container.scrollHeight;
-    },
-    formatTime(time) {
-      return new Date(time).toLocaleTimeString('ru-RU', {
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    },
-    startNewChat() {
-      // Здесь можно добавить логику создания нового чата
-    },
-    toggleChatInfo() {
-      this.showChatInfo = !this.showChatInfo;
-    },
-    toggleChatSettings() {
-      this.showChatSettings = !this.showChatSettings;
+    }
+
+    const scrollToBottom = () => {
+      if (messagesContainer.value) {
+        messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
+      }
+    }
+
+    const formatTime = (timestamp) => {
+      if (!timestamp) return ''
+      
+      const date = new Date(timestamp)
+      const now = new Date()
+      const isToday = date.toDateString() === now.toDateString()
+      
+      if (isToday) {
+        return date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+      }
+      
+      return date.toLocaleDateString('ru-RU', {
+        day: '2-digit',
+        month: '2-digit',
+        year: '2-digit'
+      })
+    }
+
+    const searchUsers = async () => {
+      if (!userSearch.value.trim()) {
+        searchResults.value = []
+        return
+      }
+
+      try {
+        const response = await api.get(`/users/search?q=${userSearch.value}`)
+        searchResults.value = response.data.filter(user => 
+          !newGroup.value.users.some(selected => selected.id === user.id)
+        )
+      } catch (error) {
+        console.error('Ошибка при поиске пользователей:', error)
+      }
+    }
+
+    const addUser = (user) => {
+      newGroup.value.users.push(user)
+      searchResults.value = searchResults.value.filter(u => u.id !== user.id)
+      userSearch.value = ''
+    }
+
+    const removeUser = (user) => {
+      newGroup.value.users = newGroup.value.users.filter(u => u.id !== user.id)
+    }
+
+    const createGroup = async () => {
+      if (!newGroup.value.name.trim() || newGroup.value.users.length < 2) return
+
+      try {
+        const response = await api.post('/chats/group', {
+          name: newGroup.value.name,
+          description: newGroup.value.description,
+          userIds: newGroup.value.users.map(u => u.id)
+        })
+
+        chats.value.unshift(response.data)
+        showCreateGroupModal.value = false
+        newGroup.value = { name: '', description: '', users: [] }
+      } catch (error) {
+        console.error('Ошибка при создании группы:', error)
+      }
+    }
+
+    onMounted(() => {
+      loadChats()
+    })
+
+    return {
+      activeTab,
+      searchQuery,
+      chats,
+      selectedChat,
+      newMessage,
+      showCreateGroupModal,
+      showAttachMenu,
+      showEmojiPicker,
+      messagesContainer,
+      newGroup,
+      userSearch,
+      searchResults,
+      filteredChats,
+      currentUserId,
+      selectChat,
+      sendMessage,
+      formatTime,
+      searchUsers,
+      addUser,
+      removeUser,
+      createGroup
     }
   }
 }
@@ -226,48 +375,56 @@ export default {
 
 <style scoped>
 .messenger {
-  height: calc(100vh - 64px);
   display: flex;
-  flex-direction: column;
-}
-
-.messenger-container {
-  display: grid;
-  grid-template-columns: 300px 1fr;
-  height: 100%;
+  height: calc(100vh - 60px);
   background: white;
-  border-radius: 1rem;
-  overflow: hidden;
+  margin-top: 60px;
 }
 
-.chats-list {
-  border-right: 1px solid #eee;
+.messenger-sidebar {
+  width: 350px;
+  border-right: 1px solid #e0e0e0;
   display: flex;
   flex-direction: column;
 }
 
-.chats-header {
+.search-bar {
   padding: 1rem;
-  border-bottom: 1px solid #eee;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  border-bottom: 1px solid #e0e0e0;
 }
 
-.chats-search {
-  padding: 1rem;
-  border-bottom: 1px solid #eee;
-}
-
-.search-input {
+.search-bar input {
   width: 100%;
-  padding: 0.5rem;
-  border: 1px solid #ddd;
+  padding: 0.75rem 1rem;
+  border: 1px solid #e0e0e0;
   border-radius: 0.5rem;
   font-size: 0.9rem;
 }
 
-.chats {
+.chat-tabs {
+  display: flex;
+  padding: 0.5rem;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 0.75rem;
+  text-align: center;
+  background: none;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  color: #666;
+  transition: all 0.3s ease;
+}
+
+.tab-btn.active {
+  background: #2196F3;
+  color: white;
+}
+
+.chat-list {
   flex: 1;
   overflow-y: auto;
 }
@@ -275,30 +432,49 @@ export default {
 .chat-item {
   display: flex;
   padding: 1rem;
-  border-bottom: 1px solid #eee;
+  gap: 1rem;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: background 0.3s ease;
+  position: relative;
 }
 
 .chat-item:hover {
-  background-color: #f8f9fa;
+  background: #f5f5f5;
 }
 
 .chat-item.active {
-  background-color: #e8f5e9;
+  background: #e3f2fd;
 }
 
 .chat-avatar {
-  width: 40px;
-  height: 40px;
+  position: relative;
+  width: 50px;
+  height: 50px;
+}
+
+.chat-avatar img {
+  width: 100%;
+  height: 100%;
   border-radius: 50%;
-  background-color: #28a745;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  margin-right: 1rem;
+  object-fit: cover;
+}
+
+.status-indicator {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid white;
+}
+
+.status-indicator.online {
+  background: #4caf50;
+}
+
+.status-indicator.offline {
+  background: #9e9e9e;
 }
 
 .chat-info {
@@ -306,23 +482,18 @@ export default {
   min-width: 0;
 }
 
-.chat-name {
-  font-weight: 500;
+.chat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
   margin-bottom: 0.25rem;
 }
 
-.chat-preview {
-  color: #666;
-  font-size: 0.9rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.chat-meta {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
+.chat-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #2c3e50;
 }
 
 .chat-time {
@@ -330,32 +501,62 @@ export default {
   color: #666;
 }
 
-.unread-badge {
-  background-color: #28a745;
-  color: white;
-  font-size: 0.8rem;
-  padding: 0.25rem 0.5rem;
-  border-radius: 1rem;
-  margin-top: 0.25rem;
+.chat-preview {
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.chat-area {
+.unread-badge {
+  position: absolute;
+  top: 50%;
+  right: 1rem;
+  transform: translateY(-50%);
+  background: #2196F3;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 1rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.messenger-main {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  height: 100%;
 }
 
 .chat-header {
   padding: 1rem;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid #e0e0e0;
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
 }
 
-.chat-user-info {
+.chat-header .chat-info {
   display: flex;
   align-items: center;
+  gap: 1rem;
+}
+
+.chat-header img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.chat-header h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.chat-header .status {
+  font-size: 0.9rem;
+  color: #666;
 }
 
 .chat-actions {
@@ -363,163 +564,272 @@ export default {
   gap: 0.5rem;
 }
 
+.chat-actions button {
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  cursor: pointer;
+  color: #666;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.chat-actions button:hover {
+  background: #f5f5f5;
+  color: #2196F3;
+}
+
 .messages-container {
   flex: 1;
-  padding: 1rem;
   overflow-y: auto;
+  padding: 1rem;
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
 
 .message {
-  max-width: 70%;
-  padding: 0.5rem 1rem;
-  border-radius: 1rem;
-  background-color: #f8f9fa;
-  align-self: flex-start;
+  display: flex;
+  margin-bottom: 1rem;
 }
 
-.message-out {
-  background-color: #28a745;
-  color: white;
-  align-self: flex-end;
+.message-own {
+  flex-direction: row-reverse;
 }
 
 .message-content {
-  margin-bottom: 0.25rem;
+  max-width: 70%;
+  display: flex;
+  flex-direction: column;
 }
 
-.message-time {
+.message-text {
+  background: #f5f5f5;
+  padding: 0.75rem 1rem;
+  border-radius: 1rem;
+  border-bottom-left-radius: 0;
+  color: #2c3e50;
+}
+
+.message-own .message-text {
+  background: #2196F3;
+  color: white;
+  border-radius: 1rem;
+  border-bottom-right-radius: 0;
+}
+
+.message-image img {
+  max-width: 100%;
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+.message-file {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #f5f5f5;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+}
+
+.message-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
   font-size: 0.8rem;
-  opacity: 0.7;
+  color: #666;
+}
+
+.message-own .message-meta {
+  flex-direction: row-reverse;
+}
+
+.message-status i {
+  font-size: 0.9rem;
 }
 
 .message-input {
   padding: 1rem;
-  border-top: 1px solid #eee;
+  border-top: 1px solid #e0e0e0;
   display: flex;
+  align-items: flex-end;
   gap: 1rem;
 }
 
-.message-input textarea {
+.input-wrapper {
   flex: 1;
+  position: relative;
+  background: #f5f5f5;
+  border-radius: 1rem;
   padding: 0.5rem;
-  border: 1px solid #ddd;
-  border-radius: 0.5rem;
-  resize: none;
-  font-family: inherit;
 }
 
-.btn {
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
-  font-weight: 500;
+.input-wrapper textarea {
+  width: 100%;
+  border: none;
+  background: none;
+  resize: none;
+  padding: 0.5rem 2.5rem 0.5rem 0.5rem;
+  font-size: 0.95rem;
+  max-height: 150px;
+}
+
+.attach-btn,
+.emoji-btn,
+.send-btn {
+  background: none;
+  border: none;
+  padding: 0.75rem;
   cursor: pointer;
+  color: #666;
+  border-radius: 50%;
   transition: all 0.3s ease;
 }
 
-.btn-primary {
-  background-color: #28a745;
-  color: white;
-  border: none;
-}
-
-.btn-icon {
-  background: none;
-  border: none;
-  color: #666;
+.emoji-btn {
+  position: absolute;
+  right: 0.5rem;
+  bottom: 0.5rem;
   padding: 0.5rem;
 }
 
-.btn:disabled {
-  opacity: 0.5;
+.send-btn {
+  color: #2196F3;
+}
+
+.send-btn:disabled {
+  color: #ccc;
   cursor: not-allowed;
 }
 
-.chat-info-panel {
-  width: 300px;
-  border-left: 1px solid #eee;
-  background-color: white;
-}
-
-.info-header {
-  padding: 1rem;
-  border-bottom: 1px solid #eee;
+.messenger-placeholder {
+  flex: 1;
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: center;
+  background: #fafafa;
 }
 
-.info-content {
-  padding: 1rem;
+.placeholder-content {
+  text-align: center;
+  color: #666;
 }
 
-.info-section {
-  margin-bottom: 1.5rem;
-}
-
-.info-section h4 {
+.placeholder-content i {
+  font-size: 4rem;
   margin-bottom: 1rem;
-  color: #2c3e50;
+  color: #2196F3;
 }
 
-.participants-list {
+.create-group {
+  padding: 1rem;
+  border-top: 1px solid #e0e0e0;
+}
+
+.create-group-btn {
+  width: 100%;
+  padding: 0.75rem;
+  background: #2196F3;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.create-group-btn:hover {
+  background: #1976d2;
+}
+
+.create-group-form {
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
 
-.participant {
+.form-group {
   display: flex;
-  align-items: center;
-  gap: 1rem;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
-.participant-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background-color: #28a745;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-}
-
-.participant-info {
-  flex: 1;
-}
-
-.participant-name {
+.form-group label {
   font-weight: 500;
+  color: #2c3e50;
 }
 
-.participant-role {
+.selected-users {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.selected-user {
+  background: #e3f2fd;
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   font-size: 0.9rem;
+}
+
+.selected-user button {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
   color: #666;
 }
 
+.search-results {
+  margin-top: 0.5rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 0.5rem;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.search-result {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.search-result:hover {
+  background: #f5f5f5;
+}
+
 @media (max-width: 768px) {
-  .messenger-container {
-    grid-template-columns: 1fr;
+  .messenger {
+    flex-direction: column;
   }
 
-  .chats-list {
-    display: none;
-  }
-
-  .chats-list.active {
-    display: flex;
-  }
-
-  .chat-info-panel {
+  .messenger-sidebar {
+    width: 100%;
+    height: 100%;
     position: fixed;
-    right: 0;
-    top: 0;
-    bottom: 0;
-    z-index: 1000;
+    top: 60px;
+    left: 0;
+    z-index: 10;
+    background: white;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+
+  .messenger-sidebar.active {
+    transform: translateX(0);
+  }
+
+  .messenger-main {
+    margin-left: 0;
   }
 }
 </style> 

@@ -5,41 +5,61 @@ import router from '@/router'
 export const useUserStore = defineStore('user', {
   state: () => ({
     user: null,
-    isAuthenticated: !!localStorage.getItem('token'),
+    isAuthenticated: false,
     loading: false,
     error: null
   }),
 
   getters: {
-    getUserType: (state) => state.user?.userType,
-    getUserId: (state) => state.user?.id,
-    getUsername: (state) => state.user?.username
+    userRole: (state) => state.user?.role || '',
+    userName: (state) => state.user ? `${state.user.firstName} ${state.user.lastName}` : '',
+    userAvatar: (state) => state.user?.avatar || ''
   },
 
   actions: {
+    async loadUser() {
+      if (this.loading) return
+      
+      this.loading = true
+      this.error = null
+
+      try {
+        const token = localStorage.getItem('token')
+        if (!token) {
+          this.user = null
+          this.isAuthenticated = false
+          return
+        }
+
+        const response = await api.get('/users/profile')
+        this.user = response.data
+        this.isAuthenticated = true
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Ошибка при загрузке профиля'
+        this.user = null
+        this.isAuthenticated = false
+        localStorage.removeItem('token')
+      } finally {
+        this.loading = false
+      }
+    },
+
     async login(credentials) {
       this.loading = true
       this.error = null
+
       try {
         const response = await api.post('/auth/login', credentials)
         const { token, user } = response.data
-        
-        if (!token || !user || !user.id || !user.userType) {
-          throw new Error('Некорректные данные пользователя')
-        }
 
         localStorage.setItem('token', token)
-        localStorage.setItem('userType', user.userType)
-        localStorage.setItem('userId', user.id)
-        
         this.user = user
         this.isAuthenticated = true
-        
-        router.push('/dashboard')
-        return response.data
+
+        return true
       } catch (error) {
         this.error = error.response?.data?.message || 'Ошибка при входе'
-        throw error
+        return false
       } finally {
         this.loading = false
       }
@@ -48,17 +68,35 @@ export const useUserStore = defineStore('user', {
     async register(userData) {
       this.loading = true
       this.error = null
+
       try {
-        const response = await api.post('/users/register', userData)
-        if (response.data.access_token) {
-          localStorage.setItem('token', response.data.access_token)
-          this.user = response.data.user
-          this.isAuthenticated = true
-        }
-        return response.data
+        const response = await api.post('/auth/register', userData)
+        const { token, user } = response.data
+
+        localStorage.setItem('token', token)
+        this.user = user
+        this.isAuthenticated = true
+
+        return true
       } catch (error) {
         this.error = error.response?.data?.message || 'Ошибка при регистрации'
-        throw error
+        return false
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async updateProfile(profileData) {
+      this.loading = true
+      this.error = null
+
+      try {
+        const response = await api.put('/users/profile', profileData)
+        this.user = response.data
+        return true
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Ошибка при обновлении профиля'
+        return false
       } finally {
         this.loading = false
       }
@@ -66,36 +104,9 @@ export const useUserStore = defineStore('user', {
 
     async logout() {
       localStorage.removeItem('token')
-      localStorage.removeItem('userId')
-      localStorage.removeItem('userType')
       this.user = null
       this.isAuthenticated = false
       router.push('/')
-    },
-
-    async loadUser() {
-      if (!localStorage.getItem('token')) {
-        this.isAuthenticated = false
-        this.user = null
-        return
-      }
-
-      try {
-        const userId = localStorage.getItem('userId')
-        const userType = localStorage.getItem('userType')
-        
-        if (userId && userType) {
-          this.user = {
-            id: userId,
-            userType: userType
-          }
-          this.isAuthenticated = true
-        } else {
-          await this.logout()
-        }
-      } catch (error) {
-        await this.logout()
-      }
     }
   }
 }) 

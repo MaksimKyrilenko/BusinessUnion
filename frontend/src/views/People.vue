@@ -1,404 +1,262 @@
 <template>
   <div class="people">
-    <div class="people-container">
-      <!-- Фильтры -->
-      <div class="filters">
-        <div class="filters-header">
-          <h2>Фильтры</h2>
-          <button class="btn btn-text" @click="resetFilters">
-            Сбросить
-          </button>
-        </div>
-
-        <div class="filter-section">
-          <h3>Тип пользователя</h3>
-          <div class="filter-options">
-            <label class="checkbox-label">
-              <input
-                type="checkbox"
-                v-model="filters.userTypes"
-                value="startup_founder"
-              >
-              Создатели стартапов
-            </label>
-            <label class="checkbox-label">
-              <input
-                type="checkbox"
-                v-model="filters.userTypes"
-                value="investor"
-              >
-              Инвесторы
-            </label>
-            <label class="checkbox-label">
-              <input
-                type="checkbox"
-                v-model="filters.userTypes"
-                value="businessman"
-              >
-              Бизнесмены
-            </label>
-            <label class="checkbox-label">
-              <input
-                type="checkbox"
-                v-model="filters.userTypes"
-                value="crypto_trader"
-              >
-              Криптотрейдеры
-            </label>
-          </div>
-        </div>
-
-        <div class="filter-section">
-          <h3>Интересы</h3>
-          <div class="filter-options">
-            <label
-              v-for="interest in availableInterests"
-              :key="interest"
-              class="checkbox-label"
-            >
-              <input
-                type="checkbox"
-                v-model="filters.interests"
-                :value="interest"
-              >
-              {{ interest }}
-            </label>
-          </div>
-        </div>
-
-        <div class="filter-section">
-          <h3>Опыт</h3>
-          <div class="range-input">
-            <input
-              type="range"
-              v-model="filters.experience"
-              min="0"
-              max="20"
-              step="1"
-            >
-            <div class="range-values">
-              <span>{{ filters.experience }} лет</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="filter-section">
-          <h3>Локация</h3>
-          <input
-            type="text"
-            v-model="filters.location"
-            placeholder="Введите город или страну"
-            class="text-input"
+    <div class="people-header">
+      <h1>Поиск партнеров</h1>
+      <div class="search-filters">
+        <div class="search-bar">
+          <input 
+            type="text" 
+            v-model="searchQuery" 
+            placeholder="Поиск по имени, компании или специализации..."
+            @input="handleSearch"
           >
+          <i class="fas fa-search"></i>
+        </div>
+        <div class="filters">
+          <select v-model="selectedType" @change="handleSearch">
+            <option value="">Все типы</option>
+            <option value="startup_founder">Основатели стартапов</option>
+            <option value="investor">Инвесторы</option>
+            <option value="businessman">Бизнесмены</option>
+            <option value="crypto_trader">Крипто-трейдеры</option>
+          </select>
+          <select v-model="selectedIndustry" @change="handleSearch">
+            <option value="">Все отрасли</option>
+            <option v-for="industry in industries" :key="industry.id" :value="industry.id">
+              {{ industry.name }}
+            </option>
+          </select>
+          <select v-model="selectedLocation" @change="handleSearch">
+            <option value="">Все локации</option>
+            <option v-for="location in locations" :key="location.id" :value="location.id">
+              {{ location.name }}
+            </option>
+          </select>
         </div>
       </div>
+    </div>
 
-      <!-- Список пользователей -->
-      <div class="users-list">
-        <div class="users-header">
-          <div class="search-box">
-            <input
-              type="text"
-              v-model="searchQuery"
-              placeholder="Поиск по имени или компании..."
-              class="search-input"
-            >
-            <button class="btn btn-icon" @click="searchUsers">
-              <i class="fas fa-search"></i>
-            </button>
-          </div>
-          <div class="view-options">
-            <button
-              class="btn btn-icon"
-              :class="{ active: viewMode === 'grid' }"
-              @click="viewMode = 'grid'"
-            >
-              <i class="fas fa-th-large"></i>
-            </button>
-            <button
-              class="btn btn-icon"
-              :class="{ active: viewMode === 'list' }"
-              @click="viewMode = 'list'"
-            >
-              <i class="fas fa-list"></i>
-            </button>
+    <div class="people-grid">
+      <div 
+        v-for="user in filteredUsers" 
+        :key="user.id" 
+        class="user-card"
+      >
+        <div class="user-header">
+          <img :src="user.avatar || '/default-avatar.png'" :alt="user.name" class="user-avatar">
+          <div class="user-type-badge" :class="user.type">
+            {{ getUserTypeLabel(user.type) }}
           </div>
         </div>
-
-        <div
-          class="users-grid"
-          :class="{ 'list-view': viewMode === 'list' }"
-        >
-          <div
-            v-for="user in filteredUsers"
-            :key="user.id"
-            class="user-card"
-            @click="openUserProfile(user)"
-          >
-            <div class="user-avatar">
-              {{ user.name[0] }}
+        <div class="user-info">
+          <h3>{{ user.name }}</h3>
+          <p class="user-title">{{ user.title }}</p>
+          <p class="user-company" v-if="user.company">{{ user.company }}</p>
+          <div class="user-location" v-if="user.location">
+            <i class="fas fa-map-marker-alt"></i>
+            <span>{{ user.location }}</span>
+          </div>
+          <div class="user-stats">
+            <div class="stat">
+              <i class="fas fa-project-diagram"></i>
+              <span>{{ user.projectsCount }} проектов</span>
             </div>
-            <div class="user-info">
-              <div class="user-name">{{ user.name }}</div>
-              <div class="user-role">{{ formatUserType(user.type) }}</div>
-              <div class="user-company" v-if="user.company">
-                {{ user.company }}
-              </div>
-              <div class="user-location" v-if="user.location">
-                <i class="fas fa-map-marker-alt"></i>
-                {{ user.location }}
-              </div>
-              <div class="user-interests">
-                <span
-                  v-for="interest in user.interests.slice(0, 3)"
-                  :key="interest"
-                  class="interest-tag"
-                >
-                  {{ interest }}
-                </span>
-              </div>
-            </div>
-            <div class="user-actions">
-              <button
-                class="btn btn-icon"
-                @click.stop="startChat(user)"
-              >
-                <i class="fas fa-comments"></i>
-              </button>
-              <button
-                class="btn btn-icon"
-                @click.stop="connectWithUser(user)"
-              >
-                <i class="fas fa-user-plus"></i>
-              </button>
+            <div class="stat">
+              <i class="fas fa-handshake"></i>
+              <span>{{ user.dealsCount }} сделок</span>
             </div>
           </div>
+          <div class="user-tags">
+            <span 
+              v-for="tag in user.tags" 
+              :key="tag"
+              class="tag"
+            >
+              {{ tag }}
+            </span>
+          </div>
         </div>
-
-        <!-- Пагинация -->
-        <div class="pagination">
-          <button
-            class="btn btn-icon"
-            :disabled="currentPage === 1"
-            @click="changePage(currentPage - 1)"
-          >
-            <i class="fas fa-chevron-left"></i>
+        <div class="user-actions">
+          <button class="btn-primary" @click="connectWithUser(user)">
+            <i class="fas fa-plus"></i>
+            Связаться
           </button>
-          <span class="page-info">
-            Страница {{ currentPage }} из {{ totalPages }}
-          </span>
-          <button
-            class="btn btn-icon"
-            :disabled="currentPage === totalPages"
-            @click="changePage(currentPage + 1)"
-          >
-            <i class="fas fa-chevron-right"></i>
+          <button class="btn-secondary" @click="viewProfile(user)">
+            <i class="fas fa-user"></i>
+            Профиль
           </button>
         </div>
       </div>
     </div>
 
-    <!-- Модальное окно профиля -->
-    <div class="modal" v-if="selectedUser">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h2>Профиль пользователя</h2>
-          <button class="btn btn-icon" @click="selectedUser = null">
-            <i class="fas fa-times"></i>
-          </button>
-        </div>
-        <div class="modal-body">
-          <div class="profile-info">
-            <div class="profile-avatar">
-              {{ selectedUser.name[0] }}
-            </div>
-            <div class="profile-details">
-              <h3>{{ selectedUser.name }}</h3>
-              <p class="profile-role">{{ formatUserType(selectedUser.type) }}</p>
-              <p class="profile-company" v-if="selectedUser.company">
-                {{ selectedUser.company }}
-              </p>
-              <p class="profile-location" v-if="selectedUser.location">
-                <i class="fas fa-map-marker-alt"></i>
-                {{ selectedUser.location }}
-              </p>
-            </div>
-          </div>
-
-          <div class="profile-section">
-            <h4>О себе</h4>
-            <p>{{ selectedUser.bio || 'Нет описания' }}</p>
-          </div>
-
-          <div class="profile-section">
-            <h4>Интересы</h4>
-            <div class="interests-list">
-              <span
-                v-for="interest in selectedUser.interests"
-                :key="interest"
-                class="interest-tag"
-              >
-                {{ interest }}
-              </span>
-            </div>
-          </div>
-
-          <div class="profile-section">
-            <h4>Опыт</h4>
-            <p>{{ selectedUser.experience }} лет</p>
-          </div>
-
-          <div class="profile-actions">
-            <button class="btn btn-primary" @click="startChat(selectedUser)">
-              Начать чат
-            </button>
-            <button class="btn btn-outline" @click="connectWithUser(selectedUser)">
-              Добавить в контакты
-            </button>
-          </div>
-        </div>
-      </div>
+    <div v-if="loading" class="loading-overlay">
+      <div class="spinner"></div>
     </div>
+
+    <div v-if="!loading && filteredUsers.length === 0" class="no-results">
+      <i class="fas fa-search"></i>
+      <h3>Ничего не найдено</h3>
+      <p>Попробуйте изменить параметры поиска</p>
+    </div>
+
+    <!-- Модальное окно для отправки сообщения -->
+    <modal v-if="showConnectModal" @close="showConnectModal = false">
+      <template #header>
+        <h3>Связаться с {{ selectedUser?.name }}</h3>
+      </template>
+      <template #default>
+        <form @submit.prevent="sendMessage" class="connect-form">
+          <div class="form-group">
+            <label>Сообщение</label>
+            <textarea 
+              v-model="messageText" 
+              placeholder="Представьтесь и опишите цель вашего обращения..."
+              rows="4"
+            ></textarea>
+          </div>
+        </form>
+      </template>
+      <template #footer>
+        <button class="btn-secondary" @click="showConnectModal = false">Отмена</button>
+        <button class="btn-primary" @click="sendMessage" :disabled="!messageText.trim()">
+          Отправить
+        </button>
+      </template>
+    </modal>
   </div>
 </template>
 
 <script>
-import api from '@/axios';
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import Modal from '@/components/ui/Modal.vue'
+import api from '@/axios'
 
 export default {
   name: 'People',
-  data() {
-    return {
-      filters: {
-        userTypes: [],
-        interests: [],
-        experience: 0,
-        location: ''
-      },
-      searchQuery: '',
-      viewMode: 'grid',
-      users: [],
-      selectedUser: null,
-      currentPage: 1,
-      totalPages: 1,
-      availableInterests: [
-        'Технологии',
-        'Финансы',
-        'Маркетинг',
-        'Блокчейн',
-        'AI/ML',
-        'Криптовалюты',
-        'Инвестиции',
-        'Стартапы'
-      ]
-    }
+  components: {
+    Modal
   },
-  computed: {
-    filteredUsers() {
-      return this.users.filter(user => {
-        // Фильтрация по типу пользователя
-        if (this.filters.userTypes.length && !this.filters.userTypes.includes(user.type)) {
-          return false;
-        }
+  setup() {
+    const router = useRouter()
+    const searchQuery = ref('')
+    const selectedType = ref('')
+    const selectedIndustry = ref('')
+    const selectedLocation = ref('')
+    const users = ref([])
+    const industries = ref([])
+    const locations = ref([])
+    const loading = ref(false)
+    const showConnectModal = ref(false)
+    const selectedUser = ref(null)
+    const messageText = ref('')
 
-        // Фильтрация по интересам
-        if (this.filters.interests.length) {
-          const hasMatchingInterests = this.filters.interests.some(interest =>
-            user.interests.includes(interest)
-          );
-          if (!hasMatchingInterests) return false;
-        }
+    const filteredUsers = computed(() => {
+      return users.value.filter(user => {
+        const matchesQuery = !searchQuery.value || 
+          user.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+          (user.company && user.company.toLowerCase().includes(searchQuery.value.toLowerCase())) ||
+          user.tags.some(tag => tag.toLowerCase().includes(searchQuery.value.toLowerCase()))
+        
+        const matchesType = !selectedType.value || user.type === selectedType.value
+        const matchesIndustry = !selectedIndustry.value || user.industryId === selectedIndustry.value
+        const matchesLocation = !selectedLocation.value || user.locationId === selectedLocation.value
 
-        // Фильтрация по опыту
-        if (user.experience < this.filters.experience) {
-          return false;
-        }
+        return matchesQuery && matchesType && matchesIndustry && matchesLocation
+      })
+    })
 
-        // Фильтрация по локации
-        if (this.filters.location && !user.location.toLowerCase().includes(this.filters.location.toLowerCase())) {
-          return false;
-        }
-
-        // Фильтрация по поисковому запросу
-        if (this.searchQuery) {
-          const query = this.searchQuery.toLowerCase();
-          return (
-            user.name.toLowerCase().includes(query) ||
-            (user.company && user.company.toLowerCase().includes(query))
-          );
-        }
-
-        return true;
-      });
-    }
-  },
-  async created() {
-    await this.loadUsers();
-  },
-  methods: {
-    async loadUsers() {
-      try {
-        const response = await api.get('/users', {
-          params: {
-            page: this.currentPage,
-            limit: 12
-          }
-        });
-        this.users = response.data.users;
-        this.totalPages = response.data.totalPages;
-      } catch (error) {
-        console.error('Ошибка при загрузке пользователей:', error);
-      }
-    },
-    resetFilters() {
-      this.filters = {
-        userTypes: [],
-        interests: [],
-        experience: 0,
-        location: ''
-      };
-      this.loadUsers();
-    },
-    formatUserType(type) {
+    const getUserTypeLabel = (type) => {
       const types = {
-        startup_founder: 'Создатель стартапа',
+        startup_founder: 'Стартапер',
         investor: 'Инвестор',
         businessman: 'Бизнесмен',
-        crypto_trader: 'Криптотрейдер'
-      };
-      return types[type] || type;
-    },
-    async searchUsers() {
-      this.currentPage = 1;
-      await this.loadUsers();
-    },
-    async changePage(page) {
-      this.currentPage = page;
-      await this.loadUsers();
-    },
-    openUserProfile(user) {
-      this.selectedUser = user;
-    },
-    async startChat(user) {
-      try {
-        const response = await api.post('/chats', {
-          userId: user.id
-        });
-        this.$router.push({
-          name: 'Messenger',
-          query: { chatId: response.data.id }
-        });
-      } catch (error) {
-        console.error('Ошибка при создании чата:', error);
+        crypto_trader: 'Крипто-трейдер'
       }
-    },
-    async connectWithUser(user) {
+      return types[type] || type
+    }
+
+    const loadUsers = async () => {
+      loading.value = true
       try {
-        await api.post(`/users/${user.id}/connect`);
-        // Здесь можно добавить уведомление об успешном подключении
+        const response = await api.get('/users')
+        users.value = response.data
       } catch (error) {
-        console.error('Ошибка при подключении к пользователю:', error);
+        console.error('Ошибка при загрузке пользователей:', error)
+      } finally {
+        loading.value = false
       }
+    }
+
+    const loadFilters = async () => {
+      try {
+        const [industriesResponse, locationsResponse] = await Promise.all([
+          api.get('/industries'),
+          api.get('/locations')
+        ])
+        industries.value = industriesResponse.data
+        locations.value = locationsResponse.data
+      } catch (error) {
+        console.error('Ошибка при загрузке фильтров:', error)
+      }
+    }
+
+    const handleSearch = () => {
+      // Можно добавить debounce для оптимизации
+      loadUsers()
+    }
+
+    const connectWithUser = (user) => {
+      selectedUser.value = user
+      showConnectModal.value = true
+    }
+
+    const viewProfile = (user) => {
+      router.push(`/profile/${user.id}`)
+    }
+
+    const sendMessage = async () => {
+      if (!messageText.value.trim()) return
+
+      try {
+        await api.post('/messages/connect', {
+          userId: selectedUser.value.id,
+          message: messageText.value
+        })
+        
+        showConnectModal.value = false
+        messageText.value = ''
+        
+        // Показываем уведомление об успехе
+        // TODO: Добавить компонент уведомлений
+      } catch (error) {
+        console.error('Ошибка при отправке сообщения:', error)
+      }
+    }
+
+    onMounted(() => {
+      loadUsers()
+      loadFilters()
+    })
+
+    return {
+      searchQuery,
+      selectedType,
+      selectedIndustry,
+      selectedLocation,
+      users,
+      industries,
+      locations,
+      loading,
+      showConnectModal,
+      selectedUser,
+      messageText,
+      filteredUsers,
+      getUserTypeLabel,
+      handleSearch,
+      connectWithUser,
+      viewProfile,
+      sendMessage
     }
   }
 }
@@ -407,341 +265,288 @@ export default {
 <style scoped>
 .people {
   padding: 2rem;
-}
-
-.people-container {
-  display: grid;
-  grid-template-columns: 300px 1fr;
-  gap: 2rem;
   max-width: 1400px;
   margin: 0 auto;
+  margin-top: 60px;
 }
 
-.filters {
-  background: white;
-  border-radius: 1rem;
-  padding: 1.5rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.filters-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-}
-
-.filter-section {
-  margin-bottom: 1.5rem;
-}
-
-.filter-section h3 {
-  margin-bottom: 1rem;
-  color: #2c3e50;
-  font-size: 1rem;
-}
-
-.filter-options {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.checkbox-label {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
-}
-
-.range-input {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.range-values {
-  display: flex;
-  justify-content: space-between;
-  color: #666;
-}
-
-.text-input {
-  width: 100%;
-  padding: 0.5rem;
-  border: 1px solid #ddd;
-  border-radius: 0.5rem;
-  font-size: 0.9rem;
-}
-
-.users-list {
-  background: white;
-  border-radius: 1rem;
-  padding: 1.5rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.users-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-}
-
-.search-box {
-  display: flex;
-  gap: 0.5rem;
-  flex: 1;
-  max-width: 500px;
-}
-
-.search-input {
-  flex: 1;
-  padding: 0.5rem;
-  border: 1px solid #ddd;
-  border-radius: 0.5rem;
-  font-size: 0.9rem;
-}
-
-.view-options {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.users-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.5rem;
+.people-header {
   margin-bottom: 2rem;
 }
 
-.users-grid.list-view {
-  grid-template-columns: 1fr;
+.people-header h1 {
+  color: #2c3e50;
+  margin-bottom: 1.5rem;
+}
+
+.search-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.search-bar {
+  position: relative;
+}
+
+.search-bar input {
+  width: 100%;
+  padding: 1rem 3rem 1rem 1rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+}
+
+.search-bar i {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #666;
+}
+
+.filters {
+  display: flex;
+  gap: 1rem;
+}
+
+.filters select {
+  flex: 1;
+  padding: 0.75rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 0.5rem;
+  background: white;
+  font-size: 0.95rem;
+  color: #2c3e50;
+}
+
+.people-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
 }
 
 .user-card {
-  background: #f8f9fa;
-  border-radius: 0.5rem;
-  padding: 1rem;
-  display: flex;
-  gap: 1rem;
-  cursor: pointer;
-  transition: transform 0.2s;
+  background: white;
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .user-card:hover {
   transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.user-header {
+  position: relative;
+  padding: 1.5rem;
+  background: #f8f9fa;
+  text-align: center;
 }
 
 .user-avatar {
-  width: 60px;
-  height: 60px;
+  width: 100px;
+  height: 100px;
   border-radius: 50%;
-  background-color: #28a745;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-  font-weight: bold;
+  border: 4px solid white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  object-fit: cover;
+}
+
+.user-type-badge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.user-type-badge.startup_founder {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.user-type-badge.investor {
+  background: #f3e5f5;
+  color: #7b1fa2;
+}
+
+.user-type-badge.businessman {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.user-type-badge.crypto_trader {
+  background: #fff3e0;
+  color: #ef6c00;
 }
 
 .user-info {
-  flex: 1;
-  min-width: 0;
+  padding: 1.5rem;
 }
 
-.user-name {
-  font-weight: 500;
-  margin-bottom: 0.25rem;
+.user-info h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #2c3e50;
 }
 
-.user-role {
+.user-title {
   color: #666;
-  font-size: 0.9rem;
-  margin-bottom: 0.25rem;
+  margin: 0.5rem 0;
+  font-size: 0.95rem;
 }
 
 .user-company {
-  font-size: 0.9rem;
-  margin-bottom: 0.25rem;
+  color: #2196F3;
+  font-weight: 500;
+  margin: 0.5rem 0;
 }
 
 .user-location {
-  font-size: 0.9rem;
-  color: #666;
   display: flex;
   align-items: center;
-  gap: 0.25rem;
-  margin-bottom: 0.5rem;
+  gap: 0.5rem;
+  color: #666;
+  font-size: 0.9rem;
+  margin: 0.5rem 0;
 }
 
-.user-interests {
+.user-stats {
+  display: flex;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.user-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.25rem;
+  gap: 0.5rem;
+  margin: 1rem 0;
 }
 
-.interest-tag {
-  background-color: #e8f5e9;
-  color: #28a745;
-  padding: 0.25rem 0.5rem;
+.tag {
+  background: #f5f5f5;
+  color: #666;
+  padding: 0.25rem 0.75rem;
   border-radius: 1rem;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
 }
 
 .user-actions {
+  padding: 1.5rem;
+  border-top: 1px solid #e0e0e0;
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.pagination {
-  display: flex;
-  justify-content: center;
-  align-items: center;
   gap: 1rem;
 }
 
-.page-info {
+.btn-primary,
+.btn-secondary {
+  flex: 1;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.btn-primary {
+  background: #2196F3;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #1976d2;
+}
+
+.btn-secondary {
+  background: #f5f5f5;
   color: #666;
 }
 
-.modal {
+.btn-secondary:hover {
+  background: #e0e0e0;
+}
+
+.loading-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background: rgba(255,255,255,0.8);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
 }
 
-.modal-content {
-  background: white;
-  border-radius: 1rem;
-  width: 90%;
-  max-width: 600px;
-  max-height: 90vh;
-  overflow-y: auto;
-}
-
-.modal-header {
-  padding: 1.5rem;
-  border-bottom: 1px solid #eee;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.modal-body {
-  padding: 1.5rem;
-}
-
-.profile-info {
-  display: flex;
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-}
-
-.profile-avatar {
-  width: 100px;
-  height: 100px;
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #2196F3;
   border-radius: 50%;
-  background-color: #28a745;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2.5rem;
-  font-weight: bold;
+  animation: spin 1s linear infinite;
 }
 
-.profile-details h3 {
-  margin-bottom: 0.5rem;
-}
-
-.profile-role {
+.no-results {
+  text-align: center;
+  padding: 4rem 0;
   color: #666;
-  margin-bottom: 0.5rem;
 }
 
-.profile-company {
-  font-weight: 500;
-  margin-bottom: 0.5rem;
+.no-results i {
+  font-size: 4rem;
+  color: #2196F3;
+  margin-bottom: 1rem;
 }
 
-.profile-location {
-  color: #666;
+.connect-form {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
   gap: 0.5rem;
 }
 
-.profile-section {
-  margin-bottom: 2rem;
-}
-
-.profile-section h4 {
-  margin-bottom: 1rem;
+.form-group label {
+  font-weight: 500;
   color: #2c3e50;
 }
 
-.interests-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.profile-actions {
-  display: flex;
-  gap: 1rem;
-  margin-top: 2rem;
-}
-
-.btn {
-  padding: 0.5rem 1rem;
+.form-group textarea {
+  padding: 0.75rem;
+  border: 1px solid #e0e0e0;
   border-radius: 0.5rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
+  resize: vertical;
+  min-height: 100px;
 }
 
-.btn-primary {
-  background-color: #28a745;
-  color: white;
-  border: none;
-}
-
-.btn-outline {
-  background: none;
-  border: 1px solid #28a745;
-  color: #28a745;
-}
-
-.btn-text {
-  background: none;
-  border: none;
-  color: #666;
-}
-
-.btn-icon {
-  background: none;
-  border: none;
-  color: #666;
-  padding: 0.5rem;
-}
-
-.btn-icon.active {
-  color: #28a745;
-}
-
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 @media (max-width: 768px) {
@@ -749,36 +554,12 @@ export default {
     padding: 1rem;
   }
 
-  .people-container {
-    grid-template-columns: 1fr;
-  }
-
   .filters {
-    position: fixed;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    z-index: 1000;
-    transform: translateX(-100%);
-    transition: transform 0.3s ease;
-  }
-
-  .filters.active {
-    transform: translateX(0);
-  }
-
-  .users-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .profile-info {
     flex-direction: column;
-    align-items: center;
-    text-align: center;
   }
 
-  .profile-actions {
-    flex-direction: column;
+  .user-card {
+    max-width: none;
   }
 }
 </style> 

@@ -8,6 +8,7 @@ import { useVuelidate } from '@vuelidate/core'; // Исправляем импо
 import { animate } from './directives/animate';
 import 'animate.css/animate.min.css'; // Исправленный импорт
 import './assets/styles/global.css'; // Добавляем глобальные стили
+import '@fortawesome/fontawesome-free/css/all.css';
 
 const app = createApp(App);
 const pinia = createPinia();
