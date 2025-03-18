@@ -28,8 +28,8 @@ export default {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.85);
-  backdrop-filter: blur(10px);
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(5px);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -37,27 +37,28 @@ export default {
 }
 
 .modal-content {
-  background: rgba(18, 18, 18, 0.95);
+  background: #ffffff;
   padding: 3rem;
-  border-radius: 1.2rem;
-  box-shadow: 0 8px 32px rgba(33, 150, 243, 0.2);
+  border-radius: 1rem;
+  box-shadow: 0 8px 32px rgba(33, 150, 243, 0.15);
   position: relative;
-  width: 90%;
-  max-width: 800px;
+  width: 95%;
+  max-width: 600px;
   max-height: 90vh;
   overflow-y: auto;
   border: 1px solid rgba(33, 150, 243, 0.1);
   animation: modalAppear 0.3s ease-out;
+  padding-right: calc(3rem - 6px); /* Компенсируем ширину скроллбара */
 }
 
 .modal-close {
   position: absolute;
-  top: 1.5rem;
-  right: 1.5rem;
+  top: 1.2rem;
+  right: 1.2rem;
   background: none;
   border: none;
-  font-size: 2rem;
-  color: #b3b3b3;
+  font-size: 1.8rem;
+  color: #666666;
   cursor: pointer;
   transition: all 0.3s ease;
   width: 40px;
@@ -78,7 +79,7 @@ export default {
 @keyframes modalAppear {
   from {
     opacity: 0;
-    transform: scale(0.95) translateY(-20px);
+    transform: scale(0.95) translateY(-10px);
   }
   to {
     opacity: 1;
@@ -96,20 +97,24 @@ export default {
 
 /* Стилизация скроллбара */
 .modal-content::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
+  position: absolute;
+  right: 0;
 }
 
 .modal-content::-webkit-scrollbar-track {
-  background: rgba(33, 150, 243, 0.1);
-  border-radius: 4px;
+  background: rgba(33, 150, 243, 0.05);
+  border-radius: 0 1rem 1rem 0;
+  margin: 3rem 0; /* Отступы сверху и снизу */
 }
 
 .modal-content::-webkit-scrollbar-thumb {
-  background: rgba(33, 150, 243, 0.3);
-  border-radius: 4px;
+  background: rgba(33, 150, 243, 0.2);
+  border-radius: 3px;
+  border: 1px solid rgba(33, 150, 243, 0.1);
 }
 
 .modal-content::-webkit-scrollbar-thumb:hover {
-  background: rgba(33, 150, 243, 0.5);
+  background: rgba(33, 150, 243, 0.3);
 }
 </style> 

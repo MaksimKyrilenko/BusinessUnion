@@ -182,9 +182,9 @@ export default {
 
 h2 {
   color: #2196F3;
-  margin-bottom: 2.5rem;
+  margin-bottom: 2rem;
   font-family: 'Raleway', sans-serif;
-  font-size: 2.5rem;
+  font-size: 2rem;
   text-align: center;
   position: relative;
 }
@@ -192,88 +192,90 @@ h2 {
 h2::after {
   content: '';
   position: absolute;
-  bottom: -10px;
+  bottom: -8px;
   left: 50%;
   transform: translateX(-50%);
-  width: 60px;
-  height: 3px;
+  width: 50px;
+  height: 2px;
   background: linear-gradient(90deg, #2196F3, #64B5F6);
-  border-radius: 4px;
+  border-radius: 2px;
 }
 
 .register-form {
   display: flex;
   flex-direction: column;
-  gap: 1.8rem;
+  gap: 1.5rem;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 0.8rem;
+  gap: 0.5rem;
 }
 
 input, select, textarea {
-  background: rgba(25, 25, 25, 0.9);
-  border: 1px solid rgba(33, 150, 243, 0.2);
-  color: #ffffff;
+  background: #f5f5f5;
+  border: 1px solid #e0e0e0;
+  color: #333333;
   transition: all 0.3s ease;
-  padding: 1rem 1.2rem;
-  border-radius: 0.8rem;
-  font-size: 1.1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 1rem;
   width: 100%;
 }
 
 textarea {
   resize: vertical;
-  min-height: 120px;
+  min-height: 100px;
   font-family: inherit;
 }
 
 input:focus, select:focus, textarea:focus {
   border-color: #2196F3;
+  background: #ffffff;
   box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
   outline: none;
 }
 
 input::placeholder, textarea::placeholder {
-  color: rgba(255, 255, 255, 0.3);
+  color: #999999;
 }
 
 label {
-  color: #b3b3b3;
-  font-size: 1.1rem;
+  color: #333333;
+  font-size: 0.95rem;
   font-weight: 500;
-  margin-left: 0.5rem;
+  margin-left: 0.25rem;
 }
 
 .btn-register {
-  background: linear-gradient(45deg, #2196F3, #64B5F6);
+  background: #2196F3;
   border: none;
-  border-radius: 0.8rem;
+  border-radius: 0.5rem;
   color: white;
-  padding: 1.2rem;
-  font-size: 1.2rem;
+  padding: 0.75rem;
+  font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  margin-top: 1rem;
+  margin-top: 0.5rem;
 }
 
 .btn-register:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 15px rgba(33, 150, 243, 0.3);
+  background: #1976D2;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(33, 150, 243, 0.2);
 }
 
 .btn-register:active {
-  transform: translateY(1px);
+  transform: translateY(0);
 }
 
 .register-footer {
-  margin-top: 2rem;
-  color: #b3b3b3;
+  margin-top: 1.5rem;
+  color: #666666;
   text-align: center;
-  font-size: 1.1rem;
+  font-size: 0.95rem;
 }
 
 .register-footer a {
@@ -284,18 +286,18 @@ label {
 }
 
 .register-footer a:hover {
-  color: #64B5F6;
+  color: #1976D2;
   text-decoration: underline;
 }
 
 .error-message {
-  background: rgba(220, 53, 69, 0.1);
-  color: #ff6b6b;
-  padding: 1rem 1.2rem;
-  border-radius: 0.8rem;
-  margin-bottom: 1.5rem;
-  border: 1px solid rgba(220, 53, 69, 0.2);
-  font-size: 1rem;
+  background: rgba(244, 67, 54, 0.1);
+  color: #f44336;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+  border: 1px solid rgba(244, 67, 54, 0.2);
+  font-size: 0.95rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -303,14 +305,14 @@ label {
 
 .error-message::before {
   content: '⚠';
-  font-size: 1.2rem;
+  font-size: 1.1rem;
 }
 
 /* Анимация для полей формы */
 @keyframes formFieldAppear {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(5px);
   }
   to {
     opacity: 1;
@@ -322,12 +324,12 @@ label {
   animation: formFieldAppear 0.3s ease-out forwards;
 }
 
-.form-group:nth-child(1) { animation-delay: 0.1s; }
-.form-group:nth-child(2) { animation-delay: 0.2s; }
-.form-group:nth-child(3) { animation-delay: 0.3s; }
-.form-group:nth-child(4) { animation-delay: 0.4s; }
-.form-group:nth-child(5) { animation-delay: 0.5s; }
-.form-group:nth-child(6) { animation-delay: 0.6s; }
-.form-group:nth-child(7) { animation-delay: 0.7s; }
-.form-group:nth-child(8) { animation-delay: 0.8s; }
+.form-group:nth-child(1) { animation-delay: 0.05s; }
+.form-group:nth-child(2) { animation-delay: 0.1s; }
+.form-group:nth-child(3) { animation-delay: 0.15s; }
+.form-group:nth-child(4) { animation-delay: 0.2s; }
+.form-group:nth-child(5) { animation-delay: 0.25s; }
+.form-group:nth-child(6) { animation-delay: 0.3s; }
+.form-group:nth-child(7) { animation-delay: 0.35s; }
+.form-group:nth-child(8) { animation-delay: 0.4s; }
 </style> 
