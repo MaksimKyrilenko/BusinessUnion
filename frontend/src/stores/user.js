@@ -1,12 +1,13 @@
 import { defineStore } from 'pinia'
 import api from '@/axios'
+import router from '@/router'
 
 export const useUserStore = defineStore('user', {
   state: () => ({
     user: null,
     isAuthenticated: !!localStorage.getItem('token'),
     loading: false,
-    initialized: false
+    error: null
   }),
 
   getters: {
@@ -20,9 +21,21 @@ export const useUserStore = defineStore('user', {
       this.loading = true
       this.error = null
       try {
-        const response = await api.post('/users/login', credentials)
-        this.setUser(response.data.user)
-        localStorage.setItem('token', response.data.access_token)
+        const response = await api.post('/auth/login', credentials)
+        const { token, user } = response.data
+        
+        if (!token || !user || !user.id || !user.userType) {
+          throw new Error('Некорректные данные пользователя')
+        }
+
+        localStorage.setItem('token', token)
+        localStorage.setItem('userType', user.userType)
+        localStorage.setItem('userId', user.id)
+        
+        this.user = user
+        this.isAuthenticated = true
+        
+        router.push('/dashboard')
         return response.data
       } catch (error) {
         this.error = error.response?.data?.message || 'Ошибка при входе'
@@ -51,39 +64,37 @@ export const useUserStore = defineStore('user', {
       }
     },
 
-    logout() {
-      this.user = null
-      this.isAuthenticated = false
+    async logout() {
       localStorage.removeItem('token')
       localStorage.removeItem('userId')
       localStorage.removeItem('userType')
-    },
-
-    setUser(user) {
-      this.user = user
-      this.isAuthenticated = true
+      this.user = null
+      this.isAuthenticated = false
+      router.push('/')
     },
 
     async loadUser() {
       if (!localStorage.getItem('token')) {
-        this.initialized = true
         this.isAuthenticated = false
+        this.user = null
         return
       }
 
       try {
-        const token = localStorage.getItem('token')
-        if (token) {
-          this.isAuthenticated = true
+        const userId = localStorage.getItem('userId')
+        const userType = localStorage.getItem('userType')
+        
+        if (userId && userType) {
           this.user = {
-            id: localStorage.getItem('userId'),
-            userType: localStorage.getItem('userType')
+            id: userId,
+            userType: userType
           }
+          this.isAuthenticated = true
+        } else {
+          await this.logout()
         }
       } catch (error) {
-        this.logout()
-      } finally {
-        this.initialized = true
+        await this.logout()
       }
     }
   }

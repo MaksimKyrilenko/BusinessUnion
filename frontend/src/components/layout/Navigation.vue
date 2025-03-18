@@ -20,29 +20,22 @@
 </template>
 
 <script>
+import { useUserStore } from '@/stores/user'
+import { storeToRefs } from 'pinia'
+
 export default {
   name: 'Navigation',
-  data() {
+  setup() {
+    const userStore = useUserStore()
+    const { isAuthenticated } = storeToRefs(userStore)
+    
+    const logout = async () => {
+      await userStore.logout()
+    }
+
     return {
-      isAuthenticated: false
-    }
-  },
-  created() {
-    this.checkAuth();
-  },
-  methods: {
-    checkAuth() {
-      this.isAuthenticated = !!localStorage.getItem('token');
-    },
-    logout() {
-      localStorage.removeItem('token');
-      this.isAuthenticated = false;
-      this.$router.push('/');
-    }
-  },
-  watch: {
-    '$route'() {
-      this.checkAuth();
+      isAuthenticated,
+      logout
     }
   }
 }

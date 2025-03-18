@@ -27,7 +27,7 @@
     </section>
 
     <section class="features">
-      <h2>Для кого наш проект?</h2>
+      <h2 style="color: black !important; font-size: 2.5rem !important; margin-bottom: 3rem !important; font-weight: 600 !important; text-align: center !important; -webkit-text-fill-color: black !important; text-shadow: none !important;">Для кого наш проект?</h2>
       <div class="feature-grid">
         <div class="feature-card">
           <h3>Стартаперы</h3>
@@ -49,7 +49,7 @@
     </section>
 
     <section class="benefits">
-      <h2>Преимущества платформы</h2>
+      <h2 style="color: black !important; font-size: 2.5rem !important; margin-bottom: 3rem !important; font-weight: 600 !important; text-align: center !important; -webkit-text-fill-color: black !important; text-shadow: none !important;">Преимущества платформы</h2>
       <div class="benefits-grid">
         <div class="benefit-item">
           <h3>Безопасность</h3>
@@ -142,7 +142,7 @@ export default {
 body {
   margin: 0;
   padding: 0;
-  background: #000000;
+  background: #f5f5f5;
   overflow-x: hidden;
   width: 100%;
 }
@@ -155,7 +155,9 @@ section {
   margin-left: -50vw;
   margin-right: -50vw;
   padding: 4rem 0;
-  background: transparent;
+  background: #f5f5f5;
+  position: relative;
+  overflow: visible;
 }
 
 .about-content,
@@ -204,8 +206,8 @@ section {
 .home {
   width: 100%;
   min-height: 100vh;
-  background: #000000;
-  color: #ffffff;
+  background: #f5f5f5;
+  color: #333333;
   padding-top: 4rem;
   margin: 0;
   overflow-x: hidden;
@@ -221,7 +223,7 @@ section {
   justify-content: space-between;
   align-items: center;
   padding: 1rem 2rem;
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(20px);
   border-bottom: 1px solid rgba(33, 150, 243, 0.1);
   z-index: 1000;
@@ -232,11 +234,7 @@ section {
   font-size: 2rem;
   font-weight: 700;
   font-family: 'Raleway', sans-serif;
-  color: transparent;
-  background: linear-gradient(45deg, #2196F3, #64B5F6);
-  -webkit-background-clip: text;
-  background-clip: text;
-  text-shadow: 0 0 10px rgba(33, 150, 243, 0.3);
+  color: #2196F3;
 }
 
 .navbar-links {
@@ -247,7 +245,7 @@ section {
 
 .nav-link {
   text-decoration: none;
-  color: #b3b3b3;
+  color: #000000;
   font-weight: 500;
   font-size: 1.2rem;
   transition: all 0.3s ease;
@@ -277,7 +275,7 @@ section {
 }
 
 .nav-link-primary {
-  color: #b3b3b3;
+  color: #000000;
   font-weight: 500;
   transition: all 0.3s ease;
 }
@@ -331,312 +329,131 @@ section {
 }
 
 .about {
-  margin-bottom: 3rem;
+  background: #f5f5f5;
   padding: 4rem 2rem;
-  background: transparent;
+  text-align: center;
 }
 
 .about h2 {
-  text-align: center;
-  margin-bottom: 3rem;
-  color: #ffffff;
-  animation: floatingText 6s ease-in-out infinite;
+  color: #363636;
   font-size: 2.5rem;
-  letter-spacing: 1px;
-  text-shadow: 0 0 10px rgba(33, 150, 243, 0.3);
+  margin-bottom: 3rem;
+  font-weight: 600;
+  text-align: center;
 }
 
 .about-content {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 2rem;
   max-width: 1200px;
   margin: 0 auto;
 }
 
 .about-card {
-  padding: 3rem;
-  background: rgba(18, 18, 18, 0.95);
-  border-radius: 1.2rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  background: #ffffff;
+  padding: 2rem;
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
   text-align: center;
-  transition: all 0.4s ease;
-  opacity: 1;
-  animation: none;
-  border: 2px solid transparent;
-  backdrop-filter: blur(10px);
-  position: relative;
-  overflow: hidden;
-}
-
-.about-card:nth-child(1),
-.about-card:nth-child(2),
-.about-card:nth-child(3) {
-  animation: none;
-  animation-delay: 0s;
 }
 
 .about-card:hover {
-  transform: translateY(-10px) scale(1.02);
-  animation: neonPulse 2s infinite;
-  border-image: linear-gradient(45deg, #2196F3, #64B5F6) 1;
-  animation: gradientBorder 3s linear infinite;
-  background: rgba(22, 22, 22, 0.98);
-  filter: brightness(1.1);
-  border-radius: 1.2rem;
+  transform: translateY(-5px);
 }
 
 .about-card h3 {
   color: #2196F3;
+  font-size: 1.5rem;
   margin-bottom: 1.5rem;
-  font-size: 1.8rem;
-  font-family: 'Raleway', sans-serif;
-  letter-spacing: 0.5px;
-  position: relative;
-}
-
-.about-card h3::after {
-  content: '';
-  position: absolute;
-  bottom: -5px;
-  left: 0;
-  width: 0;
-  height: 2px;
-  background: linear-gradient(90deg, #2196F3, #64B5F6);
-  transition: width 0.4s ease;
-  border-radius: 4px;
-}
-
-.about-card:hover h3::after {
-  width: 100%;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .about-card p {
-  color: #b3b3b3;
-  line-height: 1.8;
-  font-size: 1.3rem;
-  transition: all 0.3s ease;
+  color: #666;
+  line-height: 1.6;
+  font-size: 1.1rem;
+  margin: 0;
 }
 
-.about-card:hover p {
-  color: #ffffff;
-  text-shadow: 0 0 5px rgba(33, 150, 243, 0.3);
-}
-
-.features {
-  margin-bottom: 3rem;
+.features, .benefits {
   padding: 4rem 2rem;
-  background: transparent;
+  background: #f5f5f5;
 }
 
-.features h2 {
-  text-align: center;
-  margin-bottom: 3rem;
-  color: #ffffff;
-  animation: fadeInUp 1s ease-out;
+.features h2, .benefits h2 {
+  position: relative;
+  z-index: 10;
+  display: block !important;
+  color: #000000 !important;
   font-size: 2.5rem;
-  letter-spacing: 1px;
+  margin-bottom: 3rem;
+  font-weight: 600;
+  text-align: center;
+  background: none !important;
+  -webkit-text-fill-color: #000000 !important;
+  text-shadow: none !important;
+}
+
+.features h2::before, .benefits h2::before,
+.features h2::after, .benefits h2::after {
+  display: none !important;
 }
 
 .feature-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 2rem;
   max-width: 1200px;
   margin: 0 auto;
 }
 
-.feature-card {
-  padding: 3rem;
-  background: rgba(18, 18, 18, 0.95);
-  border-radius: 1.2rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-  text-align: center;
-  transition: all 0.4s ease;
-  opacity: 1;
-  animation: none;
-  border: 2px solid transparent;
-  backdrop-filter: blur(10px);
-  position: relative;
-  overflow: hidden;
-}
-
-.feature-card:last-child {
-  grid-column: 2;
-}
-
-.feature-card:nth-child(1),
-.feature-card:nth-child(2),
-.feature-card:nth-child(3),
-.feature-card:nth-child(4) {
-  animation: none;
-  animation-delay: 0s;
-}
-
-.feature-card:hover {
-  transform: translateY(-10px) scale(1.02);
-  animation: neonPulse 2s infinite;
-  border-image: linear-gradient(45deg, #2196F3, #64B5F6) 1;
-  animation: gradientBorder 3s linear infinite;
-  background: rgba(22, 22, 22, 0.98);
-  filter: brightness(1.1);
-  border-radius: 1.2rem;
-}
-
-.feature-card h3 {
-  color: #2196F3;
-  margin-bottom: 1.5rem;
-  font-size: 1.8rem;
-  font-family: 'Raleway', sans-serif;
-  letter-spacing: 0.5px;
-  position: relative;
-}
-
-.feature-card h3::after {
-  content: '';
-  position: absolute;
-  bottom: -5px;
-  left: 0;
-  width: 0;
-  height: 2px;
-  background: linear-gradient(90deg, #2196F3, #64B5F6);
-  transition: width 0.4s ease;
-  border-radius: 4px;
-}
-
-.feature-card:hover h3::after {
+.feature-grid .feature-card:last-child {
+  grid-column: 2 / 3;
+  justify-self: center;
   width: 100%;
-}
-
-.feature-card p {
-  color: #b3b3b3;
-  line-height: 1.8;
-  font-size: 1.3rem;
-  transition: all 0.3s ease;
-}
-
-.feature-card:hover p {
-  color: #ffffff;
-  text-shadow: 0 0 5px rgba(33, 150, 243, 0.3);
-}
-
-.benefits {
-  margin-bottom: 3rem;
-  padding: 4rem 2rem;
-  background: transparent;
-}
-
-.benefits h2 {
-  text-align: center;
-  margin-bottom: 3rem;
-  color: #ffffff;
-  animation: fadeInUp 1s ease-out;
-  font-size: 2.5rem;
-  letter-spacing: 1px;
 }
 
 .benefits-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 2rem;
   max-width: 1200px;
   margin: 0 auto;
 }
 
-.benefit-item {
-  padding: 3rem;
-  background: rgba(18, 18, 18, 0.95);
-  border-radius: 1.2rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+.feature-card, .benefit-item {
+  background: #ffffff;
+  padding: 2rem;
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   text-align: center;
-  transition: all 0.4s ease;
-  opacity: 1;
-  animation: none;
-  border: 2px solid transparent;
-  backdrop-filter: blur(10px);
-  position: relative;
-  overflow: hidden;
+  transition: transform 0.3s ease;
 }
 
-.benefit-item:nth-child(1),
-.benefit-item:nth-child(2),
-.benefit-item:nth-child(3) {
-  animation: none;
-  animation-delay: 0s;
+.feature-card:hover, .benefit-item:hover {
+  transform: translateY(-5px);
+  background: #ffffff;
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
 }
 
-.benefit-item:hover {
-  transform: translateY(-10px) scale(1.02);
-  animation: neonPulse 2s infinite;
-  border-image: linear-gradient(45deg, #2196F3, #64B5F6) 1;
-  animation: gradientBorder 3s linear infinite;
-  background: rgba(22, 22, 22, 0.98);
-  filter: brightness(1.1);
-  border-radius: 1.2rem;
-}
-
-.benefit-item h3 {
+.feature-card h3, .benefit-item h3 {
   color: #2196F3;
+  font-size: 1.5rem;
   margin-bottom: 1.5rem;
-  font-size: 1.8rem;
-  font-family: 'Raleway', sans-serif;
-  letter-spacing: 0.5px;
-  position: relative;
+  font-family: 'Montserrat', sans-serif;
 }
 
-.benefit-item h3::after {
-  content: '';
-  position: absolute;
-  bottom: -5px;
-  left: 0;
-  width: 0;
-  height: 2px;
-  background: linear-gradient(90deg, #2196F3, #64B5F6);
-  transition: width 0.4s ease;
-  border-radius: 4px;
-}
-
-.benefit-item:hover h3::after {
-  width: 100%;
-}
-
-.benefit-item p {
-  color: #b3b3b3;
-  line-height: 1.8;
-  font-size: 1.3rem;
-  transition: all 0.3s ease;
-}
-
-.benefit-item:hover p {
-  color: #ffffff;
-  text-shadow: 0 0 5px rgba(33, 150, 243, 0.3);
-}
-
-section::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: inherit;
-  transition: transform 0.5s ease-out;
-}
-
-section:hover::before {
-  transform: scale(1.02);
+.feature-card p, .benefit-item p {
+  color: #333333;
+  line-height: 1.6;
+  font-size: 1.1rem;
+  margin: 0;
 }
 
 h2::after {
-  content: '';
-  position: absolute;
-  bottom: -15px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 60px;
-  height: 3px;
-  background: linear-gradient(135deg, #2196F3 0%, #64B5F6 100%);
-  border-radius: 6px;
+  display: none;
 }
 
 h3 {
@@ -648,7 +465,7 @@ h3 {
 }
 
 p {
-  color: #b3b3b3;
+  color: #333333;
   line-height: 1.8;
   font-size: 1.3rem;
 }
@@ -658,10 +475,11 @@ p {
   .feature-grid,
   .benefits-grid {
     grid-template-columns: 1fr;
+    padding: 0 1rem;
   }
 
   .feature-card:last-child {
-    grid-column: 1;
+    grid-column: auto;
   }
 
   section {
@@ -689,52 +507,28 @@ p {
   }
 }
 
+@media (max-width: 1200px) {
+  .feature-grid .feature-card:last-child {
+    grid-column: auto;
+  }
+}
+
 .pre-animation {
   opacity: 0;
-  transform: translateY(50px);
-  filter: brightness(0.5);
+  transform: translateY(20px);
 }
 
 .about-card.animate,
 .feature-card.animate,
 .benefit-item.animate {
-  animation: none;
   opacity: 1;
   transform: translateY(0);
-  transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-  filter: brightness(1);
+  transition: all 0.5s ease-out;
 }
 
-.about-card::before, .feature-card::before, .benefit-item::before {
-  content: '';
-  position: absolute;
-  top: -1px;
-  left: -1px;
-  right: -1px;
-  bottom: -1px;
-  background: linear-gradient(45deg, rgba(33, 150, 243, 0.2), rgba(100, 181, 246, 0.2));
-  border-radius: 1.2rem;
-  z-index: -1;
-  opacity: 0;
-  transition: all 0.4s ease;
-  filter: blur(0.5px);
-}
-
-.about-card:hover::before, .feature-card:hover::before, .benefit-item:hover::before {
-  opacity: 0.4;
-}
-
-.about-card, .feature-card, .benefit-item {
-  position: relative;
-  padding: 3rem;
-  background: rgba(15, 15, 15, 0.97);
-  border-radius: 1.2rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  text-align: center;
-  transition: all 0.4s ease;
-  border: none;
-  backdrop-filter: blur(10px);
-  z-index: 1;
+.about-card::before, .feature-card::before, .benefit-item::before,
+.about-card::after, .feature-card::after, .benefit-item::after {
+  display: none;
 }
 
 @keyframes gradientBorder {
@@ -744,10 +538,9 @@ p {
 }
 
 .about-card:hover, .feature-card:hover, .benefit-item:hover {
-  transform: translateY(-10px) scale(1.02);
-  background: rgba(18, 18, 18, 0.98);
-  filter: brightness(1.03);
-  border: none;
+  transform: translateY(-5px);
+  background: #ffffff;
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
 }
 
 @keyframes neonPulse {
@@ -762,25 +555,12 @@ p {
   100% { transform: translateY(0px); }
 }
 
-section {
-  position: relative;
-  overflow: hidden;
+h2 {
+  margin: 0;
+  padding: 0;
 }
 
-section::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: radial-gradient(circle at center, rgba(33, 150, 243, 0.1) 0%, transparent 70%);
-  opacity: 0;
-  transition: opacity 0.5s ease;
-  pointer-events: none;
-}
-
-section:hover::after {
-  opacity: 1;
+.black-header {
+  display: none;
 }
 </style> 

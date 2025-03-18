@@ -43,10 +43,17 @@
 </template>
 
 <script>
-import api from '@/axios';
+import { useUserStore } from '@/stores/user'
 
 export default {
   name: 'Login',
+  setup() {
+    const userStore = useUserStore()
+    
+    return {
+      userStore
+    }
+  },
   data() {
     return {
       email: '',
@@ -56,51 +63,23 @@ export default {
     }
   },
   created() {
-    // Проверяем, есть ли уже токен
-    const token = localStorage.getItem('token');
-    if (token) {
-      this.$router.push('/dashboard');
+    if (this.userStore.isAuthenticated) {
+      this.$router.push('/dashboard')
     }
   },
   methods: {
     async handleLogin() {
       try {
-        // Очищаем предыдущие данные
-        localStorage.removeItem('token');
-        localStorage.removeItem('userId');
-        localStorage.removeItem('userType');
-        
-        const response = await api.post('/auth/login', {
+        await this.userStore.login({
           email: this.email,
           password: this.password,
           userType: this.userType
-        });
-
-        if (response.data.token && response.data.user) {
-          const { token, user } = response.data;
-          
-          // Проверяем валидность данных перед сохранением
-          if (!token || !user || !user.id || !user.userType) {
-            throw new Error('Некорректные данные пользователя');
-          }
-
-          localStorage.setItem('token', token);
-          localStorage.setItem('userType', user.userType);
-          localStorage.setItem('userId', user.id);
-
-          this.$emit('success');
-          this.$router.push('/dashboard');
-        } else {
-          throw new Error('Отсутствуют необходимые данные в ответе');
-        }
-      } catch (error) {
-        console.error('Ошибка при входе:', error);
-        this.error = error.response?.data?.message || 'Ошибка при входе в систему';
+        })
         
-        // Очищаем данные в случае ошибки
-        localStorage.removeItem('token');
-        localStorage.removeItem('userId');
-        localStorage.removeItem('userType');
+        this.$emit('success')
+      } catch (error) {
+        console.error('Ошибка при входе:', error)
+        this.error = error.response?.data?.message || 'Ошибка при входе в систему'
       }
     }
   }
@@ -156,16 +135,16 @@ h2::after {
 }
 
 label {
-  color: #b3b3b3;
+  color: #666666;
   font-size: 1.1rem;
   font-weight: 500;
   margin-left: 0.5rem;
 }
 
 input, select {
-  background: rgba(25, 25, 25, 0.9);
+  background: #ffffff;
   border: 1px solid rgba(33, 150, 243, 0.2);
-  color: #ffffff;
+  color: #333333;
   transition: all 0.3s ease;
   padding: 1rem 1.2rem;
   border-radius: 0.8rem;
@@ -180,7 +159,7 @@ input:focus, select:focus {
 }
 
 input::placeholder {
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(0, 0, 0, 0.3);
 }
 
 .btn-login {

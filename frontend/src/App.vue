@@ -61,11 +61,11 @@ export default defineComponent({
 :root {
   --primary-color: #7C4DFF;
   --primary-hover: #651FFF;
-  --text-primary: #ffffff;
-  --text-secondary: #B3B3B3;
-  --background: #000000;
-  --card-background: rgba(45, 45, 45, 0.5);
-  --card-hover: rgba(51, 51, 51, 0.7);
+  --text-primary: #333333;
+  --text-secondary: #666666;
+  --background: #f5f5f5;
+  --card-background: #ffffff;
+  --card-hover: #fafafa;
 }
 
 * {
