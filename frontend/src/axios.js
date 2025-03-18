@@ -29,8 +29,8 @@ api.interceptors.request.use(
       localStorage.removeItem('token');
       localStorage.removeItem('userId');
       localStorage.removeItem('userType');
-      if (router.currentRoute.value.path !== '/login') {
-        router.push('/login');
+      if (router.currentRoute.value.path !== '/') {
+        router.push('/');
       }
     }
     return config;
@@ -57,8 +57,8 @@ api.interceptors.response.use(
       localStorage.removeItem('token');
       localStorage.removeItem('userId');
       localStorage.removeItem('userType');
-      if (router.currentRoute.value.path !== '/login') {
-        router.push('/login');
+      if (router.currentRoute.value.path !== '/') {
+        router.push('/');
       }
     }
     return Promise.reject(error);

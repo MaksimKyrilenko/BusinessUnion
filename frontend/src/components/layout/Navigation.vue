@@ -37,7 +37,7 @@ export default {
     logout() {
       localStorage.removeItem('token');
       this.isAuthenticated = false;
-      this.$router.push('/login');
+      this.$router.push('/');
     }
   },
   watch: {

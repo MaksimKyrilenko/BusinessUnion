@@ -89,6 +89,7 @@ export default {
           localStorage.setItem('userId', user.id);
 
           this.$emit('success');
+          this.$router.push('/dashboard');
         } else {
           throw new Error('Отсутствуют необходимые данные в ответе');
         }
