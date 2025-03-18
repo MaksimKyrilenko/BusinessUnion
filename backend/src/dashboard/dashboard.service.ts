@@ -17,9 +17,30 @@ import {
   CryptoTransaction,
   CryptoMarket
 } from './interfaces';
+import { HttpService } from '@nestjs/axios';
+import { ConfigService } from '@nestjs/config';
+import { lastValueFrom } from 'rxjs';
+import { AxiosResponse } from 'axios';
+
+interface ExchangeRateResponse {
+  rates: Record<string, number>;
+}
 
 @Injectable()
 export class DashboardService {
+  private readonly exchangeRatesApiKey: string;
+
+  constructor(
+    private readonly httpService: HttpService,
+    private readonly configService: ConfigService,
+  ) {
+    const apiKey = this.configService.get<string>('EXCHANGE_RATES_API_KEY');
+    if (!apiKey) {
+      console.warn('EXCHANGE_RATES_API_KEY не настроен, будут использоваться тестовые данные');
+    }
+    this.exchangeRatesApiKey = apiKey || '';
+  }
+
   async getStats(role: UserRole, userId: number): Promise<DashboardStats> {
     // TODO: Реализовать получение реальных данных из базы
     return {
@@ -219,5 +240,99 @@ export class DashboardService {
         lastUpdate: new Date()
       }
     ];
+  }
+
+  async getNews() {
+    // В реальном приложении здесь будет запрос к API новостей
+    return [
+      {
+        id: 1,
+        category: 'Финансы',
+        title: 'Новые тренды в инвестировании 2024',
+        description: 'Анализ основных трендов в сфере инвестиций на текущий год',
+        date: new Date(),
+        url: '#'
+      },
+      {
+        id: 2,
+        category: 'Стартапы',
+        title: 'Успешные стартапы первого квартала',
+        description: 'Обзор самых перспективных стартапов начала года',
+        date: new Date(),
+        url: '#'
+      },
+      {
+        id: 3,
+        category: 'Криптовалюты',
+        title: 'Анализ рынка криптовалют',
+        description: 'Текущая ситуация на рынке криптовалют и прогнозы аналитиков',
+        date: new Date(),
+        url: '#'
+      }
+    ];
+  }
+
+  async getEvents() {
+    // В реальном приложении здесь будет запрос к базе данных или API событий
+    return [
+      {
+        id: 1,
+        title: 'Конференция инвесторов 2024',
+        description: 'Ежегодная конференция для инвесторов и предпринимателей',
+        date: new Date('2024-04-15'),
+        location: 'Москва, Экспоцентр'
+      },
+      {
+        id: 2,
+        title: 'Мастер-класс по криптотрейдингу',
+        description: 'Практический мастер-класс от ведущих трейдеров',
+        date: new Date('2024-04-20'),
+        location: 'Онлайн'
+      },
+      {
+        id: 3,
+        title: 'Питч-сессия стартапов',
+        description: 'Презентации стартапов перед инвесторами',
+        date: new Date('2024-04-25'),
+        location: 'Санкт-Петербург, Технопарк'
+      }
+    ];
+  }
+
+  async getExchangeRates() {
+    try {
+      if (!this.exchangeRatesApiKey) {
+        // Возвращаем тестовые данные, если API ключ не настроен
+        return {
+          USD: { rate: 91.25, change: 0.5 },
+          EUR: { rate: 98.75, change: -0.3 },
+          GBP: { rate: 115.50, change: 0.2 },
+          CNY: { rate: 12.65, change: 0.1 },
+          JPY: { rate: 0.61, change: -0.2 }
+        };
+      }
+
+      const response = await lastValueFrom(
+        this.httpService.get<ExchangeRateResponse>('https://api.exchangerate-api.com/v4/latest/RUB', {
+          headers: {
+            'Authorization': `Bearer ${this.exchangeRatesApiKey}`
+          }
+        })
+      );
+
+      // Преобразуем ответ API в нужный формат
+      const rates = response.data.rates;
+      return Object.keys(rates).reduce((acc, currency) => {
+        acc[currency] = {
+          rate: 1 / rates[currency],
+          // В реальном приложении здесь будет расчет изменения курса
+          change: Math.random() * 2 - 1
+        };
+        return acc;
+      }, {} as Record<string, { rate: number; change: number }>);
+    } catch (error) {
+      console.error('Ошибка при получении курсов валют:', error);
+      throw error;
+    }
   }
 } 

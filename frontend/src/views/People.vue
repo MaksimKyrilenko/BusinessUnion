@@ -4,8 +4,8 @@
       <h1>Поиск партнеров</h1>
       <div class="search-filters">
         <div class="search-bar">
-          <input 
-            type="text" 
+          <input
+            type="text"
             v-model="searchQuery" 
             placeholder="Поиск по имени, компании или специализации..."
             @input="handleSearch"
@@ -33,29 +33,29 @@
             </option>
           </select>
         </div>
-      </div>
-    </div>
+          </div>
+        </div>
 
     <div class="people-grid">
-      <div 
-        v-for="user in filteredUsers" 
-        :key="user.id" 
-        class="user-card"
+          <div
+            v-for="user in filteredUsers"
+            :key="user.id"
+            class="user-card"
       >
         <div class="user-header">
           <img :src="user.avatar || '/default-avatar.png'" :alt="user.name" class="user-avatar">
           <div class="user-type-badge" :class="user.type">
             {{ getUserTypeLabel(user.type) }}
           </div>
-        </div>
-        <div class="user-info">
+            </div>
+            <div class="user-info">
           <h3>{{ user.name }}</h3>
           <p class="user-title">{{ user.title }}</p>
           <p class="user-company" v-if="user.company">{{ user.company }}</p>
-          <div class="user-location" v-if="user.location">
-            <i class="fas fa-map-marker-alt"></i>
+              <div class="user-location" v-if="user.location">
+                <i class="fas fa-map-marker-alt"></i>
             <span>{{ user.location }}</span>
-          </div>
+              </div>
           <div class="user-stats">
             <div class="stat">
               <i class="fas fa-project-diagram"></i>
@@ -91,13 +91,13 @@
 
     <div v-if="loading" class="loading-overlay">
       <div class="spinner"></div>
-    </div>
+          </div>
 
     <div v-if="!loading && filteredUsers.length === 0" class="no-results">
       <i class="fas fa-search"></i>
       <h3>Ничего не найдено</h3>
       <p>Попробуйте изменить параметры поиска</p>
-    </div>
+          </div>
 
     <!-- Модальное окно для отправки сообщения -->
     <modal v-if="showConnectModal" @close="showConnectModal = false">
@@ -120,7 +120,7 @@
         <button class="btn-secondary" @click="showConnectModal = false">Отмена</button>
         <button class="btn-primary" @click="sendMessage" :disabled="!messageText.trim()">
           Отправить
-        </button>
+            </button>
       </template>
     </modal>
   </div>

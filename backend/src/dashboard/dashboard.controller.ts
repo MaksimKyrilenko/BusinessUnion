@@ -86,4 +86,19 @@ export class DashboardController {
   async getCryptoMarket() {
     return this.dashboardService.getCryptoMarket();
   }
+
+  @Get('news')
+  async getNews() {
+    return this.dashboardService.getNews();
+  }
+
+  @Get('events')
+  async getEvents() {
+    return this.dashboardService.getEvents();
+  }
+
+  @Get('exchange-rates')
+  async getExchangeRates() {
+    return this.dashboardService.getExchangeRates();
+  }
 } 

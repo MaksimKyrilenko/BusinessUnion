@@ -18,11 +18,10 @@ export interface RecentMessage {
 
 export interface Activity {
   id: number;
-  type: 'connection' | 'message' | 'investment' | 'update';
+  type: string;
   title: string;
   description: string;
   timestamp: Date;
-  metadata?: Record<string, any>;
 }
 
 // Интерфейсы для стартапера
@@ -33,7 +32,6 @@ export interface StartupInfo {
   teamSize: number;
   fundingGoal: number;
   currentFunding: number;
-  pitchDeckUrl?: string;
 }
 
 export interface StartupMilestone {
@@ -42,7 +40,6 @@ export interface StartupMilestone {
   description: string;
   dueDate: Date;
   status: 'pending' | 'completed' | 'delayed';
-  completionDate?: Date;
 }
 
 export interface StartupMetrics {
@@ -58,7 +55,7 @@ export interface StartupUpdate {
   title: string;
   content: string;
   timestamp: Date;
-  type: 'milestone' | 'metrics' | 'team' | 'product';
+  type: 'product' | 'team' | 'financial' | 'other';
 }
 
 export interface StartupMentor {
@@ -94,7 +91,7 @@ export interface InvestorTransaction {
   projectId: number;
   projectName: string;
   amount: number;
-  type: 'investment' | 'return' | 'exit';
+  type: 'investment' | 'return' | 'dividend';
   date: Date;
   status: 'pending' | 'completed' | 'failed';
 }

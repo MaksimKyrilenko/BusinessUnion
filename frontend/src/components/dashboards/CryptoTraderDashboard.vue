@@ -1,42 +1,46 @@
 <template>
-  <div class="dashboard-content">
+  <div class="crypto-dashboard">
     <div class="dashboard-grid">
       <div class="dashboard-card">
-        <h3>Портфель криптовалют</h3>
-        <div class="stats">
-          <div class="stat-item">
-            <span class="stat-value">{{ formatMoney(stats.portfolioValue) }}</span>
-            <span class="stat-label">Общая стоимость</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-value" :class="stats.dailyChange >= 0 ? 'positive' : 'negative'">
-              {{ stats.dailyChange > 0 ? '+' : '' }}{{ stats.dailyChange }}%
-            </span>
-            <span class="stat-label">Изменение за 24ч</span>
+        <h2>Портфель криптовалют</h2>
+        <div class="card-content">
+          <div class="stats">
+            <div class="stat-item">
+              <span class="stat-value">{{ formatMoney(stats.portfolioValue) }}</span>
+              <span class="stat-label">Общая стоимость</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value" :class="stats.dailyChange >= 0 ? 'positive' : 'negative'">
+                {{ stats.dailyChange > 0 ? '+' : '' }}{{ stats.dailyChange }}%
+              </span>
+              <span class="stat-label">Изменение за 24ч</span>
+            </div>
           </div>
         </div>
       </div>
-
+      
       <div class="dashboard-card">
-        <h3>Активные позиции</h3>
-        <div class="positions-list">
-          <div v-for="position in activePositions" 
-               :key="position.id" 
-               class="position-item"
-          >
-            <div class="position-info">
-              <div class="crypto-info">
-                <img :src="position.icon" :alt="position.symbol" class="crypto-icon">
-                <div>
-                  <h4>{{ position.name }}</h4>
-                  <span class="symbol">{{ position.symbol }}</span>
+        <h2>Активные позиции</h2>
+        <div class="card-content">
+          <div class="positions-list">
+            <div v-for="position in activePositions" 
+                 :key="position.id" 
+                 class="position-item"
+            >
+              <div class="position-info">
+                <div class="crypto-info">
+                  <img :src="position.icon" :alt="position.symbol" class="crypto-icon">
+                  <div>
+                    <h4>{{ position.name }}</h4>
+                    <span class="symbol">{{ position.symbol }}</span>
+                  </div>
                 </div>
-              </div>
-              <div class="position-details">
-                <div class="amount">{{ position.amount }} {{ position.symbol }}</div>
-                <div class="value">≈ {{ formatMoney(position.value) }}</div>
-                <div :class="['change', position.change >= 0 ? 'positive' : 'negative']">
-                  {{ position.change > 0 ? '+' : '' }}{{ position.change }}%
+                <div class="position-details">
+                  <div class="amount">{{ position.amount }} {{ position.symbol }}</div>
+                  <div class="value">≈ {{ formatMoney(position.value) }}</div>
+                  <div :class="['change', position.change >= 0 ? 'positive' : 'negative']">
+                    {{ position.change > 0 ? '+' : '' }}{{ position.change }}%
+                  </div>
                 </div>
               </div>
             </div>
@@ -45,24 +49,26 @@
       </div>
 
       <div class="dashboard-card">
-        <h3>Последние транзакции</h3>
-        <div class="transactions-list">
-          <div v-for="tx in recentTransactions" 
-               :key="tx.id" 
-               class="transaction-item"
-          >
-            <div class="transaction-icon" :class="tx.type">
-              {{ getTransactionIcon(tx.type) }}
-            </div>
-            <div class="transaction-details">
-              <div class="transaction-header">
-                <h4>{{ tx.type === 'buy' ? 'Покупка' : 'Продажа' }} {{ tx.symbol }}</h4>
-                <span :class="['amount', tx.type]">
-                  {{ tx.type === 'buy' ? '-' : '+' }}{{ formatMoney(tx.value) }}
-                </span>
+        <h2>Торговая статистика</h2>
+        <div class="card-content">
+          <div class="transactions-list">
+            <div v-for="tx in recentTransactions" 
+                 :key="tx.id" 
+                 class="transaction-item"
+            >
+              <div class="transaction-icon" :class="tx.type">
+                {{ getTransactionIcon(tx.type) }}
               </div>
-              <p>{{ tx.amount }} {{ tx.symbol }} @ {{ formatMoney(tx.price) }}</p>
-              <span class="transaction-time">{{ formatTime(tx.time) }}</span>
+              <div class="transaction-details">
+                <div class="transaction-header">
+                  <h4>{{ tx.type === 'buy' ? 'Покупка' : 'Продажа' }} {{ tx.symbol }}</h4>
+                  <span :class="['amount', tx.type]">
+                    {{ tx.type === 'buy' ? '-' : '+' }}{{ formatMoney(tx.value) }}
+                  </span>
+                </div>
+                <p>{{ tx.amount }} {{ tx.symbol }} @ {{ formatMoney(tx.price) }}</p>
+                <span class="transaction-time">{{ formatTime(tx.time) }}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -96,12 +102,13 @@
 </template>
 
 <script>
+import { defineComponent } from 'vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import { format } from 'date-fns'
 import { ru } from 'date-fns/locale'
 import api from '@/axios'
 
-export default {
+export default defineComponent({
   name: 'CryptoTraderDashboard',
   components: {
     BaseButton
@@ -152,11 +159,31 @@ export default {
   created() {
     this.loadDashboardData()
   }
-}
+})
 </script>
 
 <style scoped>
-/* Базовые стили от BusinessmanDashboard */
+.crypto-dashboard {
+  margin-top: 2rem;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.dashboard-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+}
+
+.dashboard-card h2 {
+  color: #2c3e50;
+  margin-bottom: 1rem;
+}
 
 .positive {
   color: #28a745;

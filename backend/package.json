@@ -21,12 +21,14 @@
     "reset-db": "ts-node src/database/reset-db.ts"
   },
   "dependencies": {
+    "@nestjs/axios": "^4.0.0",
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/swagger": "^11.0.6",
     "@nestjs/typeorm": "^11.0.0",
     "@types/cookie-parser": "^1.4.8",
+    "axios": "^1.8.3",
     "bcrypt": "^5.1.1",
     "cookie-parser": "^1.4.7",
     "dotenv": "^16.4.7",
