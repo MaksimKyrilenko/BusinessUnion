@@ -1,5 +1,5 @@
 <template>
-  <div class="financial-analytics" v-if="isReady">
+  <div class="financial-analytics">
     <div class="analytics-header">
       <h1>Финансовая аналитика</h1>
       <div class="time-range">
@@ -28,38 +28,44 @@
           </button>
         </div>
         <div class="pairs-grid">
-          <div v-if="isLoading.pairs" class="loading-overlay">
-            <i class="fas fa-spinner fa-spin"></i>
-            <span>Загрузка данных...</span>
-          </div>
-          <div v-else-if="!currencyPairs.length" class="empty-state">
-            <i class="fas fa-database"></i>
-            <span>Нет доступных валютных пар</span>
-          </div>
-          <div v-else
-            v-for="pair in currencyPairs"
-            :key="pair.symbol"
-            class="pair-item"
-            @click="selectedPair = pair.symbol"
-          >
-            <div class="pair-info">
-              <div class="pair-symbol">{{ pair.symbol }}</div>
-              <div class="pair-name">{{ pair.name }}</div>
+          <template v-if="isLoading.pairs">
+            <div class="loading-overlay">
+              <i class="fas fa-spinner fa-spin"></i>
+              <span>Загрузка данных...</span>
             </div>
-            <div class="pair-data">
-              <div class="pair-price">{{ formatPrice(pair.price) }}</div>
-              <div 
-                class="pair-change"
-                :class="{ 
-                  'positive': pair.change > 0,
-                  'negative': pair.change < 0 
-                }"
-              >
-                <i :class="['fas', pair.change > 0 ? 'fa-caret-up' : 'fa-caret-down']"></i>
-                {{ formatChange(pair.change) }}
+          </template>
+          <template v-else-if="!currencyPairs.length">
+            <div class="empty-state">
+              <i class="fas fa-database"></i>
+              <span>Нет доступных валютных пар</span>
+            </div>
+          </template>
+          <template v-else>
+            <div
+              v-for="pair in currencyPairs"
+              :key="pair.symbol"
+              class="pair-item"
+              @click="selectedPair = pair.symbol"
+            >
+              <div class="pair-info">
+                <div class="pair-symbol">{{ pair.symbol }}</div>
+                <div class="pair-name">{{ pair.name }}</div>
+              </div>
+              <div class="pair-data">
+                <div class="pair-price">{{ formatPrice(pair.price) }}</div>
+                <div 
+                  class="pair-change"
+                  :class="{ 
+                    'positive': pair.change > 0,
+                    'negative': pair.change < 0 
+                  }"
+                >
+                  <i :class="['fas', pair.change > 0 ? 'fa-caret-up' : 'fa-caret-down']"></i>
+                  {{ formatChange(pair.change) }}
+                </div>
               </div>
             </div>
-          </div>
+          </template>
         </div>
       </div>
 
@@ -85,10 +91,12 @@
           </div>
         </div>
         <div class="chart-container" ref="chartContainer">
-          <div v-if="isLoading.chart" class="loading-overlay">
-            <i class="fas fa-spinner fa-spin"></i>
-            <span>Загрузка графика...</span>
-          </div>
+          <template v-if="!isComponentMounted || isLoading.chart">
+            <div class="loading-overlay">
+              <i class="fas fa-spinner fa-spin"></i>
+              <span>Загрузка графика...</span>
+            </div>
+          </template>
         </div>
       </div>
 
@@ -98,32 +106,38 @@
           <h2>Технические индикаторы</h2>
         </div>
         <div class="indicators-grid">
-          <div v-if="isLoading.indicators" class="loading-overlay">
-            <i class="fas fa-spinner fa-spin"></i>
-            <span>Загрузка индикаторов...</span>
-          </div>
-          <div v-else-if="!technicalIndicators.length" class="empty-state">
-            <i class="fas fa-chart-line"></i>
-            <span>Нет доступных индикаторов</span>
-          </div>
-          <div v-else
-            v-for="indicator in technicalIndicators" 
-            :key="indicator.name"
-            class="indicator-item"
-          >
-            <div class="indicator-header">
-              <span class="indicator-name">{{ indicator.name }}</span>
-              <div 
-                class="indicator-signal"
-                :class="indicator.signal.toLowerCase()"
-              >
-                {{ indicator.signal }}
+          <template v-if="isLoading.indicators">
+            <div class="loading-overlay">
+              <i class="fas fa-spinner fa-spin"></i>
+              <span>Загрузка индикаторов...</span>
+            </div>
+          </template>
+          <template v-else-if="!technicalIndicators.length">
+            <div class="empty-state">
+              <i class="fas fa-chart-line"></i>
+              <span>Нет доступных индикаторов</span>
+            </div>
+          </template>
+          <template v-else>
+            <div
+              v-for="indicator in technicalIndicators" 
+              :key="indicator.name"
+              class="indicator-item"
+            >
+              <div class="indicator-header">
+                <span class="indicator-name">{{ indicator.name }}</span>
+                <div 
+                  class="indicator-signal"
+                  :class="indicator.signal.toLowerCase()"
+                >
+                  {{ indicator.signal }}
+                </div>
+              </div>
+              <div class="indicator-value">
+                {{ indicator.value }}
               </div>
             </div>
-            <div class="indicator-value">
-              {{ indicator.value }}
-            </div>
-          </div>
+          </template>
         </div>
       </div>
 
@@ -140,35 +154,41 @@
           </div>
         </div>
         <div class="summary-content">
-          <div v-if="isLoading.summaries" class="loading-overlay">
-            <i class="fas fa-spinner fa-spin"></i>
-            <span>Загрузка сводок...</span>
-          </div>
-          <div v-else-if="!filteredSummaries.length" class="empty-state">
-            <i class="fas fa-newspaper"></i>
-            <span>Нет доступных сводок</span>
-          </div>
-          <div v-else
-            v-for="summary in filteredSummaries" 
-            :key="summary.id"
-            class="summary-item"
-          >
-            <div class="summary-header">
-              <span class="summary-title">{{ summary.title }}</span>
-              <span class="summary-time">{{ formatTime(summary.timestamp) }}</span>
+          <template v-if="isLoading.summaries">
+            <div class="loading-overlay">
+              <i class="fas fa-spinner fa-spin"></i>
+              <span>Загрузка сводок...</span>
             </div>
-            <p class="summary-text">{{ summary.text }}</p>
-            <div class="summary-meta">
-              <div class="summary-source">
-                <i class="fas fa-user-tie"></i>
-                {{ summary.analyst }}
+          </template>
+          <template v-else-if="!filteredSummaries.length">
+            <div class="empty-state">
+              <i class="fas fa-newspaper"></i>
+              <span>Нет доступных сводок</span>
+            </div>
+          </template>
+          <template v-else>
+            <div
+              v-for="summary in filteredSummaries" 
+              :key="summary.id"
+              class="summary-item"
+            >
+              <div class="summary-header">
+                <span class="summary-title">{{ summary.title }}</span>
+                <span class="summary-time">{{ formatTime(summary.timestamp) }}</span>
               </div>
-              <div class="summary-rating">
-                <i class="fas fa-star"></i>
-                {{ summary.rating }}/5
+              <p class="summary-text">{{ summary.text }}</p>
+              <div class="summary-meta">
+                <div class="summary-source">
+                  <i class="fas fa-user-tie"></i>
+                  {{ summary.analyst }}
+                </div>
+                <div class="summary-rating">
+                  <i class="fas fa-star"></i>
+                  {{ summary.rating }}/5
+                </div>
               </div>
             </div>
-          </div>
+          </template>
         </div>
       </div>
     </div>
@@ -176,14 +196,14 @@
 </template>
 
 <script>
-import { defineComponent, h, ref, onMounted, watch, computed, nextTick } from 'vue'
+import { defineComponent, h, ref, onMounted, watch, computed, nextTick, onUnmounted } from 'vue'
 import * as echarts from 'echarts'
 import api from '@/axios'
 
 export default defineComponent({
   name: 'FinancialAnalytics',
   setup() {
-    const isReady = ref(false)
+    const isComponentMounted = ref(false)
     const selectedRange = ref('1d')
     const selectedPair = ref('EURUSD')
     const selectedChartType = ref('line')
@@ -223,16 +243,14 @@ export default defineComponent({
     })
 
     const initChart = async () => {
-      await nextTick()
-      const container = chartContainer.value
-      if (!container) return false
-
+      if (!chartContainer.value || !isComponentMounted.value) return
+      
       try {
         if (chart) {
           chart.dispose()
         }
 
-        chart = echarts.init(container)
+        chart = echarts.init(chartContainer.value)
         const option = {
           tooltip: {
             trigger: 'axis',
@@ -316,10 +334,10 @@ export default defineComponent({
     }
 
     const updateChartData = async () => {
-      if (!chart) return
-
+      if (!chart || !isComponentMounted.value || isLoading.value.chart) return
+      
+      isLoading.value.chart = true
       try {
-        isLoading.value.chart = true
         const response = await api.get(`/chart-data/${selectedPair.value}`, {
           params: {
             range: selectedRange.value,
@@ -327,7 +345,7 @@ export default defineComponent({
           }
         })
 
-        if (!chart) return
+        if (!chart || !isComponentMounted.value) return
 
         chart.setOption({
           series: [{
@@ -343,6 +361,7 @@ export default defineComponent({
 
     // API функции
     const loadCurrencyPairs = async () => {
+      if (isLoading.value.pairs) return
       isLoading.value.pairs = true
       try {
         const response = await api.get('/currency-pairs')
@@ -355,6 +374,7 @@ export default defineComponent({
     }
 
     const loadTechnicalIndicators = async () => {
+      if (isLoading.value.indicators) return
       isLoading.value.indicators = true
       try {
         const response = await api.get(`/technical-indicators/${selectedPair.value}`)
@@ -367,6 +387,7 @@ export default defineComponent({
     }
 
     const loadSummaries = async () => {
+      if (isLoading.value.summaries) return
       isLoading.value.summaries = true
       try {
         const response = await api.get('/market-summaries')
@@ -422,50 +443,60 @@ export default defineComponent({
       }
     }
 
-    const loadInitialData = async () => {
+    onMounted(async () => {
       try {
-        await Promise.all([
+        // Загружаем данные параллельно
+        const dataPromises = [
           loadCurrencyPairs(),
           loadTechnicalIndicators(),
           loadSummaries()
-        ])
+        ]
         
+        // Инициализируем график сразу после монтирования
         await nextTick()
-        await initChart()
-        isReady.value = true
-      } catch (error) {
-        console.error('Ошибка загрузки данных:', error)
-      }
-    }
-
-    onMounted(async () => {
-      await loadInitialData()
-
-      window.addEventListener('resize', () => {
-        if (chart && !chart.isDisposed()) {
-          chart.resize()
+        const chartInitialized = await initChart()
+        
+        // Дожидаемся загрузки данных
+        await Promise.all(dataPromises)
+        
+        // Устанавливаем флаг монтирования и обновляем график
+        isComponentMounted.value = true
+        if (chartInitialized) {
+          await updateChartData()
         }
-      })
+
+        // Добавляем обработчик ресайза
+        window.addEventListener('resize', handleResize)
+      } catch (error) {
+        console.error('Ошибка инициализации компонента:', error)
+      }
+    })
+
+    onUnmounted(() => {
+      isComponentMounted.value = false
+      if (chart) {
+        chart.dispose()
+        chart = null
+      }
     })
 
     // Наблюдатели
     watch([selectedRange, selectedChartType], () => {
-      requestAnimationFrame(() => {
+      if (isComponentMounted.value) {
         updateChartData()
-      })
+      }
     })
 
     watch(selectedPair, () => {
-      requestAnimationFrame(() => {
+      if (isComponentMounted.value) {
         Promise.all([
           updateChartData(),
           loadTechnicalIndicators()
         ])
-      })
+      }
     })
 
     return {
-      isReady,
       selectedRange,
       selectedPair,
       selectedChartType,
