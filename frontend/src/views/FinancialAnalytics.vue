@@ -1,10 +1,10 @@
 <template>
-  <div class="financial-analytics">
+  <div class="financial-analytics" v-if="isReady">
     <div class="analytics-header">
       <h1>Финансовая аналитика</h1>
       <div class="time-range">
-        <button 
-          v-for="range in timeRanges" 
+        <button
+          v-for="range in timeRanges"
           :key="range.value"
           :class="['range-btn', { active: selectedRange === range.value }]"
           @click="selectedRange = range.value"
@@ -19,15 +19,28 @@
       <div class="analytics-card currency-pairs">
         <div class="card-header">
           <h2>Основные валютные пары</h2>
-          <button class="refresh-btn" @click="refreshCurrencyPairs">
+          <button 
+            class="refresh-btn" 
+            :class="{ 'spinning': isLoading.pairs }"
+            @click="refreshData"
+          >
             <i class="fas fa-sync-alt"></i>
           </button>
         </div>
         <div class="pairs-grid">
-          <div 
-            v-for="pair in currencyPairs" 
+          <div v-if="isLoading.pairs" class="loading-overlay">
+            <i class="fas fa-spinner fa-spin"></i>
+            <span>Загрузка данных...</span>
+          </div>
+          <div v-else-if="!currencyPairs.length" class="empty-state">
+            <i class="fas fa-database"></i>
+            <span>Нет доступных валютных пар</span>
+          </div>
+          <div v-else
+            v-for="pair in currencyPairs"
             :key="pair.symbol"
             class="pair-item"
+            @click="selectedPair = pair.symbol"
           >
             <div class="pair-info">
               <div class="pair-symbol">{{ pair.symbol }}</div>
@@ -54,18 +67,14 @@
       <div class="analytics-card chart-card">
         <div class="card-header">
           <div class="chart-controls">
-            <select v-model="selectedPair" @change="updateChart">
-              <option 
-                v-for="pair in currencyPairs" 
-                :key="pair.symbol" 
-                :value="pair.symbol"
-              >
+            <select v-model="selectedPair">
+              <option v-for="pair in currencyPairs" :key="pair.symbol" :value="pair.symbol">
                 {{ pair.name }}
               </option>
             </select>
             <div class="chart-type">
-              <button 
-                v-for="type in chartTypes" 
+              <button
+                v-for="type in chartTypes"
                 :key="type.value"
                 :class="['type-btn', { active: selectedChartType === type.value }]"
                 @click="selectedChartType = type.value"
@@ -75,7 +84,12 @@
             </div>
           </div>
         </div>
-        <div class="chart-container" ref="chartContainer"></div>
+        <div class="chart-container" ref="chartContainer">
+          <div v-if="isLoading.chart" class="loading-overlay">
+            <i class="fas fa-spinner fa-spin"></i>
+            <span>Загрузка графика...</span>
+          </div>
+        </div>
       </div>
 
       <!-- Технические индикаторы -->
@@ -84,7 +98,15 @@
           <h2>Технические индикаторы</h2>
         </div>
         <div class="indicators-grid">
-          <div 
+          <div v-if="isLoading.indicators" class="loading-overlay">
+            <i class="fas fa-spinner fa-spin"></i>
+            <span>Загрузка индикаторов...</span>
+          </div>
+          <div v-else-if="!technicalIndicators.length" class="empty-state">
+            <i class="fas fa-chart-line"></i>
+            <span>Нет доступных индикаторов</span>
+          </div>
+          <div v-else
             v-for="indicator in technicalIndicators" 
             :key="indicator.name"
             class="indicator-item"
@@ -118,7 +140,15 @@
           </div>
         </div>
         <div class="summary-content">
-          <div 
+          <div v-if="isLoading.summaries" class="loading-overlay">
+            <i class="fas fa-spinner fa-spin"></i>
+            <span>Загрузка сводок...</span>
+          </div>
+          <div v-else-if="!filteredSummaries.length" class="empty-state">
+            <i class="fas fa-newspaper"></i>
+            <span>Нет доступных сводок</span>
+          </div>
+          <div v-else
             v-for="summary in filteredSummaries" 
             :key="summary.id"
             class="summary-item"
@@ -146,13 +176,14 @@
 </template>
 
 <script>
-import { ref, onMounted, watch, computed } from 'vue'
+import { defineComponent, h, ref, onMounted, watch, computed, nextTick } from 'vue'
 import * as echarts from 'echarts'
 import api from '@/axios'
 
-export default {
+export default defineComponent({
   name: 'FinancialAnalytics',
   setup() {
+    const isReady = ref(false)
     const selectedRange = ref('1d')
     const selectedPair = ref('EURUSD')
     const selectedChartType = ref('line')
@@ -160,9 +191,16 @@ export default {
     const currencyPairs = ref([])
     const technicalIndicators = ref([])
     const summaries = ref([])
-    const chartInstance = ref(null)
     const chartContainer = ref(null)
+    const isLoading = ref({
+      pairs: false,
+      chart: false,
+      indicators: false,
+      summaries: false
+    })
+    let chart = null
 
+    // Константы
     const timeRanges = [
       { label: '1Д', value: '1d' },
       { label: '1Н', value: '1w' },
@@ -177,50 +215,111 @@ export default {
       { value: 'area', icon: 'fas fa-chart-area' }
     ]
 
+    // Вычисляемые свойства
     const filteredSummaries = computed(() => {
       return summaries.value.filter(summary => 
         summary.type === selectedAnalysisType.value
       )
     })
 
-    const loadCurrencyPairs = async () => {
+    const initChart = async () => {
+      await nextTick()
+      const container = chartContainer.value
+      if (!container) return false
+
       try {
-        const response = await api.get('/currency-pairs')
-        currencyPairs.value = response.data
+        if (chart) {
+          chart.dispose()
+        }
+
+        chart = echarts.init(container)
+        const option = {
+          tooltip: {
+            trigger: 'axis',
+            axisPointer: {
+              type: 'cross',
+              label: {
+                backgroundColor: '#1976d2'
+              }
+            },
+            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+            borderColor: '#e2e8f0',
+            borderWidth: 1,
+            padding: [10, 15],
+            textStyle: {
+              color: '#1e293b'
+            }
+          },
+          grid: {
+            left: '3%',
+            right: '4%',
+            bottom: '15%',
+            top: '8%',
+            containLabel: true
+          },
+          xAxis: {
+            type: 'time',
+            boundaryGap: false,
+            axisLine: {
+              lineStyle: {
+                color: '#e2e8f0'
+              }
+            },
+            axisTick: {
+              show: false
+            },
+            axisLabel: {
+              color: '#64748b',
+              formatter: (value) => {
+                const date = new Date(value)
+                if (selectedRange.value === '1d') {
+                  return date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+                }
+                return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })
+              }
+            }
+          },
+          yAxis: {
+            type: 'value',
+            position: 'right',
+            axisLine: {
+              show: false
+            },
+            axisTick: {
+              show: false
+            },
+            splitLine: {
+              lineStyle: {
+                color: '#e2e8f0',
+                type: 'dashed'
+              }
+            },
+            axisLabel: {
+              color: '#64748b',
+              formatter: (value) => formatPrice(value)
+            }
+          },
+          series: [{
+            type: 'line',
+            data: [],
+            showSymbol: false,
+            smooth: true
+          }]
+        }
+
+        chart.setOption(option)
+        return true
       } catch (error) {
-        console.error('Ошибка при загрузке валютных пар:', error)
+        console.error('Ошибка инициализации графика:', error)
+        return false
       }
     }
 
-    const loadTechnicalIndicators = async () => {
-      try {
-        const response = await api.get(`/technical-indicators/${selectedPair.value}`)
-        technicalIndicators.value = response.data
-      } catch (error) {
-        console.error('Ошибка при загрузке технических индикаторов:', error)
-      }
-    }
-
-    const loadSummaries = async () => {
-      try {
-        const response = await api.get('/market-summaries')
-        summaries.value = response.data
-      } catch (error) {
-        console.error('Ошибка при загрузке аналитических сводок:', error)
-      }
-    }
-
-    const initChart = () => {
-      if (!chartContainer.value) return
-
-      chartInstance.value = echarts.init(chartContainer.value)
-      updateChart()
-    }
-
-    const updateChart = async () => {
-      if (!chartInstance.value) return
+    const updateChartData = async () => {
+      if (!chart) return
 
       try {
+        isLoading.value.chart = true
         const response = await api.get(`/chart-data/${selectedPair.value}`, {
           params: {
             range: selectedRange.value,
@@ -228,60 +327,58 @@ export default {
           }
         })
 
-        const option = {
-          tooltip: {
-            trigger: 'axis',
-            axisPointer: {
-              type: 'cross'
-            }
-          },
-          grid: {
-            left: '3%',
-            right: '4%',
-            bottom: '3%',
-            containLabel: true
-          },
-          xAxis: {
-            type: 'time',
-            boundaryGap: false
-          },
-          yAxis: {
-            type: 'value',
-            axisLabel: {
-              formatter: '{value}'
-            }
-          },
-          series: [
-            {
-              name: selectedPair.value,
-              type: selectedChartType.value === 'candlestick' ? 'candlestick' : 'line',
-              data: response.data,
-              itemStyle: {
-                color: '#2196F3',
-                color0: '#ef5350',
-                borderColor: '#2196F3',
-                borderColor0: '#ef5350'
-              },
-              areaStyle: selectedChartType.value === 'area' ? {
-                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                  { offset: 0, color: 'rgba(33, 150, 243, 0.3)' },
-                  { offset: 1, color: 'rgba(33, 150, 243, 0.1)' }
-                ])
-              } : undefined
-            }
-          ]
-        }
+        if (!chart) return
 
-        chartInstance.value.setOption(option)
+        chart.setOption({
+          series: [{
+            data: response.data || []
+          }]
+        })
       } catch (error) {
-        console.error('Ошибка при обновлении графика:', error)
+        console.error('Ошибка обновления данных графика:', error)
+      } finally {
+        isLoading.value.chart = false
       }
     }
 
-    const refreshCurrencyPairs = () => {
-      loadCurrencyPairs()
+    // API функции
+    const loadCurrencyPairs = async () => {
+      isLoading.value.pairs = true
+      try {
+        const response = await api.get('/currency-pairs')
+        currencyPairs.value = response.data || []
+      } catch (error) {
+        console.error('Ошибка загрузки валютных пар:', error)
+      } finally {
+        isLoading.value.pairs = false
+      }
     }
 
+    const loadTechnicalIndicators = async () => {
+      isLoading.value.indicators = true
+      try {
+        const response = await api.get(`/technical-indicators/${selectedPair.value}`)
+        technicalIndicators.value = response.data || []
+      } catch (error) {
+        console.error('Ошибка загрузки индикаторов:', error)
+      } finally {
+        isLoading.value.indicators = false
+      }
+    }
+
+    const loadSummaries = async () => {
+      isLoading.value.summaries = true
+      try {
+        const response = await api.get('/market-summaries')
+        summaries.value = response.data || []
+      } catch (error) {
+        console.error('Ошибка загрузки сводок:', error)
+      } finally {
+        isLoading.value.summaries = false
+      }
+    }
+
+    // Вспомогательные функции
     const formatPrice = (price) => {
       return new Intl.NumberFormat('ru-RU', {
         minimumFractionDigits: 4,
@@ -306,27 +403,69 @@ export default {
       })
     }
 
+    // Обработчики событий
+    const handleResize = () => {
+      if (chart) {
+        chart.resize()
+      }
+    }
+
+    const refreshData = async () => {
+      try {
+        await Promise.all([
+          loadCurrencyPairs(),
+          loadTechnicalIndicators(),
+          loadSummaries()
+        ])
+      } catch (error) {
+        console.error('Ошибка обновления данных:', error)
+      }
+    }
+
+    const loadInitialData = async () => {
+      try {
+        await Promise.all([
+          loadCurrencyPairs(),
+          loadTechnicalIndicators(),
+          loadSummaries()
+        ])
+        
+        await nextTick()
+        await initChart()
+        isReady.value = true
+      } catch (error) {
+        console.error('Ошибка загрузки данных:', error)
+      }
+    }
+
+    onMounted(async () => {
+      await loadInitialData()
+
+      window.addEventListener('resize', () => {
+        if (chart && !chart.isDisposed()) {
+          chart.resize()
+        }
+      })
+    })
+
+    // Наблюдатели
     watch([selectedRange, selectedChartType], () => {
-      updateChart()
+      requestAnimationFrame(() => {
+        updateChartData()
+      })
     })
 
     watch(selectedPair, () => {
-      updateChart()
-      loadTechnicalIndicators()
-    })
-
-    onMounted(() => {
-      loadCurrencyPairs()
-      loadTechnicalIndicators()
-      loadSummaries()
-      initChart()
-
-      window.addEventListener('resize', () => {
-        chartInstance.value?.resize()
+      requestAnimationFrame(() => {
+        Promise.all([
+          updateChartData(),
+          loadTechnicalIndicators()
+        ])
       })
     })
 
     return {
+      isReady,
       selectedRange,
       selectedPair,
       selectedChartType,
@@ -337,13 +476,14 @@ export default {
       chartTypes,
       chartContainer,
       filteredSummaries,
-      refreshCurrencyPairs,
+      refreshData,
       formatPrice,
       formatChange,
-      formatTime
+      formatTime,
+      isLoading
     }
   }
-}
+})
 </script>
 
 <style scoped>
@@ -352,133 +492,203 @@ export default {
   max-width: 1400px;
   margin: 0 auto;
   margin-top: 60px;
+  background: linear-gradient(to bottom, #f8fafc, #ffffff);
 }
 
 .analytics-header {
   margin-bottom: 2rem;
+  padding: 2rem;
+  background: linear-gradient(135deg, #1976d2, #1565c0);
+  border-radius: 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  color: white;
+  box-shadow: 0 4px 20px rgba(25, 118, 210, 0.15);
 }
 
 .analytics-header h1 {
-  color: #2c3e50;
   margin: 0;
+  font-size: 2.2rem;
+  font-weight: 600;
 }
 
 .time-range {
   display: flex;
   gap: 0.5rem;
-  background: #f5f5f5;
-  padding: 0.25rem;
-  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.5rem;
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
 }
 
 .range-btn {
-  padding: 0.5rem 1rem;
+  padding: 0.75rem 1.5rem;
   border: none;
   background: none;
-  border-radius: 0.25rem;
+  border-radius: 8px;
   cursor: pointer;
-  color: #666;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 500;
   transition: all 0.3s ease;
+}
+
+.range-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
 }
 
 .range-btn.active {
   background: white;
-  color: #2196F3;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  color: #1976d2;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .analytics-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 1.5rem;
+  gap: 2rem;
 }
 
 .analytics-card {
   background: white;
-  border-radius: 1rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border-radius: 16px;
+  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.05);
   overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.analytics-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.08);
 }
 
 .card-header {
-  padding: 1.5rem;
-  border-bottom: 1px solid #e0e0e0;
+  padding: 1.75rem;
+  border-bottom: 1px solid #e2e8f0;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background: linear-gradient(to right, #f8fafc, #ffffff);
 }
 
 .card-header h2 {
   margin: 0;
-  font-size: 1.2rem;
-  color: #2c3e50;
+  font-size: 1.5rem;
+  color: #1e293b;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .refresh-btn {
   background: none;
   border: none;
-  color: #666;
+  color: #64748b;
   cursor: pointer;
-  padding: 0.5rem;
+  padding: 0.75rem;
   border-radius: 50%;
   transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .refresh-btn:hover {
-  color: #2196F3;
-  background: #f5f5f5;
+  color: #1976d2;
+  background: #f1f5f9;
+}
+
+.refresh-btn i {
+  font-size: 1.2rem;
+  transition: transform 0.3s ease;
+}
+
+.refresh-btn:hover i {
+  transform: rotate(180deg);
+}
+
+.refresh-btn.spinning i {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 .pairs-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  padding: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.25rem;
+  padding: 1.75rem;
 }
 
 .pair-item {
-  padding: 1rem;
-  background: #f8f9fa;
-  border-radius: 0.5rem;
+  padding: 1.5rem;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
+.pair-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  border-color: #1976d2;
+}
+
+.pair-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
 .pair-symbol {
-  font-weight: 500;
-  color: #2c3e50;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #1e293b;
 }
 
 .pair-name {
   font-size: 0.9rem;
-  color: #666;
-  margin-top: 0.25rem;
+  color: #64748b;
 }
 
-.pair-price {
-  font-weight: 500;
-  color: #2c3e50;
+.pair-data {
   text-align: right;
 }
 
+.pair-price {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 0.25rem;
+}
+
 .pair-change {
-  font-size: 0.9rem;
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  margin-top: 0.25rem;
+  font-weight: 500;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
 }
 
 .pair-change.positive {
-  color: #4caf50;
+  background: rgba(34, 197, 94, 0.1);
+  color: #16a34a;
 }
 
 .pair-change.negative {
-  color: #f44336;
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
 }
 
 .chart-card {
@@ -487,97 +697,126 @@ export default {
 
 .chart-controls {
   display: flex;
-  gap: 1rem;
+  gap: 1.5rem;
   align-items: center;
 }
 
 .chart-controls select {
-  padding: 0.5rem;
-  border: 1px solid #e0e0e0;
-  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
   background: white;
-  color: #2c3e50;
+  color: #1e293b;
+  font-size: 0.95rem;
+  min-width: 200px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.chart-controls select:focus {
+  border-color: #1976d2;
+  box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
 }
 
 .chart-type {
   display: flex;
   gap: 0.5rem;
-  background: #f5f5f5;
-  padding: 0.25rem;
-  border-radius: 0.5rem;
+  background: #f1f5f9;
+  padding: 0.5rem;
+  border-radius: 8px;
 }
 
 .type-btn {
-  padding: 0.5rem;
+  padding: 0.75rem;
   border: none;
   background: none;
-  border-radius: 0.25rem;
+  border-radius: 6px;
   cursor: pointer;
-  color: #666;
+  color: #64748b;
   transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+}
+
+.type-btn:hover {
+  background: rgba(25, 118, 210, 0.1);
+  color: #1976d2;
 }
 
 .type-btn.active {
   background: white;
-  color: #2196F3;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  color: #1976d2;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .chart-container {
-  height: 400px;
-  padding: 1.5rem;
+  padding: 1.75rem;
+  height: 450px;
 }
 
 .indicators-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  padding: 1.5rem;
+  gap: 1.25rem;
+  padding: 1.75rem;
 }
 
 .indicator-item {
-  padding: 1rem;
-  background: #f8f9fa;
-  border-radius: 0.5rem;
+  padding: 1.5rem;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
+}
+
+.indicator-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
 }
 
 .indicator-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.5rem;
+  margin-bottom: 1rem;
 }
 
 .indicator-name {
-  font-weight: 500;
-  color: #2c3e50;
+  font-weight: 600;
+  color: #1e293b;
 }
 
 .indicator-signal {
-  padding: 0.25rem 0.75rem;
-  border-radius: 1rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
   font-size: 0.85rem;
   font-weight: 500;
+  text-transform: uppercase;
 }
 
 .indicator-signal.buy {
-  background: #e8f5e9;
-  color: #2e7d32;
+  background: rgba(34, 197, 94, 0.1);
+  color: #16a34a;
 }
 
 .indicator-signal.sell {
-  background: #ffebee;
-  color: #c62828;
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
 }
 
 .indicator-signal.neutral {
-  background: #f5f5f5;
-  color: #666;
+  background: rgba(100, 116, 139, 0.1);
+  color: #64748b;
 }
 
 .indicator-value {
-  font-size: 0.9rem;
-  color: #666;
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: #1e293b;
+  margin-top: 0.5rem;
 }
 
 .summary-card {
@@ -587,49 +826,67 @@ export default {
 .summary-filters {
   display: flex;
   gap: 1rem;
+  align-items: center;
 }
 
 .summary-filters select {
-  padding: 0.5rem;
-  border: 1px solid #e0e0e0;
-  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
   background: white;
-  color: #2c3e50;
+  color: #1e293b;
+  font-size: 0.95rem;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.summary-filters select:focus {
+  border-color: #1976d2;
+  box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
 }
 
 .summary-content {
-  padding: 1.5rem;
+  padding: 1.75rem;
   display: grid;
-  gap: 1rem;
+  gap: 1.25rem;
 }
 
 .summary-item {
-  padding: 1rem;
-  background: #f8f9fa;
-  border-radius: 0.5rem;
+  padding: 1.5rem;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
+}
+
+.summary-item:hover {
+  transform: translateX(4px);
+  border-color: #1976d2;
+  background: white;
 }
 
 .summary-header {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  margin-bottom: 0.5rem;
+  margin-bottom: 1rem;
 }
 
 .summary-title {
-  font-weight: 500;
-  color: #2c3e50;
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 1.1rem;
 }
 
 .summary-time {
-  font-size: 0.85rem;
-  color: #666;
+  font-size: 0.9rem;
+  color: #64748b;
 }
 
 .summary-text {
-  color: #2c3e50;
-  margin: 0.5rem 0;
-  line-height: 1.5;
+  color: #475569;
+  line-height: 1.6;
+  margin: 1rem 0;
 }
 
 .summary-meta {
@@ -637,15 +894,55 @@ export default {
   justify-content: space-between;
   align-items: center;
   margin-top: 1rem;
-  font-size: 0.9rem;
-  color: #666;
+  padding-top: 1rem;
+  border-top: 1px solid #e2e8f0;
 }
 
 .summary-source,
 .summary-rating {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.summary-source i,
+.summary-rating i {
+  color: #1976d2;
+}
+
+.loading-overlay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  color: #64748b;
+  gap: 1rem;
+  min-height: 200px;
+}
+
+.loading-overlay i {
+  font-size: 2rem;
+  color: #1976d2;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  color: #64748b;
+  gap: 1rem;
+  min-height: 200px;
+  text-align: center;
+}
+
+.empty-state i {
+  font-size: 2.5rem;
+  color: #94a3b8;
 }
 
 @media (max-width: 1200px) {
@@ -666,8 +963,18 @@ export default {
 
   .analytics-header {
     flex-direction: column;
-    gap: 1rem;
+    gap: 1.5rem;
     text-align: center;
+    padding: 1.5rem;
+  }
+
+  .analytics-header h1 {
+    font-size: 1.8rem;
+  }
+
+  .time-range {
+    width: 100%;
+    justify-content: center;
   }
 
   .pairs-grid,
@@ -681,6 +988,20 @@ export default {
   }
 
   .chart-controls select {
+    width: 100%;
+  }
+
+  .chart-type {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .summary-filters {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .summary-filters select {
     width: 100%;
   }
 }
