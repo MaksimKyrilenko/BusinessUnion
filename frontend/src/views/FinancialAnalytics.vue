@@ -1,7 +1,7 @@
 <template>
   <div class="financial-analytics">
     <div class="analytics-header">
-      <h1>Финансовая аналитика</h1>
+    <h1>Финансовая аналитика</h1>
       <div class="time-range">
         <button
           v-for="range in timeRanges"
@@ -13,7 +13,7 @@
         </button>
       </div>
     </div>
-
+    
     <div class="analytics-grid">
       <!-- Основные валютные пары -->
       <div class="analytics-card currency-pairs">
@@ -62,9 +62,9 @@
                 >
                   <i :class="['fas', pair.change > 0 ? 'fa-caret-up' : 'fa-caret-down']"></i>
                   {{ formatChange(pair.change) }}
-                </div>
-              </div>
-            </div>
+          </div>
+          </div>
+          </div>
           </template>
         </div>
       </div>

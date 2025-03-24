@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <Navigation v-if="isAuthenticated" />
-    <main class="main-content">
+    <main class="main-content" :class="{ 'with-nav': isAuthenticated }">
       <router-view />
     </main>
     
@@ -66,6 +66,7 @@ export default defineComponent({
   --background: #f5f5f5;
   --card-background: #ffffff;
   --card-hover: #fafafa;
+  --sidebar-width: 280px;
 }
 
 * {
@@ -74,68 +75,32 @@ export default defineComponent({
   box-sizing: border-box;
 }
 
-html, body {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  min-height: 100vh;
-  background: var(--background);
-  overflow-x: hidden;
+body {
   font-family: 'Inter', sans-serif;
-  font-size: 16px;
-  line-height: 1.6;
+  background-color: var(--background);
   color: var(--text-primary);
 }
 
-h1, h2, h3, h4, h5, h6 {
-  font-family: 'Poppins', sans-serif;
-  letter-spacing: -0.02em;
-}
-
-#app {
-  width: 100%;
-  min-height: 100vh;
-  background: var(--background);
-  margin: 0;
-  padding: 0;
-}
-
 .main-content {
-  padding: 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
+  min-height: 100vh;
+  background-color: var(--background);
+  transition: margin-left 0.3s ease;
 }
 
-.initial-loader {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: var(--background-color);
+.main-content.with-nav {
+  margin-left: var(--sidebar-width);
+}
+
+@media (max-width: 768px) {
+  .main-content.with-nav {
+    margin-left: 0;
+  }
 }
 
 .notifications-container {
   position: fixed;
   top: 20px;
   right: 20px;
-  z-index: 1000;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-/* Глобальные стили */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-body {
-  background-color: var(--background-color);
+  z-index: 1100;
 }
 </style>

@@ -7,6 +7,7 @@ import Messenger from '../views/Messenger.vue';
 import People from '../views/People.vue';
 import FinancialAnalytics from '../views/FinancialAnalytics.vue';
 import Profile from '../views/Profile.vue';
+import News from '../views/News.vue';
 
 // Страницы для стартаперов
 import CreateStartup from '../views/startup/CreateStartup.vue';
@@ -70,6 +71,12 @@ const routes = [
     path: '/profile',
     name: 'Profile',
     component: Profile,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/news',
+    name: 'News',
+    component: News,
     meta: { requiresAuth: true }
   },
   // Маршруты для стартаперов

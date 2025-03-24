@@ -2,13 +2,13 @@
   <div class="messenger">
     <div class="messenger-sidebar">
       <div class="search-bar">
-        <input 
-          type="text" 
-          v-model="searchQuery" 
-          placeholder="Поиск чатов..."
+          <input
+            type="text"
+            v-model="searchQuery"
+            placeholder="Поиск чатов..."
           @input="searchChats"
         >
-      </div>
+        </div>
 
       <div class="chat-tabs">
         <button 
@@ -26,22 +26,22 @@
       </div>
 
       <div class="chat-list">
-        <div 
-          v-for="chat in filteredChats" 
-          :key="chat.id"
+          <div
+            v-for="chat in filteredChats"
+            :key="chat.id"
           :class="['chat-item', { active: selectedChat?.id === chat.id }]"
-          @click="selectChat(chat)"
-        >
-          <div class="chat-avatar">
+            @click="selectChat(chat)"
+          >
+            <div class="chat-avatar">
             <img :src="chat.avatar || '/default-avatar.png'" :alt="chat.name">
             <span class="status-indicator" :class="chat.status"></span>
-          </div>
-          <div class="chat-info">
+            </div>
+            <div class="chat-info">
             <div class="chat-header">
               <div class="chat-title">
                 <h3>{{ chat.name }}</h3>
                 <span v-if="chat.isPinned" class="pin-indicator" title="Закреплённый чат">📌</span>
-              </div>
+            </div>
               <span class="chat-time">{{ formatTime(chat.lastMessage?.timestamp) }}</span>
             </div>
             <p class="chat-preview">
@@ -52,7 +52,7 @@
             <div class="chat-meta">
               <span v-if="chat.typing" class="typing-indicator">печатает...</span>
               <span v-if="chat.unreadCount" class="unread-badge">{{ chat.unreadCount }}</span>
-            </div>
+              </div>
           </div>
           <div class="chat-actions-menu">
             <button class="action-btn" @click.stop="toggleChatMenu(chat)">⋮</button>
@@ -89,21 +89,21 @@
             <h2>{{ selectedChat.name }}</h2>
             <span class="status">{{ selectedChat.status === 'online' ? 'В сети' : 'Не в сети' }}</span>
           </div>
-        </div>
-        <div class="chat-actions">
+          </div>
+          <div class="chat-actions">
           <button v-if="selectedChat.type === 'group'" @click="showGroupInfo = true">
-            <i class="fas fa-info-circle"></i>
-          </button>
+              <i class="fas fa-info-circle"></i>
+            </button>
           <button @click="showChatSettings = true">
             <i class="fas fa-ellipsis-v"></i>
-          </button>
+            </button>
+          </div>
         </div>
-      </div>
 
-      <div class="messages-container" ref="messagesContainer">
+        <div class="messages-container" ref="messagesContainer">
         <div class="date-separator" v-for="(group, date) in groupedMessages" :key="date">
           <span class="date-label">{{ formatDate(date) }}</span>
-          <div 
+          <div
             v-for="message in group" 
             :key="message.id"
             :class="['message', { 
@@ -119,8 +119,8 @@
                 <div class="reply-content">
                   <span class="reply-author">{{ message.replyTo.sender.name }}</span>
                   <p>{{ message.replyTo.text }}</p>
-                </div>
-              </div>
+            </div>
+            </div>
               <div class="message-bubble">
                 <div v-if="!isOwnMessage(message)" class="message-author">
                   {{ message.sender.name }}
@@ -181,16 +181,16 @@
             <p>{{ replyingTo.text }}</p>
           </div>
           <button class="close-reply" @click="cancelReply">×</button>
+          </div>
         </div>
-      </div>
 
-      <div class="message-input">
+        <div class="message-input">
         <button class="attach-btn" @click="showAttachMenu = true">
           <i class="fas fa-paperclip"></i>
         </button>
         <div class="input-wrapper">
-          <textarea 
-            v-model="newMessage" 
+          <textarea
+            v-model="newMessage"
             placeholder="Введите сообщение..."
             @keydown.enter.prevent="sendMessage"
             @input="handleInput"
@@ -226,7 +226,7 @@
 
       <div v-if="showEmojiPicker" class="emoji-picker">
         <div class="emoji-categories">
-          <button 
+          <button
             v-for="category in emojiCategories" 
             :key="category.name"
             @click="selectEmojiCategory(category)"
@@ -243,8 +243,8 @@
             {{ emoji }}
           </button>
         </div>
+        </div>
       </div>
-    </div>
 
     <div class="messenger-placeholder" v-else>
       <div class="placeholder-content">
@@ -294,9 +294,9 @@
                   <img :src="user.avatar || '/default-avatar.png'" :alt="user.name">
                   <span>{{ user.name }}</span>
                   <button @click="removeUser(user)" class="remove-user">
-                    <i class="fas fa-times"></i>
-                  </button>
-                </div>
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
               </div>
               <div v-else class="no-users-selected">
                 <i class="fas fa-users"></i>
@@ -324,7 +324,7 @@
                   <div class="user-info">
                     <span class="user-name">{{ user.name }}</span>
                     <span class="user-role">{{ user.role }}</span>
-                  </div>
+                </div>
                   <button class="add-user">
                     <i class="fas fa-plus"></i>
                   </button>
@@ -333,8 +333,8 @@
               <div v-else-if="userSearch && !searchResults.length" class="no-results">
                 <i class="fas fa-search"></i>
                 Пользователи не найдены
-              </div>
             </div>
+          </div>
             <button 
               class="create-group-submit-btn" 
               :disabled="!newGroup.name || newGroup.users.length < 2"
@@ -343,7 +343,7 @@
               <i class="fas fa-check"></i>
               Создать
             </button>
-          </div>
+        </div>
         </form>
       </template>
       <template #footer>
@@ -360,7 +360,7 @@
             <i class="fas fa-check"></i>
             Создать
           </button>
-        </div>
+      </div>
       </template>
     </modal>
   </div>
@@ -438,7 +438,7 @@ export default {
         try {
           await api.post(`/chats/${chat.id}/read`)
           chat.unreadCount = 0
-        } catch (error) {
+      } catch (error) {
           console.error('Ошибка при отметке сообщений как прочитанных:', error)
         }
       }
@@ -1881,8 +1881,8 @@ export default {
 }
 
 .create-btn:disabled::before {
-  display: none;
-}
+    display: none;
+  }
 
 .create-group-submit-btn {
   width: 100%;
@@ -1895,7 +1895,7 @@ export default {
   font-weight: 500;
   font-size: 1rem;
   cursor: pointer;
-  display: flex;
+    display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;

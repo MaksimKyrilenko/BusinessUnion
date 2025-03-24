@@ -307,7 +307,7 @@ export default defineComponent({
         const response = await fetch('/api/dashboard/analytics')
         const data = await response.json()
         // Обработка данных аналитики
-      } catch (error) {
+    } catch (error) {
         console.error('Ошибка при загрузке аналитики:', error)
       } finally {
         loading.value.analytics = false
