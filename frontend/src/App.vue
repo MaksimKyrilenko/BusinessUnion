@@ -38,11 +38,19 @@ export default defineComponent({
     const { notifications, remove: removeNotification } = useNotification()
 
     onMounted(async () => {
-      await userStore.loadUser()
-      
-      // Если пользователь не аутентифицирован и находится на защищенном маршруте
-      if (!isAuthenticated.value && router.currentRoute.value.meta.requiresAuth) {
-        router.push('/login')
+      const token = localStorage.getItem('token')
+      if (token && !userStore.isAuthenticated) {
+        try {
+          const success = await userStore.loadUser()
+          if (!success && router.currentRoute.value.meta.requiresAuth) {
+            router.push('/login')
+          }
+        } catch (error) {
+          console.error('Ошибка при загрузке пользователя:', error)
+          if (router.currentRoute.value.meta.requiresAuth) {
+            router.push('/login')
+          }
+        }
       }
     })
 

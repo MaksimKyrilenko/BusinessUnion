@@ -450,59 +450,80 @@ export default defineComponent({
 
 .news-cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 1.5rem;
-  margin-top: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 2rem;
 }
 
 .news-card {
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   display: flex;
   flex-direction: column;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  overflow: hidden;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.news-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  height: 100%;
 }
 
 .news-image {
+  position: relative;
   width: 100%;
-  height: 200px;
+  padding-top: 60%; /* Соотношение сторон 5:3 */
+  overflow: hidden;
+}
+
+.news-image img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.news-category {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: rgba(0,0,0,0.7);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
 }
 
 .news-content {
-  flex: 1;
   padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
 }
 
 .news-meta {
   display: flex;
-  gap: 1rem;
+  justify-content: space-between;
+  color: #666;
+  font-size: 0.875rem;
   margin-bottom: 0.5rem;
-  font-size: 0.9rem;
-  color: #718096;
 }
 
 .news-content h3 {
-  margin: 0 0 0.75rem 0;
+  margin: 0 0 1rem 0;
   font-size: 1.25rem;
-  color: #2d3748;
+  line-height: 1.4;
 }
 
 .news-content p {
-  color: #4a5568;
+  margin: 0;
+  color: #666;
   line-height: 1.6;
-  margin-bottom: 1rem;
+  flex-grow: 1;
 }
 
 .news-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-top: 1.5rem;
 }
 
 .read-more {
@@ -514,14 +535,12 @@ export default defineComponent({
 .news-stats {
   display: flex;
   gap: 1rem;
-  color: #718096;
-  font-size: 0.9rem;
+  color: #666;
+  font-size: 0.875rem;
 }
 
-.news-stats span {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
+.news-stats i {
+  margin-right: 0.25rem;
 }
 
 .events-header {

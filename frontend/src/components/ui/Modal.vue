@@ -1,6 +1,6 @@
 <template>
   <div class="modal-overlay" @click="$emit('close')">
-    <div class="modal-content" @click.stop>
+    <div class="modal-content create-group-modal" @click.stop>
       <button class="modal-close" @click="$emit('close')">&times;</button>
       <slot></slot>
     </div>
@@ -35,13 +35,15 @@ export default {
 
 .modal-content {
   background: white;
-  padding: 20px;
   border-radius: 8px;
-  max-width: 90%;
-  max-height: 90vh;
-  overflow-y: auto;
   position: relative;
   min-width: 300px;
+}
+
+.modal-content.create-group-modal {
+  width: 560px !important;
+  max-width: 560px !important;
+  padding: 0 !important;
 }
 
 .modal-close {
@@ -53,9 +55,21 @@ export default {
   font-size: 24px;
   cursor: pointer;
   color: #666;
+  z-index: 1;
 }
 
 .modal-close:hover {
   color: #000;
+}
+
+:deep(.btn-primary),
+:deep(.create-group-submit-btn) {
+  background-color: #2196F3 !important;
+  color: white !important;
+}
+
+:deep(.btn-primary:hover),
+:deep(.create-group-submit-btn:hover) {
+  background-color: #1976D2 !important;
 }
 </style> 

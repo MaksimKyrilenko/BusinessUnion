@@ -53,12 +53,13 @@ export default {
   border: none;
   border-radius: 0.375rem;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s, transform 0.2s;
   position: relative;
 }
 
 .base-button:hover:not(:disabled) {
-  background-color: var(--primary-color-dark, #218838);
+  background-color: var(--primary-hover);
+  transform: translateY(-1px);
 }
 
 .base-button:disabled {

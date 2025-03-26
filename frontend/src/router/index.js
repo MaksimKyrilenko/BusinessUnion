@@ -8,6 +8,9 @@ import People from '../views/People.vue';
 import FinancialAnalytics from '../views/FinancialAnalytics.vue';
 import Profile from '../views/Profile.vue';
 import News from '../views/News.vue';
+import Education from '../views/Education.vue';
+import Community from '../views/Community.vue';
+import MarketAnalytics from '../views/MarketAnalytics.vue';
 
 // Страницы для стартаперов
 import CreateStartup from '../views/startup/CreateStartup.vue';
@@ -19,10 +22,12 @@ import StartupCatalog from '../views/investor/StartupCatalog.vue';
 import StartupAnalysis from '../views/investor/StartupAnalysis.vue';
 
 // Страницы для бизнесменов
-import MarketAnalytics from '../views/businessman/MarketAnalytics.vue';
+import BusinessAnalytics from '../views/businessman/MarketAnalytics.vue';
 
 // Страницы для крипто-трейдеров
 import CryptoTracker from '../views/crypto/CryptoTracker.vue';
+
+import { useUserStore } from '@/stores/user';
 
 const routes = [
   {
@@ -79,51 +84,65 @@ const routes = [
     component: News,
     meta: { requiresAuth: true }
   },
-  // Маршруты для стартаперов
+  {
+    path: '/education',
+    name: 'Education',
+    component: Education,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/community',
+    name: 'Community',
+    component: Community,
+    meta: { requiresAuth: true }
+  },
   {
     path: '/startup/create',
     name: 'CreateStartup',
     component: CreateStartup,
-    meta: { requiresAuth: true, roles: ['startup_founder'] }
+    meta: { requiresAuth: true }
   },
   {
     path: '/startup/my-startups',
     name: 'MyStartups',
     component: MyStartups,
-    meta: { requiresAuth: true, roles: ['startup_founder'] }
+    meta: { requiresAuth: true }
   },
   {
     path: '/startup/grants',
     name: 'Grants',
     component: Grants,
-    meta: { requiresAuth: true, roles: ['startup_founder'] }
+    meta: { requiresAuth: true }
   },
-  // Маршруты для инвесторов
   {
     path: '/investor/catalog',
     name: 'StartupCatalog',
     component: StartupCatalog,
-    meta: { requiresAuth: true, roles: ['investor'] }
+    meta: { requiresAuth: true }
   },
   {
     path: '/investor/analysis',
     name: 'StartupAnalysis',
     component: StartupAnalysis,
-    meta: { requiresAuth: true, roles: ['investor'] }
+    meta: { requiresAuth: true }
   },
-  // Маршруты для бизнесменов
   {
     path: '/businessman/analytics',
-    name: 'MarketAnalytics',
-    component: MarketAnalytics,
-    meta: { requiresAuth: true, roles: ['businessman'] }
+    name: 'BusinessAnalytics',
+    component: BusinessAnalytics,
+    meta: { requiresAuth: true }
   },
-  // Маршруты для крипто-трейдеров
   {
     path: '/crypto/tracker',
     name: 'CryptoTracker',
     component: CryptoTracker,
-    meta: { requiresAuth: true, roles: ['crypto_trader'] }
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/market-analytics',
+    name: 'MarketAnalytics',
+    component: MarketAnalytics,
+    meta: { requiresAuth: true }
   }
 ];
 
@@ -133,19 +152,35 @@ const router = createRouter({
 });
 
 // Защита маршрутов
-router.beforeEach((to, from, next) => {
-  const isAuthenticated = !!localStorage.getItem('token');
-  const userRole = localStorage.getItem('userRole');
-
-  if (to.meta.requiresAuth && !isAuthenticated) {
-    next('/login');
-  } else if (to.meta.guest && isAuthenticated) {
-    next('/dashboard');
-  } else if (to.meta.roles && !to.meta.roles.includes(userRole)) {
-    next('/dashboard');
-  } else {
-    next();
+router.beforeEach(async (to, from, next) => {
+  const userStore = useUserStore();
+  
+  // Если переходим на страницу, требующую аутентификации
+  if (to.meta.requiresAuth) {
+    const token = localStorage.getItem('token');
+    
+    // Если нет токена, сразу на логин
+    if (!token) {
+      return next({ 
+        path: '/login', 
+        query: { redirect: to.fullPath }
+      });
+    }
+    
+    // Если есть токен, но нет данных пользователя
+    if (!userStore.isAuthenticated) {
+      await userStore.loadUser();
+    }
+    
+    return next();
   }
+  
+  // Если пытаемся перейти на гостевую страницу будучи авторизованным
+  if (to.meta.guest && userStore.isAuthenticated) {
+    return next({ path: '/dashboard' });
+  }
+  
+  next();
 });
 
 export default router;

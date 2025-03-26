@@ -85,15 +85,29 @@ export default {
   position: relative;
   width: 100%;
   max-width: 500px;
+  margin: 10px 0;
 }
 
 input {
   width: 100%;
-  padding: 10px 15px;
-  border: 1px solid var(--border-color);
+  padding: 12px 20px 12px 45px;
+  border: 1px solid #e2e8f0;
   border-radius: 20px;
-  background: var(--card-background);
-  color: var(--text-color);
+  background: #fff;
+  color: #2d3748;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+input:focus {
+  outline: none;
+  border-color: #2196F3;
+  box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+}
+
+input::placeholder {
+  color: #a0aec0;
 }
 
 .search-results {
@@ -101,32 +115,57 @@ input {
   top: 100%;
   left: 0;
   right: 0;
-  background: var(--card-background);
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
   margin-top: 5px;
   max-height: 300px;
   overflow-y: auto;
   z-index: 1000;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .search-item {
-  padding: 10px 15px;
+  padding: 12px 20px;
   cursor: pointer;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid #e2e8f0;
+  transition: background-color 0.2s ease;
 }
 
 .search-item:hover {
-  background: var(--background-color);
+  background: #f8fafc;
+}
+
+.search-item:last-child {
+  border-bottom: none;
 }
 
 .result-title {
   font-weight: 500;
+  color: #2d3748;
+  margin-bottom: 4px;
 }
 
 .result-type {
-  font-size: 0.8em;
-  color: var(--text-color);
-  opacity: 0.7;
+  font-size: 12px;
+  color: #718096;
+}
+
+/* Стили для скроллбара */
+.search-results::-webkit-scrollbar {
+  width: 4px;
+}
+
+.search-results::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.search-results::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 2px;
+}
+
+.search-results::-webkit-scrollbar-thumb:hover {
+  background: #a0aec0;
 }
 </style> 

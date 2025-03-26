@@ -19,7 +19,7 @@ import { Investment } from './investments/investment.entity';
       host: process.env.DB_HOST ?? 'localhost',
       port: parseInt(process.env.DB_PORT ?? '3306', 10),
       username: process.env.DB_USER ?? 'root',
-      password: process.env.DB_PASS ?? '1234',
+      password: process.env.DB_PASS ?? 'qwertzxc228',
       database: process.env.DB_NAME ?? 'union_db',
       entities: [User, Profile, Project, Investment],
       synchronize: true, // Временно включаем для создания таблиц

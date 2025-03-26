@@ -68,137 +68,137 @@
         </div>
       </div>
 
-      <!-- Новости -->
-      <div class="dashboard-card news">
-        <h2>Новости</h2>
-        <div class="card-content" :class="{ 'is-loading': loading.news }">
-          <div v-if="!loading.news" class="news-list">
-            <article v-for="item in news" :key="item.id" class="news-item">
-              <div class="news-meta">
-                <span class="news-category">{{ item.category }}</span>
-                <span class="news-date">{{ new Date(item.date).toLocaleDateString() }}</span>
+      <!-- Сообщения -->
+      <div class="dashboard-card messages">
+        <div class="card-header">
+          <h2>Сообщения</h2>
+          <router-link to="/messenger" class="view-all">Все сообщения</router-link>
+        </div>
+        <div class="card-content" :class="{ 'is-loading': loading.messages }">
+          <div v-if="!loading.messages" class="messages-summary">
+            <div class="message-category">
+              <div class="category-header">
+                <span class="category-icon">👥</span>
+                <span class="category-title">Личные сообщения</span>
               </div>
-              <h3>{{ item.title }}</h3>
-              <p>{{ item.description }}</p>
-              <a :href="item.url" target="_blank" class="read-more">Читать далее</a>
-            </article>
+              <div class="category-count">
+                <span class="count-number">{{ messageStats.personal }}</span>
+                <span class="count-label">непрочитанных</span>
+              </div>
+            </div>
+            <div class="message-category">
+              <div class="category-header">
+                <span class="category-icon">👥</span>
+                <span class="category-title">Групповые чаты</span>
+              </div>
+              <div class="category-count">
+                <span class="count-number">{{ messageStats.group }}</span>
+                <span class="count-label">непрочитанных</span>
+              </div>
+            </div>
+            <div class="message-category">
+              <div class="category-header">
+                <span class="category-icon">📢</span>
+                <span class="category-title">Уведомления</span>
+              </div>
+              <div class="category-count">
+                <span class="count-number">{{ messageStats.notifications }}</span>
+                <span class="count-label">непрочитанных</span>
+              </div>
+            </div>
           </div>
-          <div v-else class="loader">Загрузка новостей...</div>
+          <div v-else class="loader">Загрузка сообщений...</div>
         </div>
       </div>
 
-      <!-- События -->
-      <div class="dashboard-card events">
-        <h2>Предстоящие события</h2>
-        <div class="card-content" :class="{ 'is-loading': loading.events }">
-          <div v-if="!loading.events" class="events-list">
-            <article v-for="event in events" :key="event.id" class="event-item">
-              <div class="event-date">
-                <span class="day">{{ new Date(event.date).getDate() }}</span>
-                <span class="month">{{ new Date(event.date).toLocaleString('ru', { month: 'short' }) }}</span>
+      <!-- Сообщество -->
+      <div class="dashboard-card community">
+        <div class="card-header">
+          <h2>Сообщество</h2>
+          <router-link to="/community" class="view-all">Перейти в сообщество</router-link>
+        </div>
+        <div class="card-content" :class="{ 'is-loading': loading.community }">
+          <div v-if="!loading.community" class="community-stats">
+            <div class="stat-item">
+              <div class="stat-icon">👥</div>
+              <div class="stat-info">
+                <span class="stat-value">{{ communityStats.totalMembers }}</span>
+                <span class="stat-label">Участников</span>
               </div>
-              <div class="event-details">
-                <h3>{{ event.title }}</h3>
-                <p class="event-location">
-                  <i class="fas fa-map-marker-alt"></i>
-                  {{ event.location }}
-                </p>
-                <p>{{ event.description }}</p>
-                <div class="event-actions">
-                  <button class="btn-register">Зарегистрироваться</button>
-                  <button class="btn-remind">Напомнить</button>
+            </div>
+            <div class="stat-item">
+              <div class="stat-icon">💬</div>
+              <div class="stat-info">
+                <span class="stat-value">{{ communityStats.activeDiscussions }}</span>
+                <span class="stat-label">Активных обсуждений</span>
+              </div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-icon">🎯</div>
+              <div class="stat-info">
+                <span class="stat-value">{{ communityStats.yourContributions }}</span>
+                <span class="stat-label">Ваших публикаций</span>
+              </div>
+            </div>
+          </div>
+          <div v-else class="loader">Загрузка данных сообщества...</div>
+        </div>
+      </div>
+
+      <!-- Образование -->
+      <div class="dashboard-card education">
+        <div class="card-header">
+          <h2>Образование</h2>
+          <router-link to="/education" class="view-all">Все курсы</router-link>
+        </div>
+        <div class="card-content" :class="{ 'is-loading': loading.education }">
+          <div v-if="!loading.education" class="education-content">
+            <div class="section">
+              <h3>Рекомендуемые курсы</h3>
+              <div class="courses-list">
+                <div v-for="course in recommendedCourses" :key="course.id" class="course-item">
+                  <div class="course-icon">{{ course.icon }}</div>
+                  <div class="course-info">
+                    <h4>{{ course.title }}</h4>
+                    <p>{{ course.description }}</p>
+                    <div class="course-meta">
+                      <span class="duration">{{ course.duration }}</span>
+                      <span class="level">{{ course.level }}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </article>
+            </div>
           </div>
-          <div v-else class="loader">Загрузка событий...</div>
+          <div v-else class="loader">Загрузка курсов...</div>
         </div>
       </div>
 
-      <!-- Аналитика и тренды -->
-      <div class="dashboard-card analytics">
+      <!-- Аналитика рынка -->
+      <div class="dashboard-card market-analytics">
         <div class="card-header">
-          <h2>Аналитика и тренды</h2>
-          <button @click="refreshAnalytics" class="refresh-btn">
-            <span class="refresh-icon">🔄</span>
-          </button>
+          <h2>Аналитика рынка</h2>
+          <router-link to="/market-analytics" class="view-all">Подробная аналитика</router-link>
         </div>
         <div class="card-content" :class="{ 'is-loading': loading.analytics }">
           <div v-if="!loading.analytics" class="analytics-content">
-            <!-- Основные метрики -->
-            <div class="metrics-grid">
-              <div class="metric-item">
-                <span class="metric-icon">📈</span>
-                <div class="metric-info">
-                  <span class="metric-label">Рост инвестиций</span>
-                  <span class="metric-value">+24.5%</span>
-                </div>
-              </div>
-              <div class="metric-item">
-                <span class="metric-icon">🎯</span>
-                <div class="metric-info">
-                  <span class="metric-label">Успешные сделки</span>
-                  <span class="metric-value">89%</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Популярные отрасли -->
-            <div class="trends-section">
-              <h3>Популярные отрасли</h3>
-              <div class="industry-trends">
-                <div class="trend-item">
+            <div class="section">
+              <h3>Тренды рынка</h3>
+              <div class="market-trends">
+                <div v-for="trend in marketTrends" :key="trend.id" class="trend-item">
                   <div class="trend-header">
-                    <span class="trend-name">IT и технологии</span>
-                    <span class="trend-value">32%</span>
+                    <span class="trend-category">{{ trend.category }}</span>
+                    <span class="trend-value" :class="trend.change >= 0 ? 'positive' : 'negative'">
+                      {{ trend.change > 0 ? '+' : '' }}{{ trend.change }}%
+                    </span>
                   </div>
-                  <div class="trend-bar">
-                    <div class="trend-progress" style="width: 32%"></div>
-                  </div>
-                </div>
-                <div class="trend-item">
-                  <div class="trend-header">
-                    <span class="trend-name">Финтех</span>
-                    <span class="trend-value">28%</span>
-                  </div>
-                  <div class="trend-bar">
-                    <div class="trend-progress" style="width: 28%"></div>
-                  </div>
-                </div>
-                <div class="trend-item">
-                  <div class="trend-header">
-                    <span class="trend-name">Экология</span>
-                    <span class="trend-value">24%</span>
-                  </div>
-                  <div class="trend-bar">
-                    <div class="trend-progress" style="width: 24%"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Прогнозы -->
-            <div class="predictions-section">
-              <h3>Прогнозы аналитиков</h3>
-              <div class="predictions-list">
-                <div class="prediction-item">
-                  <span class="prediction-icon">⭐</span>
-                  <div class="prediction-content">
-                    <p class="prediction-text">Ожидается рост инвестиций в AI-стартапы на 40% к концу года</p>
-                    <span class="prediction-source">Forbes</span>
-                  </div>
-                </div>
-                <div class="prediction-item">
-                  <span class="prediction-icon">📊</span>
-                  <div class="prediction-content">
-                    <p class="prediction-text">Тренд на устойчивое развитие продолжит усиливаться</p>
-                    <span class="prediction-source">Bloomberg</span>
-                  </div>
+                  <h4>{{ trend.title }}</h4>
+                  <p>{{ trend.description }}</p>
                 </div>
               </div>
             </div>
           </div>
-          <div v-else class="loader">Загрузка аналитики...</div>
+          <div v-else class="loader">Загрузка трендов...</div>
         </div>
       </div>
     </div>
@@ -253,12 +253,23 @@ export default defineComponent({
     })
 
     const exchangeRates = ref({})
-    const news = ref([])
-    const events = ref([])
+    const messageStats = ref({
+      personal: 0,
+      group: 0,
+      notifications: 0
+    })
+    const communityStats = ref({
+      totalMembers: 0,
+      activeDiscussions: 0,
+      yourContributions: 0
+    })
+    const recommendedCourses = ref([])
+    const marketTrends = ref([])
     const loading = ref({
       rates: false,
-      news: false,
-      events: false,
+      messages: false,
+      community: false,
+      education: false,
       analytics: false
     })
 
@@ -275,29 +286,47 @@ export default defineComponent({
       }
     }
 
-    const fetchNews = async () => {
-      loading.value.news = true
+    const fetchMessageStats = async () => {
+      loading.value.messages = true
       try {
-        const response = await fetch('/api/dashboard/news')
+        const response = await fetch('/api/dashboard/message-stats')
         const data = await response.json()
-        news.value = data
+        messageStats.value = data
       } catch (error) {
-        console.error('Ошибка при загрузке новостей:', error)
+        console.error('Ошибка при загрузке статистики сообщений:', error)
       } finally {
-        loading.value.news = false
+        loading.value.messages = false
       }
     }
 
-    const fetchEvents = async () => {
-      loading.value.events = true
+    const fetchCommunityStats = async () => {
+      loading.value.community = true
       try {
-        const response = await fetch('/api/dashboard/events')
+        const response = await fetch('/api/dashboard/community-stats')
         const data = await response.json()
-        events.value = data
+        communityStats.value = data
       } catch (error) {
-        console.error('Ошибка при загрузке событий:', error)
+        console.error('Ошибка при загрузке статистики сообщества:', error)
       } finally {
-        loading.value.events = false
+        loading.value.community = false
+      }
+    }
+
+    const fetchEducationData = async () => {
+      loading.value.education = true
+      try {
+        const [coursesResponse, trendsResponse] = await Promise.all([
+          fetch('/api/dashboard/recommended-courses'),
+          fetch('/api/dashboard/market-trends')
+        ])
+        const coursesData = await coursesResponse.json()
+        const trendsData = await trendsResponse.json()
+        recommendedCourses.value = coursesData
+        marketTrends.value = trendsData
+      } catch (error) {
+        console.error('Ошибка при загрузке образовательных данных:', error)
+      } finally {
+        loading.value.education = false
       }
     }
 
@@ -318,12 +347,17 @@ export default defineComponent({
       fetchAnalytics()
     }
 
+    const formatDate = (date) => {
+      return new Date(date).toLocaleDateString('ru-RU')
+    }
+
     onMounted(async () => {
       userRole.value = userStore.user?.role || ''
       await Promise.all([
         fetchExchangeRates(),
-        fetchNews(),
-        fetchEvents(),
+        fetchMessageStats(),
+        fetchCommunityStats(),
+        fetchEducationData(),
         fetchAnalytics()
       ])
     })
@@ -337,10 +371,13 @@ export default defineComponent({
       availableCurrencies,
       filteredCurrencies,
       exchangeRates,
-      news,
-      events,
+      messageStats,
+      communityStats,
+      recommendedCourses,
+      marketTrends,
       loading,
-      refreshAnalytics
+      refreshAnalytics,
+      formatDate
     }
   }
 })
@@ -431,12 +468,12 @@ export default defineComponent({
   content: '💱';
 }
 
-.news .card-header h2::before {
-  content: '📰';
+.messages .card-header h2::before {
+  content: '💬';
 }
 
-.events .card-header h2::before {
-  content: '📅';
+.community .card-header h2::before {
+  content: '👥';
 }
 
 .currency-selector {
@@ -612,222 +649,215 @@ export default defineComponent({
   color: #dc2626;
 }
 
-.news-list, .events-list {
+.messages-summary {
   display: grid;
-  gap: 1.25rem;
+  gap: 1rem;
 }
 
-.news-item, .event-item {
-  padding: 1.25rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  transition: transform 0.2s ease;
+.message-category {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
   background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
 }
 
-.news-item:hover, .event-item:hover {
+.category-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.category-icon {
+  font-size: 1.25rem;
+}
+
+.category-title {
+  font-size: 0.95rem;
+  color: #1e293b;
+  font-weight: 500;
+}
+
+.category-count {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.count-number {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1976d2;
+}
+
+.count-label {
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.community-stats {
+  display: grid;
+  gap: 1rem;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.stat-icon {
+  font-size: 1.5rem;
+}
+
+.stat-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-value {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+.education .card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.header-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.section {
+  margin-bottom: 2rem;
+}
+
+.section h3 {
+  font-size: 1.1rem;
+  color: #1e293b;
+  margin-bottom: 1rem;
+}
+
+.courses-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.course-item {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  transition: transform 0.2s ease;
+}
+
+.course-item:hover {
   transform: translateX(4px);
 }
 
-.news-meta {
+.course-icon {
+  font-size: 1.5rem;
+  width: 40px;
+  height: 40px;
   display: flex;
-  gap: 1rem;
-  margin-bottom: 0.75rem;
-}
-
-.news-category {
-  background: #e3f2fd;
-  color: #1976d2;
-  padding: 0.35rem 0.75rem;
-  border-radius: 6px;
-  font-size: 0.85rem;
-  font-weight: 500;
-}
-
-.news-date {
-  color: #64748b;
-  font-size: 0.85rem;
-  display: flex;
-  align-items: center;
-}
-
-.news-date::before {
-  content: '🕒';
-  margin-right: 0.4rem;
-}
-
-.news-item h3 {
-  margin: 0.75rem 0;
-  font-size: 1.15rem;
-  color: #1e293b;
-  font-weight: 600;
-  line-height: 1.4;
-}
-
-.news-item p {
-  color: #475569;
-  line-height: 1.6;
-  margin-bottom: 1rem;
-}
-
-.read-more {
-  color: #1976d2;
-  text-decoration: none;
-  font-size: 0.95rem;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  transition: color 0.2s ease;
-}
-
-.read-more:hover {
-  color: #1565c0;
-}
-
-.read-more::after {
-  content: '→';
-  font-size: 1.1rem;
-}
-
-.event-item {
-  display: flex;
-  gap: 1.25rem;
-  padding: 1.25rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  background: #f8fafc;
-  overflow: hidden;
-}
-
-.event-date {
-  flex-shrink: 0;
-  width: 80px;
-  height: 80px;
-  display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #1976d2, #1565c0);
-  border-radius: 12px;
-  color: white;
-  box-shadow: 0 4px 15px rgba(25, 118, 210, 0.15);
-}
-
-.event-date .day {
-  font-size: 1.75rem;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.event-date .month {
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  margin-top: 0.25rem;
-  opacity: 0.9;
-}
-
-.event-details {
-  flex: 1;
-  min-width: 0;
-}
-
-.event-details h3 {
-  margin: 0 0 0.75rem;
-  font-size: 1.1rem;
-  color: #1e293b;
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.event-location {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: #64748b;
-  font-size: 0.9rem;
-  margin-bottom: 0.75rem;
-}
-
-.event-details p {
-  color: #475569;
-  line-height: 1.5;
-  margin-bottom: 1rem;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  line-clamp: 2;
-  overflow: hidden;
-}
-
-.event-actions {
-  display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.btn-register, .btn-remind {
-  padding: 0.6rem 1rem;
-  font-size: 0.9rem;
-  white-space: nowrap;
-}
-
-.btn-register {
-  background: linear-gradient(135deg, #1976d2, #1565c0);
-  color: white;
-  box-shadow: 0 4px 15px rgba(25, 118, 210, 0.15);
-}
-
-.btn-register::before {
-  content: '✍️';
-}
-
-.btn-remind {
   background: #e3f2fd;
+  border-radius: 8px;
   color: #1976d2;
 }
 
-.btn-remind::before {
-  content: '🔔';
+.course-info {
+  flex: 1;
 }
 
-.btn-register:hover {
-  background: linear-gradient(135deg, #1565c0, #0d47a1);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(25, 118, 210, 0.2);
+.course-info h4 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+  color: #1e293b;
 }
 
-.btn-remind:hover {
-  background: #bbdefb;
-  transform: translateY(-2px);
-}
-
-.loader {
-  text-align: center;
+.course-info p {
+  margin: 0 0 0.5rem;
+  font-size: 0.9rem;
   color: #64748b;
-  padding: 2.5rem;
+}
+
+.course-meta {
   display: flex;
-  flex-direction: column;
-  align-items: center;
+  gap: 1rem;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.market-trends {
+  display: grid;
   gap: 1rem;
 }
 
-.loader::before {
-  content: '⏳';
-  font-size: 2rem;
-  animation: spin 2s linear infinite;
+.trend-item {
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
 }
 
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+.trend-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
 }
 
-.is-loading {
-  opacity: 0.7;
-  pointer-events: none;
+.trend-category {
+  font-size: 0.85rem;
+  color: #64748b;
+  background: #e3f2fd;
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+  color: #1976d2;
+}
+
+.trend-value {
+  font-weight: 500;
+}
+
+.trend-value.positive {
+  color: #28a745;
+}
+
+.trend-value.negative {
+  color: #dc3545;
+}
+
+.trend-item h4 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+  color: #1e293b;
+}
+
+.trend-item p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #64748b;
 }
 
 @media (max-width: 768px) {
@@ -860,36 +890,32 @@ export default defineComponent({
     transform: translateX(-50%) translateY(0);
   }
 
-  .event-item {
-    flex-direction: row;
+  .header-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .course-item {
+    flex-direction: column;
     align-items: flex-start;
   }
-
-  .event-date {
-    width: 60px;
-    height: 60px;
-  }
-
-  .event-actions {
-    flex-direction: row;
+  
+  .course-icon {
+    margin-bottom: 0.5rem;
   }
 }
 
 @media (max-width: 480px) {
-  .event-item {
+  .task-item {
     flex-direction: column;
   }
 
-  .event-date {
+  .task-date {
     width: 100%;
     height: auto;
     flex-direction: row;
     padding: 0.5rem;
     gap: 0.5rem;
-  }
-
-  .event-actions {
-    flex-direction: column;
   }
 
   .btn-register, .btn-remind {
@@ -1069,5 +1095,29 @@ export default defineComponent({
   .metrics-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* Стили для блока сообщений */
+.messages .card-header h2::before {
+  content: '💬';
+}
+
+.view-all {
+  color: #1976d2;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.view-all:hover {
+  background: rgba(25, 118, 210, 0.1);
+}
+
+/* Стили для блока сообщества */
+.community .card-header h2::before {
+  content: '👥';
 }
 </style> 

@@ -36,6 +36,10 @@
           </select>
         </div>
 
+        <div v-if="error" class="error-message">
+          {{ error }}
+        </div>
+
         <button type="submit" class="btn-login">Войти</button>
       </form>
     </div>
@@ -70,16 +74,21 @@ export default {
   methods: {
     async handleLogin() {
       try {
-        await this.userStore.login({
+        const success = await this.userStore.login({
           email: this.email,
           password: this.password,
           userType: this.userType
         })
         
-        this.$emit('success')
+        if (success) {
+          await this.userStore.loadUser();
+          this.$emit('success');
+        } else {
+          this.error = 'Ошибка при входе в систему';
+        }
       } catch (error) {
-        console.error('Ошибка при входе:', error)
-        this.error = error.response?.data?.message || 'Ошибка при входе в систему'
+        console.error('Ошибка при входе:', error);
+        this.error = error.response?.data?.message || 'Ошибка при входе в систему';
       }
     }
   }
@@ -206,20 +215,11 @@ input::placeholder {
 }
 
 .error-message {
-  background: rgba(244, 67, 54, 0.1);
   color: #f44336;
-  padding: 0.75rem 1rem;
+  background: rgba(244, 67, 54, 0.1);
+  padding: 0.75rem;
   border-radius: 0.5rem;
+  font-size: 0.9rem;
   margin-bottom: 1rem;
-  border: 1px solid rgba(244, 67, 54, 0.2);
-  font-size: 0.95rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.error-message::before {
-  content: '⚠';
-  font-size: 1.1rem;
 }
 </style> 

@@ -3,22 +3,19 @@
     <h1>Аналитика рынка</h1>
 
     <div class="filters">
-      <div class="search-bar">
-        <input
-          type="text"
-          v-model="searchQuery"
-          placeholder="Поиск по рынку..."
-          class="form-control"
-        />
-      </div>
+      <SearchBar 
+        placeholder="Поиск по рынку..." 
+        @search="handleSearch"
+        class="market-search"
+      />
       <div class="filter-options">
-        <select v-model="selectedCategory" class="form-control">
+        <select v-model="selectedCategory" class="filter-select">
           <option value="">Все категории</option>
           <option v-for="cat in categories" :key="cat.id" :value="cat.id">
             {{ cat.name }}
           </option>
         </select>
-        <select v-model="timeRange" class="form-control">
+        <select v-model="timeRange" class="filter-select">
           <option value="week">Неделя</option>
           <option value="month">Месяц</option>
           <option value="quarter">Квартал</option>
@@ -148,9 +145,13 @@
 import { ref, onMounted, watch } from 'vue';
 import axios from '@/axios';
 import Chart from 'chart.js/auto';
+import SearchBar from '@/components/ui/SearchBar.vue';
 
 export default {
   name: 'MarketAnalytics',
+  components: {
+    SearchBar
+  },
   setup() {
     const categories = ref([]);
     const searchQuery = ref('');
@@ -267,6 +268,11 @@ export default {
       }).format(amount);
     };
 
+    const handleSearch = (query) => {
+      searchQuery.value = query;
+      // Добавьте здесь логику фильтрации данных по поисковому запросу
+    };
+
     watch([selectedCategory, timeRange], () => {
       fetchData();
     });
@@ -292,7 +298,8 @@ export default {
       marketTrends,
       investmentChart,
       categoryChart,
-      formatCurrency
+      formatCurrency,
+      handleSearch
     };
   }
 };
@@ -304,13 +311,17 @@ export default {
 }
 
 .filters {
-  margin-bottom: 2rem;
   display: flex;
+  align-items: center;
   gap: 1rem;
-  flex-wrap: wrap;
+  margin-bottom: 2rem;
+  background: #fff;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-.search-bar {
+.market-search {
   flex: 1;
   min-width: 300px;
 }
@@ -320,12 +331,26 @@ export default {
   gap: 1rem;
 }
 
-.form-control {
-  width: 100%;
-  padding: 0.5rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+.filter-select {
+  min-width: 200px;
+  padding: 0.75rem 1rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background: #f8f9fa;
+  color: #333;
   font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.filter-select:hover {
+  border-color: #2196F3;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: #2196F3;
+  box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.1);
 }
 
 .analytics-grid {

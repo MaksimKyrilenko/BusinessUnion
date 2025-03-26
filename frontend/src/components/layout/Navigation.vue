@@ -18,12 +18,6 @@
         <i class="fas fa-users"></i>
         <span>Люди</span>
       </router-link>
-      <router-link to="/financial-analytics" class="nav-item">
-        <i class="fas fa-chart-line"></i>
-        <span>Финансовая аналитика</span>
-      </router-link>
-
-      <!-- Новые общие ссылки -->
       <router-link to="/news" class="nav-item">
         <i class="fas fa-newspaper"></i>
         <span>Новости и события</span>
@@ -34,64 +28,38 @@
       </router-link>
       <router-link to="/community" class="nav-item">
         <i class="fas fa-users-rectangle"></i>
-        <span>Сообщество</span>
+        <span>Сообщества</span>
       </router-link>
       <router-link to="/market-analytics" class="nav-item">
         <i class="fas fa-chart-pie"></i>
         <span>Аналитика рынка</span>
       </router-link>
-      <router-link to="/projects" class="nav-item">
-        <i class="fas fa-folder-open"></i>
-        <span>Проекты</span>
+
+      <!-- Дополнительные ссылки -->
+      <router-link to="/startup/create" class="nav-item">
+        <i class="fas fa-rocket"></i>
+        <span>Создание стартапа</span>
       </router-link>
-
-      <!-- Ссылки для стартаперов -->
-      <template v-if="userRole === 'startup_founder'">
-        <div class="nav-divider"></div>
-        <router-link to="/startup/create" class="nav-item">
-          <i class="fas fa-rocket"></i>
-          <span>Создание стартапа</span>
-        </router-link>
-        <router-link to="/startup/my-startups" class="nav-item">
-          <i class="fas fa-project-diagram"></i>
-          <span>Мои стартапы</span>
-        </router-link>
-        <router-link to="/startup/grants" class="nav-item">
-          <i class="fas fa-hand-holding-usd"></i>
-          <span>Гранты и субсидии</span>
-        </router-link>
-      </template>
-
-      <!-- Ссылки для инвесторов -->
-      <template v-if="userRole === 'investor'">
-        <div class="nav-divider"></div>
-        <router-link to="/investor/catalog" class="nav-item">
-          <i class="fas fa-list"></i>
-          <span>Каталог стартапов</span>
-        </router-link>
-        <router-link to="/investor/analysis" class="nav-item">
-          <i class="fas fa-search-dollar"></i>
-          <span>Анализ стартапа</span>
-        </router-link>
-      </template>
-
-      <!-- Ссылки для бизнесменов -->
-      <template v-if="userRole === 'businessman'">
-        <div class="nav-divider"></div>
-        <router-link to="/businessman/analytics" class="nav-item">
-          <i class="fas fa-chart-bar"></i>
-          <span>Аналитика рынка</span>
-        </router-link>
-      </template>
-
-      <!-- Ссылки для крипто-трейдеров -->
-      <template v-if="userRole === 'crypto_trader'">
-        <div class="nav-divider"></div>
-        <router-link to="/crypto/tracker" class="nav-item">
-          <i class="fas fa-coins"></i>
-          <span>Крипто трекер</span>
-        </router-link>
-      </template>
+      <router-link to="/startup/my-startups" class="nav-item">
+        <i class="fas fa-project-diagram"></i>
+        <span>Мои стартапы</span>
+      </router-link>
+      <router-link to="/investor/catalog" class="nav-item">
+        <i class="fas fa-list"></i>
+        <span>Каталог стартапов</span>
+      </router-link>
+      <router-link to="/investor/analysis" class="nav-item">
+        <i class="fas fa-search-dollar"></i>
+        <span>Анализ стартапа</span>
+      </router-link>
+      <router-link to="/businessman/analytics" class="nav-item">
+        <i class="fas fa-chart-bar"></i>
+        <span>Бизнес аналитика</span>
+      </router-link>
+      <router-link to="/crypto/tracker" class="nav-item">
+        <i class="fas fa-coins"></i>
+        <span>Крипто трекер</span>
+      </router-link>
     </div>
     
     <!-- Профиль и выход -->
@@ -128,7 +96,7 @@ export default defineComponent({
   name: 'Navigation',
   setup() {
     const userStore = useUserStore()
-    const { isAuthenticated, userRole } = storeToRefs(userStore)
+    const { isAuthenticated } = storeToRefs(userStore)
     
     const logout = async () => {
       await userStore.logout()
@@ -136,7 +104,6 @@ export default defineComponent({
 
     return {
       isAuthenticated,
-      userRole,
       logout
     }
   }

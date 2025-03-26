@@ -18,50 +18,49 @@ export const useUserStore = defineStore('user', {
 
   actions: {
     async loadUser() {
-      if (this.loading) return
+      if (this.loading) return false;
       
-      this.loading = true
-      this.error = null
+      const token = localStorage.getItem('token');
+      if (!token) {
+        this.user = null;
+        this.isAuthenticated = false;
+        return false;
+      }
+
+      this.loading = true;
+      this.error = null;
 
       try {
-        const token = localStorage.getItem('token')
-        if (!token) {
-          this.user = null
-          this.isAuthenticated = false
-          return
-        }
-
-        const response = await api.get('/users/profile')
-        this.user = response.data
-        this.isAuthenticated = true
+        const response = await api.get('/users/profile');
+        this.user = response.data;
+        this.isAuthenticated = true;
+        return true;
       } catch (error) {
-        this.error = error.response?.data?.message || 'Ошибка при загрузке профиля'
-        this.user = null
-        this.isAuthenticated = false
-        localStorage.removeItem('token')
+        console.error('Ошибка при загрузке профиля:', error);
+        return false;
       } finally {
-        this.loading = false
+        this.loading = false;
       }
     },
 
     async login(credentials) {
-      this.loading = true
-      this.error = null
+      this.loading = true;
+      this.error = null;
 
       try {
-        const response = await api.post('/auth/login', credentials)
-        const { token, user } = response.data
+        const response = await api.post('/auth/login', credentials);
+        const { token, user } = response.data;
 
-        localStorage.setItem('token', token)
-        this.user = user
-        this.isAuthenticated = true
+        localStorage.setItem('token', token);
+        this.user = user;
+        this.isAuthenticated = true;
 
-        return true
+        return true;
       } catch (error) {
-        this.error = error.response?.data?.message || 'Ошибка при входе'
-        return false
+        this.error = error.response?.data?.message || 'Ошибка при входе';
+        return false;
       } finally {
-        this.loading = false
+        this.loading = false;
       }
     },
 

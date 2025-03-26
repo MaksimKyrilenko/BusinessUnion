@@ -287,22 +287,38 @@ export default {
 
 .search-bar {
   position: relative;
+  width: 100%;
+  max-width: 500px;
 }
 
 .search-bar input {
   width: 100%;
-  padding: 1rem 3rem 1rem 1rem;
-  border: 1px solid #e0e0e0;
-  border-radius: 0.5rem;
-  font-size: 1rem;
+  padding: 12px 20px 12px 45px;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  background: #fff;
+  color: #2d3748;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.search-bar input:focus {
+  outline: none;
+  border-color: #2196F3;
+  box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+}
+
+.search-bar input::placeholder {
+  color: #a0aec0;
 }
 
 .search-bar i {
   position: absolute;
-  right: 1rem;
+  left: 20px;
   top: 50%;
   transform: translateY(-50%);
-  color: #666;
+  color: #a0aec0;
 }
 
 .filters {
