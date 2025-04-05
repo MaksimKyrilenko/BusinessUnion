@@ -1,0 +1,47 @@
+:root {
+  /* Цвета */
+  --primary-color: #28a745;
+  --primary-rgb: 40, 167, 69;
+  --secondary-color: #6c757d;
+  --success-color: #28a745;
+  --error-color: #dc3545;
+  --warning-color: #ffc107;
+  --info-color: #17a2b8;
+  
+  /* Фоны */
+  --background-color: #f8f9fa;
+  --card-background: #ffffff;
+  --input-bg: #ffffff;
+  --disabled-bg: #e9ecef;
+  
+  /* Текст */
+  --text-color: #2c3e50;
+  --text-muted: #6c757d;
+  
+  /* Границы */
+  --border-color: #dee2e6;
+  --border-radius: 0.375rem;
+  
+  /* Тени */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  
+  /* Размеры */
+  --header-height: 60px;
+  --sidebar-width: 250px;
+  
+  /* Анимации */
+  --transition-base: all 0.2s ease-in-out;
+}
+
+/* Темная тема */
+[data-theme="dark"] {
+  --background-color: #1a1a1a;
+  --card-background: #2c2c2c;
+  --input-bg: #333333;
+  --disabled-bg: #404040;
+  --text-color: #ffffff;
+  --text-muted: #a0a0a0;
+  --border-color: #404040;
+} 
