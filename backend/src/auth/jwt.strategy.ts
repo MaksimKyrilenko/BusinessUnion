@@ -40,9 +40,27 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException('Неверные данные токена');
     }
 
+    // Проверяем корректность ID пользователя (должен быть числом)
+    let userId: number;
+    try {
+      const idString = String(payload.sub).trim();
+      const parsedId = parseInt(idString, 10);
+      
+      if (isNaN(parsedId)) {
+        console.error(`JWT валидация: ID пользователя (${payload.sub}) не является числом!`);
+        throw new UnauthorizedException('Некорректный ID пользователя в токене');
+      }
+      
+      userId = parsedId;
+      console.log(`JWT валидация: ID пользователя корректно преобразован в число: ${userId}`);
+    } catch (error) {
+      console.error('JWT валидация: Ошибка при обработке ID пользователя:', error);
+      throw new UnauthorizedException('Ошибка при обработке ID пользователя');
+    }
+
     // Формирование данных пользователя для req.user
     const user = {
-      sub: payload.sub,
+      sub: userId, // Теперь используем преобразованный числовой ID
       email: payload.email,
       userType: payload.userType,
     };

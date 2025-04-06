@@ -92,14 +92,26 @@ export class AuthService {
       throw new Error('Неверные данные пользователя для токена');
     }
     
+    let userId;
+    try {
+      userId = Number(user.id);
+      if (isNaN(userId)) {
+        console.error(`Ошибка: ID пользователя "${user.id}" не может быть преобразован в число`);
+        throw new Error('Некорректный ID пользователя');
+      }
+    } catch (error) {
+      console.error('Ошибка при обработке ID пользователя:', error);
+      throw new Error('Ошибка при обработке ID пользователя');
+    }
+    
     const payload = { 
       email: user.email, 
-      sub: user.id, 
+      sub: userId,
       userType: user.userType
     };
     
     console.log('Генерация JWT токена для пользователя:', {
-      userId: user.id,
+      userId: userId,
       email: user.email,
       userType: user.userType
     });

@@ -31,13 +31,45 @@ export const useUserStore = defineStore('user', {
       this.error = null;
 
       try {
+        console.log('Загрузка профиля пользователя из API...');
         const response = await api.get('/users/profile');
+        
+        if (!response.data || !response.data.id) {
+          console.error('Ответ API не содержит данных пользователя или ID отсутствует:', response.data);
+          this.clearUserData();
+          return false;
+        }
+        
+        // Преобразуем ID в число для уверенности
+        let userId;
+        try {
+          userId = parseInt(String(response.data.id).trim(), 10);
+          if (isNaN(userId)) {
+            console.error(`Некорректный ID пользователя в ответе API: ${response.data.id}`);
+            this.clearUserData();
+            return false;
+          }
+          // Обновляем ID в объекте пользователя
+          response.data.id = userId;
+          console.log(`ID пользователя преобразован в число: ${userId}`);
+        } catch (error) {
+          console.error('Ошибка при обработке ID пользователя:', error);
+          this.clearUserData();
+          return false;
+        }
+        
         this.user = response.data;
         this.isAuthenticated = true;
         
         // Обновляем данные в localStorage
-        localStorage.setItem('userId', this.user.id.toString());
+        localStorage.setItem('userId', userId.toString());
         localStorage.setItem('userType', this.user.userType);
+        
+        console.log('Профиль пользователя успешно загружен:', {
+          id: userId,
+          userType: this.user.userType,
+          name: `${this.user.firstName} ${this.user.lastName}`
+        });
         
         return true;
       } catch (error) {

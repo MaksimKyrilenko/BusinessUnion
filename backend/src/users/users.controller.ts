@@ -5,9 +5,12 @@ import { LoginUserDto } from './dto/login-user.dto';
 import { CreateProfileDto } from './dto/create-profile.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { Logger } from '@nestjs/common';
 
 @Controller('users')
 export class UsersController {
+  private readonly logger = new Logger(UsersController.name);
+
   constructor(private readonly usersService: UsersService) {}
 
   @Post('login')
@@ -81,9 +84,110 @@ export class UsersController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get('search')
+  async searchUsers(@Request() req) {
+    try {
+      const { q } = req.query;
+      this.logger.log(`Получен запрос на поиск пользователей с query: ${q}, тип: ${typeof q}`);
+      
+      // Проверка на пустой запрос
+      if (!q || typeof q !== 'string' || q.trim().length < 2) {
+        this.logger.warn(`Слишком короткий или пустой запрос для поиска: "${q}"`);
+        return [];
+      }
+      
+      // Получаем информацию о текущем пользователе
+      let currentUserId: number | null = null;
+      try {
+        // Безопасно извлекаем ID пользователя из токена
+        if (req.user && req.user.sub) {
+          // Убедимся, что ID преобразуется в число корректно
+          const userIdStr = String(req.user.sub).trim();
+          const parsedId = parseInt(userIdStr, 10);
+          
+          if (isNaN(parsedId)) {
+            this.logger.warn(`Некорректный ID пользователя в токене: "${req.user.sub}", тип: ${typeof req.user.sub}`);
+          } else {
+            currentUserId = parsedId;
+            this.logger.log(`Текущий пользователь ID: ${currentUserId} (преобразован из "${req.user.sub}")`);
+          }
+        } else {
+          this.logger.warn('ID пользователя отсутствует в токене JWT');
+        }
+      } catch (error) {
+        this.logger.warn(`Ошибка при извлечении ID пользователя из токена: ${error.message}`);
+      }
+      
+      // Ищем пользователей
+      const users = await this.usersService.searchUsers(q.trim());
+      this.logger.log(`Найдено ${users.length} пользователей по запросу "${q}"`);
+      
+      // Фильтруем и форматируем результаты
+      const results = users
+        .filter(user => {
+          // Проверка валидности ID пользователя
+          if (!user.id) {
+            this.logger.warn(`Найден пользователь без ID: ${user.firstName} ${user.lastName}`);
+            return false;
+          }
+          
+          // Исключаем текущего пользователя из результатов только если ID корректен
+          const shouldInclude = currentUserId === null || user.id !== currentUserId;
+          if (!shouldInclude) {
+            this.logger.log(`Исключаем текущего пользователя из результатов: ID ${user.id}`);
+          }
+          return shouldInclude;
+        })
+        .map(user => ({
+          id: user.id,
+          name: `${user.firstName} ${user.lastName}`,
+          email: user.email,
+          avatar: user.profile?.avatar || null,
+          userType: user.userType
+        }));
+      
+      this.logger.log(`Возвращаем ${results.length} пользователей после фильтрации`);
+      return results;
+    } catch (error) {
+      this.logger.error(`Ошибка при поиске пользователей: ${error.message}`);
+      throw new HttpException(
+        error.message || 'Ошибка при поиске пользователей',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(+id);
+  async findOne(@Param('id') id: string) {
+    try {
+      // Преобразуем ID в число
+      const userId = parseInt(id.trim(), 10);
+      
+      if (isNaN(userId)) {
+        this.logger.error(`Некорректный ID пользователя: "${id}"`);
+        throw new HttpException('Некорректный ID пользователя', HttpStatus.BAD_REQUEST);
+      }
+      
+      this.logger.log(`Запрос на получение пользователя с ID: ${userId}`);
+      
+      const user = await this.usersService.findOne(userId);
+      if (!user) {
+        this.logger.warn(`Пользователь с ID ${userId} не найден`);
+        throw new HttpException('Пользователь не найден', HttpStatus.NOT_FOUND);
+      }
+      
+      return user;
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      this.logger.error(`Ошибка при получении пользователя: ${error.message}`);
+      throw new HttpException(
+        'Ошибка при получении пользователя',
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
   }
 
   @UseGuards(JwtAuthGuard)
@@ -96,17 +200,32 @@ export class UsersController {
   @Post('profile')
   async createProfile(@Request() req, @Body() createProfileDto: CreateProfileDto) {
     try {
-      const userId = req.user.sub;
-      console.log(`Запрос на создание профиля для пользователя ID: ${userId}`);
+      // Безопасно извлекаем ID пользователя из токена
+      let userId: number;
+      try {
+        const userIdStr = String(req.user.sub).trim();
+        userId = parseInt(userIdStr, 10);
+        
+        if (isNaN(userId)) {
+          this.logger.error(`Некорректный ID пользователя в токене: "${req.user.sub}"`);
+          throw new HttpException('Некорректный ID пользователя', HttpStatus.BAD_REQUEST);
+        }
+      } catch (error) {
+        this.logger.error(`Ошибка при обработке ID пользователя: ${error.message}`);
+        throw new HttpException('Ошибка при обработке ID пользователя', HttpStatus.BAD_REQUEST);
+      }
+      
+      this.logger.log(`Запрос на создание профиля для пользователя ID: ${userId}`);
       
       // Проверим, есть ли уже профиль у пользователя
       const user = await this.usersService.findOne(userId);
       if (!user) {
+        this.logger.error(`Пользователь с ID ${userId} не найден`);
         throw new HttpException('Пользователь не найден', HttpStatus.NOT_FOUND);
       }
       
       if (user.profile) {
-        console.log(`Профиль уже существует для пользователя ID: ${userId}`);
+        this.logger.log(`Профиль уже существует для пользователя ID: ${userId}`);
         // Если профиль уже существует, возвращаем его
         return {
           message: 'Профиль уже существует',
@@ -114,14 +233,14 @@ export class UsersController {
         };
       }
       
-      console.log(`Создаем новый профиль для пользователя ID: ${userId}`);
+      this.logger.log(`Создаем новый профиль для пользователя ID: ${userId}`);
       const profile = await this.usersService.createProfile(userId, createProfileDto);
       return {
         message: 'Профиль успешно создан',
         profile
       };
     } catch (error) {
-      console.error(`Ошибка при создании профиля: ${error.message}`);
+      this.logger.error(`Ошибка при создании профиля: ${error.message}`);
       throw new HttpException(
         error.message || 'Ошибка при создании профиля',
         error.status || HttpStatus.INTERNAL_SERVER_ERROR
@@ -133,8 +252,22 @@ export class UsersController {
   @Patch('profile')
   async updateProfile(@Request() req, @Body() updateProfileDto: UpdateProfileDto) {
     try {
-      const userId = req.user.sub;
-      console.log(`Запрос на обновление профиля для пользователя ID: ${userId}`, updateProfileDto);
+      // Безопасно извлекаем ID пользователя из токена
+      let userId: number;
+      try {
+        const userIdStr = String(req.user.sub).trim();
+        userId = parseInt(userIdStr, 10);
+        
+        if (isNaN(userId)) {
+          this.logger.error(`Некорректный ID пользователя в токене при обновлении профиля: "${req.user.sub}"`);
+          throw new HttpException('Некорректный ID пользователя', HttpStatus.BAD_REQUEST);
+        }
+      } catch (error) {
+        this.logger.error(`Ошибка при обработке ID пользователя: ${error.message}`);
+        throw new HttpException('Ошибка при обработке ID пользователя', HttpStatus.BAD_REQUEST);
+      }
+      
+      this.logger.log(`Запрос на обновление профиля для пользователя ID: ${userId}`, updateProfileDto);
       
       const profile = await this.usersService.updateProfile(userId, updateProfileDto);
       return {
@@ -142,7 +275,7 @@ export class UsersController {
         profile
       };
     } catch (error) {
-      console.error(`Ошибка при обновлении профиля: ${error.message}`);
+      this.logger.error(`Ошибка при обновлении профиля: ${error.message}`);
       throw new HttpException(
         error.message || 'Ошибка при обновлении профиля',
         error.status || HttpStatus.INTERNAL_SERVER_ERROR

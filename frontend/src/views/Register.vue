@@ -137,14 +137,24 @@ export default {
           interests: this.interests
         });
 
+        console.log('Ответ от сервиса регистрации:', response);
+        
         if (response.token && response.user) {
-          // Сохраняем данные пользователя
+          console.log('Успешная регистрация, данные получены:', {
+            hasToken: !!response.token,
+            userId: response.user.id,
+            userType: response.user.userType
+          });
+          
+          // Сохраняем данные пользователя, хотя они уже должны быть сохранены в auth.service
           localStorage.setItem('token', response.token);
           localStorage.setItem('userId', response.user.id);
           localStorage.setItem('userType', response.user.userType);
           
-          this.$emit('success');
+          // Перенаправляем на дашборд
+          this.$router.push('/dashboard');
         } else {
+          console.error('Отсутствуют ожидаемые данные в ответе:', response);
           throw new Error('Отсутствуют необходимые данные в ответе');
         }
       } catch (error) {
@@ -152,7 +162,7 @@ export default {
         if (error.response?.status === 409) {
           this.error = 'Пользователь с таким email уже существует. Пожалуйста, используйте другой email или войдите в существующий аккаунт.';
         } else {
-          this.error = error.response?.data?.message || 'Произошла ошибка при регистрации. Пожалуйста, попробуйте позже.';
+          this.error = error.response?.data?.message || error.message || 'Произошла ошибка при регистрации. Пожалуйста, попробуйте позже.';
         }
         
         // Очищаем данные в случае ошибки

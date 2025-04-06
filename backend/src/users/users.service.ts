@@ -84,6 +84,11 @@ export class UsersService {
 
   async findOne(id: number): Promise<User | null> {
     try {
+      if (id === undefined || id === null || isNaN(id)) {
+        this.logger.warn(`Попытка найти пользователя с некорректным ID: ${id}`);
+        return null;
+      }
+      
       return await this.usersRepository.findOne({ 
         where: { id },
         relations: ['profile']
@@ -233,6 +238,40 @@ export class UsersService {
     } catch (error) {
       this.logger.error(`Error updating profile for user ${userId}:`, error);
       throw new InternalServerErrorException('Ошибка при обновлении профиля: ' + error.message);
+    }
+  }
+
+  async searchUsers(query: string): Promise<User[]> {
+    try {
+      this.logger.log(`Searching users by query: ${query}`);
+      
+      // Добавляем подробную отладочную информацию
+      this.logger.log(`Выполняется SQL-запрос на поиск пользователей`);
+      
+      // Используем LIKE для поиска по частичному совпадению в имени, фамилии или email
+      const users = await this.usersRepository
+        .createQueryBuilder('user')
+        .leftJoinAndSelect('user.profile', 'profile')
+        .where('user.firstName LIKE :query OR user.lastName LIKE :query OR user.email LIKE :query', 
+               { query: `%${query}%` })
+        .take(10) // Ограничиваем результаты до 10 пользователей
+        .getMany();
+      
+      this.logger.log(`Found ${users.length} users matching query: "${query}"`);
+      
+      // Выводим найденных пользователей для отладки
+      if (users.length > 0) {
+        users.forEach(user => {
+          this.logger.log(`  - User ID: ${user.id}, Name: ${user.firstName} ${user.lastName}, Email: ${user.email}`);
+        });
+      } else {
+        this.logger.log(`Не найдено пользователей по запросу "${query}"`);
+      }
+      
+      return users;
+    } catch (error) {
+      this.logger.error(`Error searching users with query ${query}:`, error);
+      throw new InternalServerErrorException('Ошибка при поиске пользователей');
     }
   }
 }
