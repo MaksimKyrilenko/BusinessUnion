@@ -18,8 +18,9 @@ import CreateStartup from '../views/startup/CreateStartup.vue';
 import MyStartups from '../views/startup/MyStartups.vue';
 import Grants from '../views/startup/Grants.vue';
 
-// Страницы для инвесторов
-import StartupCatalog from '../views/investor/StartupCatalog.vue';
+// Страницы для инвесторов и каталог стартапов
+import StartupCatalog from '../views/startups/StartupCatalog.vue';
+import StartupDetails from '../views/startups/StartupDetails.vue';
 import StartupAnalysis from '../views/investor/StartupAnalysis.vue';
 
 // Страницы для бизнесменов
@@ -103,10 +104,18 @@ const routes = [
     component: Community,
     meta: { requiresAuth: true }
   },
+  // Маршруты для стартапов
   {
     path: '/startup/create',
     name: 'CreateStartup',
     component: CreateStartup,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/startup/edit/:id',
+    name: 'EditStartup',
+    component: CreateStartup,
+    props: true,
     meta: { requiresAuth: true }
   },
   {
@@ -121,16 +130,25 @@ const routes = [
     component: Grants,
     meta: { requiresAuth: true }
   },
+  // Каталог стартапов
   {
-    path: '/investor/catalog',
+    path: '/startups',
     name: 'StartupCatalog',
     component: StartupCatalog,
     meta: { requiresAuth: true }
   },
   {
-    path: '/investor/analysis',
-    name: 'StartupAnalysis',
-    component: StartupAnalysis,
+    path: '/startups/:id',
+    name: 'StartupDetails',
+    component: StartupDetails,
+    props: true,
+    meta: { requiresAuth: true }
+  },
+  // Маршруты для инвесторов
+  {
+    path: '/startups',
+    name: 'StartupCatalog',
+    component: StartupCatalog,
     meta: { requiresAuth: true }
   },
   {
@@ -149,6 +167,12 @@ const routes = [
     path: '/market-analytics',
     name: 'MarketAnalytics',
     component: MarketAnalytics,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/investor/analysis',
+    name: 'StartupAnalysis',
+    component: StartupAnalysis,
     meta: { requiresAuth: true }
   }
 ];

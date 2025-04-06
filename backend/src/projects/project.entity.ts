@@ -34,12 +34,29 @@ export class Project {
     name: string;
   };
 
+  @Column({ nullable: true })
+  categoryId: number;
+
+  @Column({ default: 'idea' })
+  stage: 'idea' | 'mvp' | 'growth' | 'scaling';
+
+  @Column({ nullable: true })
+  location: string;
+
   @Column('json', { nullable: true })
   additionalInfo: {
     hasBusinessPlan: boolean;
     hasTeam: boolean;
     hasMVP: boolean;
+    teamSize?: number;
+    foundedAt?: string;
   };
+
+  @Column({ nullable: true })
+  businessPlanUrl: string;
+  
+  @Column({ nullable: true })
+  presentationUrl: string;
 
   @ManyToOne(() => User, user => user.projects)
   author: User;

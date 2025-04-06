@@ -1,10 +1,32 @@
 <template>
   <div class="my-startups">
-    <h1>Мои стартапы</h1>
+    <div class="header-container">
+      <h1>Мои стартапы</h1>
+      <button @click="createNewStartup" class="create-btn">
+        <i class="fas fa-plus"></i>
+        Создать стартап
+      </button>
+    </div>
     
-    <div class="startups-grid">
+    <div v-if="loading" class="loading-container">
+      <div class="spinner"></div>
+      <p>Загрузка стартапов...</p>
+    </div>
+    
+    <div v-else-if="startups.length === 0" class="empty-state">
+      <p>У вас пока нет созданных стартапов</p>
+      <button @click="createNewStartup" class="btn btn-primary">
+        Создать стартап
+      </button>
+    </div>
+    
+    <div v-else class="startups-grid">
       <div v-for="startup in startups" :key="startup.id" class="startup-card">
-        <img :src="startup.image || '/placeholder.jpg'" :alt="startup.title" class="startup-image">
+        <div class="startup-image">
+          <img :src="startup.image || '/placeholder.jpg'" :alt="startup.title" class="image">
+          <div class="stage-badge">{{ getStageText(startup.stage) }}</div>
+        </div>
+        
         <div class="startup-content">
           <h2>{{ startup.title }}</h2>
           <p class="description">{{ startup.description }}</p>
@@ -16,11 +38,15 @@
             </div>
             <div class="stat-item">
               <span class="label">Собрано:</span>
-              <span class="value">{{ formatCurrency(startup.investmentCollected) }}</span>
+              <span class="value">{{ formatCurrency(startup.investmentCollected || 0) }}</span>
             </div>
             <div class="stat-item">
               <span class="label">Ожидаемая ROI:</span>
               <span class="value">{{ startup.expectedRoi }}%</span>
+            </div>
+            <div class="stat-item" v-if="startup.location">
+              <span class="label">Местоположение:</span>
+              <span class="value">{{ startup.location }}</span>
             </div>
           </div>
 
@@ -30,21 +56,16 @@
 
           <div class="actions">
             <button @click="editStartup(startup.id)" class="btn btn-secondary">
+              <i class="fas fa-edit"></i>
               Редактировать
             </button>
             <button @click="viewDetails(startup.id)" class="btn btn-primary">
+              <i class="fas fa-eye"></i>
               Подробнее
             </button>
           </div>
         </div>
       </div>
-    </div>
-
-    <div v-if="startups.length === 0" class="empty-state">
-      <p>У вас пока нет созданных стартапов</p>
-      <router-link to="/startup/create" class="btn btn-primary">
-        Создать стартап
-      </router-link>
     </div>
   </div>
 </template>
@@ -52,27 +73,33 @@
 <script>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import axios from '@/axios';
+import { projectsService } from '@/services/projects.service';
 
 export default {
   name: 'MyStartups',
   setup() {
     const router = useRouter();
     const startups = ref([]);
+    const loading = ref(false);
 
     const fetchStartups = async () => {
+      loading.value = true;
       try {
-        const response = await axios.get('/projects/author/me');
-        startups.value = response.data;
+        const response = await projectsService.getMyProjects();
+        console.log('Получены стартапы:', response);
+        startups.value = response;
       } catch (error) {
-        console.error('Error fetching startups:', error);
+        console.error('Ошибка при получении стартапов:', error);
+      } finally {
+        loading.value = false;
       }
     };
 
     const formatCurrency = (amount) => {
       return new Intl.NumberFormat('ru-RU', {
         style: 'currency',
-        currency: 'RUB'
+        currency: 'RUB',
+        maximumFractionDigits: 0
       }).format(amount);
     };
 
@@ -86,22 +113,39 @@ export default {
       return statusMap[status] || status;
     };
 
+    const getStageText = (stage) => {
+      const stageMap = {
+        idea: 'Идея',
+        mvp: 'MVP',
+        growth: 'Рост',
+        scaling: 'Масштабирование'
+      };
+      return stageMap[stage] || stage;
+    };
+
     const editStartup = (id) => {
       router.push(`/startup/edit/${id}`);
     };
 
     const viewDetails = (id) => {
-      router.push(`/startup/${id}`);
+      router.push(`/startups/${id}`);
+    };
+
+    const createNewStartup = () => {
+      router.push('/startup/create');
     };
 
     onMounted(fetchStartups);
 
     return {
       startups,
+      loading,
       formatCurrency,
       getStatusText,
+      getStageText,
       editStartup,
-      viewDetails
+      viewDetails,
+      createNewStartup
     };
   }
 };
@@ -110,6 +154,23 @@ export default {
 <style scoped>
 .my-startups {
   padding: 2rem;
+}
+
+.header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.create-btn {
+  background: #007bff;
+  color: white;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
 }
 
 .startups-grid {
@@ -132,9 +193,27 @@ export default {
 }
 
 .startup-image {
+  position: relative;
   width: 100%;
   height: 200px;
   object-fit: cover;
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.stage-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
 }
 
 .startup-content {
@@ -233,5 +312,28 @@ export default {
 .empty-state p {
   color: #666;
   margin-bottom: 1rem;
+}
+
+.loading-container {
+  text-align: center;
+  padding: 3rem;
+  background: white;
+  border-radius: 8px;
+  margin-top: 2rem;
+}
+
+.spinner {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-top: 4px solid #007bff;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 </style> 

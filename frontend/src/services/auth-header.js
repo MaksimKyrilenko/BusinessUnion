@@ -5,19 +5,33 @@
  * @returns {Object} Объект с заголовками авторизации или пустой объект, если токен не найден
  */
 export default function authHeader() {
-  // Получаем токен из localStorage
-  const token = localStorage.getItem('token');
+  // Получаем данные пользователя из localStorage
+  const userStr = localStorage.getItem('user');
+  let user = null;
   
-  // Возвращаем заголовок с токеном, если он есть
-  if (token) {
+  try {
+    if (userStr) {
+      user = JSON.parse(userStr);
+    }
+  } catch (e) {
+    console.error('Ошибка при парсинге данных пользователя:', e);
+    localStorage.removeItem('user');
+    return { 'Content-Type': 'application/json' };
+  }
+  
+  // Проверяем наличие токена из разных возможных источников
+  if (user && user.accessToken) {
     return { 
-      'Authorization': `Bearer ${token}`,
+      'Authorization': `Bearer ${user.accessToken}`,
+      'Content-Type': 'application/json'
+    };
+  } else if (localStorage.getItem('token')) {
+    // Альтернативная проверка, если токен хранится отдельно
+    return { 
+      'Authorization': `Bearer ${localStorage.getItem('token')}`,
       'Content-Type': 'application/json'
     };
   } else {
-    // Возвращаем только заголовок Content-Type, если токен отсутствует
-    return { 
-      'Content-Type': 'application/json' 
-    };
+    return { 'Content-Type': 'application/json' };
   }
 } 

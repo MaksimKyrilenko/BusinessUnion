@@ -44,7 +44,7 @@
         <i class="fas fa-project-diagram"></i>
         <span>Мои стартапы</span>
       </router-link>
-      <router-link to="/investor/catalog" class="nav-item">
+      <router-link to="/startups" class="nav-item">
         <i class="fas fa-list"></i>
         <span>Каталог стартапов</span>
       </router-link>

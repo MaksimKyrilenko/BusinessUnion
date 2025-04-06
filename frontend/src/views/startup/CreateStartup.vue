@@ -1,8 +1,17 @@
 <template>
   <div class="create-startup">
-    <h1>Создание стартапа</h1>
+    <h1>{{ isEditMode ? 'Редактирование' : 'Создание' }} стартапа</h1>
 
-    <form @submit.prevent="handleSubmit" class="startup-form">
+    <div v-if="error" class="error-message">
+      {{ error }}
+    </div>
+
+    <div v-if="loading" class="loading-indicator">
+      <div class="spinner"></div>
+      <p>{{ isEditMode ? 'Загрузка данных стартапа...' : 'Проверка данных...' }}</p>
+    </div>
+
+    <form v-else @submit.prevent="handleSubmit" class="startup-form">
       <div class="form-group">
         <label for="title">Название проекта</label>
         <input
@@ -38,6 +47,21 @@
           <option value="">Выберите категорию</option>
           <option v-for="cat in categories" :key="cat.id" :value="cat.id">
             {{ cat.name }}
+          </option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="stage">Этап проекта</label>
+        <select
+          id="stage"
+          v-model="form.stage"
+          class="form-control"
+          required
+        >
+          <option value="">Выберите этап проекта</option>
+          <option v-for="stage in stages" :key="stage.id" :value="stage.id">
+            {{ stage.name }}
           </option>
         </select>
       </div>
@@ -94,6 +118,18 @@
       </div>
 
       <div class="form-group">
+        <label for="location">Местоположение</label>
+        <input
+          type="text"
+          id="location"
+          v-model="form.location"
+          class="form-control"
+          required
+          placeholder="Введите местоположение проекта"
+        />
+      </div>
+
+      <div class="form-group">
         <label for="businessPlan">Бизнес-план</label>
         <input
           type="file"
@@ -121,6 +157,34 @@
         </div>
       </div>
 
+      <div class="form-group">
+        <label for="image">Изображение проекта</label>
+        <input
+          type="file"
+          id="image"
+          @change="handleFileUpload"
+          class="form-control"
+          accept="image/*"
+        />
+        <div class="form-text">
+          Загрузите изображение проекта
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="additionalInfo">Дополнительная информация</label>
+        <div class="input-group">
+          <input
+            type="text"
+            id="additionalInfo"
+            v-model="form.additionalInfo.foundedAt"
+            class="form-control"
+            required
+            placeholder="Год основания"
+          />
+        </div>
+      </div>
+
       <div class="form-actions">
         <button 
           type="button" 
@@ -134,7 +198,7 @@
           class="btn btn-primary"
           :disabled="loading"
         >
-          {{ loading ? 'Создание...' : 'Создать стартап' }}
+          {{ loading ? 'Сохранение...' : (isEditMode ? 'Сохранить изменения' : 'Создать стартап') }}
         </button>
       </div>
     </form>
@@ -143,33 +207,98 @@
 
 <script>
 import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
-import axios from '@/axios';
+import { useRouter, useRoute } from 'vue-router';
+import { projectsService } from '@/services/projects.service';
 
 export default {
   name: 'CreateStartup',
-  setup() {
+  props: {
+    id: {
+      type: String,
+      required: false
+    }
+  },
+  setup(props) {
     const router = useRouter();
+    const route = useRoute();
     const loading = ref(false);
+    const error = ref(null);
     const categories = ref([]);
+    const isEditMode = ref(false);
+    const stages = ref([
+      { id: 'idea', name: 'Идея' },
+      { id: 'mvp', name: 'MVP' },
+      { id: 'growth', name: 'Рост' },
+      { id: 'scaling', name: 'Масштабирование' }
+    ]);
 
     const form = ref({
       title: '',
       description: '',
-      category: '',
+      category: null,
+      stage: 'idea',
       investmentNeeded: 100000,
       minInvestment: 10000,
       expectedRoi: 30,
+      location: '',
       businessPlan: null,
-      presentation: null
+      presentation: null,
+      image: null,
+      additionalInfo: {
+        foundedAt: '',
+        hasTeam: false,
+        hasMVP: false,
+        teamSize: '',
+        market: ''
+      }
     });
+
+    // Проверяем, находимся ли мы в режиме редактирования
+    const checkEditMode = async () => {
+      if (props.id || route.params.id) {
+        const startupId = props.id || route.params.id;
+        
+        // Проверка валидности ID
+        if (!startupId || isNaN(Number(startupId))) {
+          error.value = 'Неверный идентификатор стартапа';
+          return;
+        }
+        
+        isEditMode.value = true;
+        
+        loading.value = true;
+        try {
+          const response = await projectsService.getProjectById(Number(startupId));
+          
+          // Заполняем форму данными проекта
+          form.value.title = response.title;
+          form.value.description = response.description;
+          form.value.category = response.categoryId || response.category?.id;
+          form.value.stage = response.stage;
+          form.value.investmentNeeded = response.investmentNeeded;
+          form.value.minInvestment = response.minInvestment;
+          form.value.expectedRoi = response.expectedRoi;
+          form.value.location = response.location;
+          
+          if (response.additionalInfo) {
+            form.value.additionalInfo = response.additionalInfo;
+          }
+        } catch (error) {
+          console.error('Ошибка при получении данных проекта:', error);
+          error.value = 'Не удалось загрузить данные проекта. Пожалуйста, попробуйте позже.';
+        } finally {
+          loading.value = false;
+        }
+      }
+    };
 
     const fetchCategories = async () => {
       try {
-        const response = await axios.get('/categories');
-        categories.value = response.data;
+        const response = await projectsService.getAllCategories();
+        categories.value = response;
+        console.log('Категории загружены:', categories.value);
       } catch (error) {
-        console.error('Error fetching categories:', error);
+        console.error('Ошибка загрузки категорий:', error);
       }
     };
 
@@ -180,25 +309,43 @@ export default {
     };
 
     const handleSubmit = async () => {
-      loading.value = true;
       try {
-        const formData = new FormData();
-        Object.keys(form.value).forEach(key => {
-          if (form.value[key] !== null) {
-            formData.append(key, form.value[key]);
-          }
-        });
+        loading.value = true;
+        error.value = null;
 
-        await axios.post('/projects', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
-        });
+        // Создаем копию данных формы без файлов
+        const { businessPlan, presentation, image, ...projectData } = form.value;
+        
+        // Добавляем категорию
+        projectData.category = { id: Number(form.value.category) };
 
+        let project;
+        if (isEditMode.value) {
+          project = await projectsService.updateProject(props.id || route.params.id, projectData);
+        } else {
+          project = await projectsService.createProject(projectData);
+        }
+
+        // Если есть файлы для загрузки
+        if (businessPlan || presentation || image) {
+          const formData = new FormData();
+          if (businessPlan) formData.append('businessPlan', businessPlan);
+          if (presentation) formData.append('presentation', presentation);
+          if (image) formData.append('image', image);
+
+          try {
+            await projectsService.uploadProjectFiles(project.id, formData);
+          } catch (uploadError) {
+            console.error('Ошибка при загрузке файлов:', uploadError);
+            // Продолжаем выполнение даже при ошибке загрузки файлов
+          }
+        }
+
+        // Перенаправляем на страницу "Мои стартапы"
         router.push('/startup/my-startups');
-      } catch (error) {
-        console.error('Error creating startup:', error);
-        alert('Произошла ошибка при создании стартапа');
+      } catch (err) {
+        console.error('Ошибка при сохранении проекта:', err);
+        error.value = err.response?.data?.message || 'Произошла ошибка при сохранении проекта';
       } finally {
         loading.value = false;
       }
@@ -210,12 +357,16 @@ export default {
 
     onMounted(() => {
       fetchCategories();
+      checkEditMode();
     });
 
     return {
       form,
       loading,
+      error,
       categories,
+      stages,
+      isEditMode,
       handleFileUpload,
       handleSubmit,
       goBack
@@ -236,6 +387,33 @@ export default {
   padding: 2rem;
   border-radius: 24px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.loading-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  padding: 3rem;
+  border-radius: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  margin-top: 1rem;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #2196F3;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 .form-group {
@@ -359,5 +537,14 @@ input[type="file"].form-control:hover {
 
 .btn-secondary:hover {
   background: #e2e8f0;
+}
+
+.error-message {
+  background-color: #fee2e2;
+  color: #dc2626;
+  padding: 1rem;
+  border-radius: 16px;
+  margin-bottom: 1rem;
+  border: 1px solid #fecaca;
 }
 </style> 
