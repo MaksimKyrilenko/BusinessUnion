@@ -43,37 +43,34 @@
             class="user-card"
       >
         <div class="user-header">
-          <img :src="user.avatar || '/default-avatar.png'" :alt="user.name" class="user-avatar">
-          <div class="user-type-badge" :class="user.type">
-            {{ getUserTypeLabel(user.type) }}
-          </div>
-            </div>
-            <div class="user-info">
-          <h3>{{ user.name }}</h3>
-          <p class="user-title">{{ user.title }}</p>
-          <p class="user-company" v-if="user.company">{{ user.company }}</p>
-              <div class="user-location" v-if="user.location">
-                <i class="fas fa-map-marker-alt"></i>
-            <span>{{ user.location }}</span>
-              </div>
-          <div class="user-stats">
-            <div class="stat">
-              <i class="fas fa-project-diagram"></i>
-              <span>{{ user.projectsCount }} проектов</span>
-            </div>
-            <div class="stat">
-              <i class="fas fa-handshake"></i>
-              <span>{{ user.dealsCount }} сделок</span>
+          <div class="avatar-container">
+            <img v-if="user.avatar" :src="user.avatar" :alt="user.name" class="user-avatar">
+            <div v-else class="user-avatar default-avatar">
+              <i class="fas fa-user"></i>
             </div>
           </div>
-          <div class="user-tags">
-            <span 
-              v-for="tag in user.tags" 
-              :key="tag"
-              class="tag"
-            >
-              {{ tag }}
-            </span>
+          <div class="user-type-badge" :class="user.userType">
+            {{ getUserTypeLabel(user.userType) }}
+          </div>
+        </div>
+        <div class="user-info">
+          <h3>{{ user.fullName }}</h3>
+          
+          <div class="user-info-content">
+            <!-- Показываем информацию при наличии -->
+            <template v-if="hasUserData(user)">
+              <p class="user-company" v-if="user.company"><i class="fas fa-building"></i> {{ user.company }}</p>
+              <p class="user-title" v-if="user.title"><i class="fas fa-briefcase"></i> {{ user.title }}</p>
+              <p class="user-region" v-if="user.region"><i class="fas fa-map-marker-alt"></i> {{ user.region }}</p>
+              <p class="user-address" v-if="user.address"><i class="fas fa-home"></i> {{ user.address }}</p>
+              <p class="user-telegram" v-if="user.telegram"><i class="fab fa-telegram"></i> {{ user.telegram }}</p>
+              <p class="user-phone" v-if="user.phoneNumber"><i class="fas fa-phone"></i> {{ user.phoneNumber }}</p>
+            </template>
+            
+            <!-- Показываем сообщение, если данных нет -->
+            <div v-else class="empty-info-container">
+              <p class="no-user-data">Информация отсутствует</p>
+            </div>
           </div>
         </div>
         <div class="user-actions">
@@ -130,7 +127,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import Modal from '@/components/ui/Modal.vue'
-import api from '@/axios'
+import usersApiService from '@/services/usersApi'
 
 export default {
   name: 'People',
@@ -156,9 +153,9 @@ export default {
         const matchesQuery = !searchQuery.value || 
           user.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
           (user.company && user.company.toLowerCase().includes(searchQuery.value.toLowerCase())) ||
-          user.tags.some(tag => tag.toLowerCase().includes(searchQuery.value.toLowerCase()))
+          (user.tags && user.tags.some(tag => tag.toLowerCase().includes(searchQuery.value.toLowerCase())))
         
-        const matchesType = !selectedType.value || user.type === selectedType.value
+        const matchesType = !selectedType.value || user.userType === selectedType.value
         const matchesIndustry = !selectedIndustry.value || user.industryId === selectedIndustry.value
         const matchesLocation = !selectedLocation.value || user.locationId === selectedLocation.value
 
@@ -173,14 +170,37 @@ export default {
         businessman: 'Бизнесмен',
         crypto_trader: 'Крипто-трейдер'
       }
-      return types[type] || type
+      return types[type] || 'Пользователь'
     }
 
     const loadUsers = async () => {
       loading.value = true
       try {
-        const response = await api.get('/users')
-        users.value = response.data
+        const response = await usersApiService.getUsers()
+        
+        // Преобразуем полученные данные в формат, необходимый для отображения
+        users.value = response.map(user => {
+          const profile = user.profile || {}
+          const socialLinks = profile.socialLinks || {}
+          
+          return {
+            id: user.id,
+            name: `${user.firstName || ''} ${user.lastName || ''}`.trim(),
+            fullName: `${user.firstName || ''} ${user.lastName || ''} ${user.middleName || ''}`.trim(),
+            email: user.email,
+            avatar: profile.avatar || null,
+            userType: user.userType || 'user',
+            title: profile.position || null,
+            company: profile.company || null,
+            region: profile.region || null,
+            address: profile.address || null,
+            telegram: socialLinks.telegram || null,
+            phoneNumber: profile.phoneNumber || null,
+            tags: Array.isArray(profile.specialization) ? profile.specialization : [],
+            industryId: profile.industryId || null,
+            locationId: profile.locationId || null
+          }
+        })
       } catch (error) {
         console.error('Ошибка при загрузке пользователей:', error)
       } finally {
@@ -190,20 +210,30 @@ export default {
 
     const loadFilters = async () => {
       try {
-        const [industriesResponse, locationsResponse] = await Promise.all([
-          api.get('/industries'),
-          api.get('/locations')
-        ])
-        industries.value = industriesResponse.data
-        locations.value = locationsResponse.data
+        // Здесь можно добавить загрузку отраслей и локаций с сервера
+        // Пока используем заглушки
+        industries.value = [
+          { id: 1, name: 'IT и технологии' },
+          { id: 2, name: 'Финансы' },
+          { id: 3, name: 'Медицина' },
+          { id: 4, name: 'Образование' },
+          { id: 5, name: 'Недвижимость' }
+        ]
+        
+        locations.value = [
+          { id: 1, name: 'Москва' },
+          { id: 2, name: 'Санкт-Петербург' },
+          { id: 3, name: 'Новосибирск' },
+          { id: 4, name: 'Екатеринбург' },
+          { id: 5, name: 'Казань' }
+        ]
       } catch (error) {
         console.error('Ошибка при загрузке фильтров:', error)
       }
     }
 
     const handleSearch = () => {
-      // Можно добавить debounce для оптимизации
-      loadUsers()
+      // Фильтрация осуществляется через computed свойство filteredUsers
     }
 
     const connectWithUser = (user) => {
@@ -219,19 +249,21 @@ export default {
       if (!messageText.value.trim()) return
 
       try {
-        await api.post('/messages/connect', {
-          userId: selectedUser.value.id,
-          message: messageText.value
-        })
+        // Здесь будет отправка сообщения на сервер
+        console.log('Отправка сообщения пользователю:', selectedUser.value.id, messageText.value)
         
         showConnectModal.value = false
         messageText.value = ''
         
         // Показываем уведомление об успехе
-        // TODO: Добавить компонент уведомлений
+        alert('Сообщение успешно отправлено')
       } catch (error) {
         console.error('Ошибка при отправке сообщения:', error)
       }
+    }
+
+    const hasUserData = (user) => {
+      return user.company || user.title || user.region || user.address || user.telegram || user.phoneNumber;
     }
 
     onMounted(() => {
@@ -256,7 +288,8 @@ export default {
       handleSearch,
       connectWithUser,
       viewProfile,
-      sendMessage
+      sendMessage,
+      hasUserData
     }
   }
 }
@@ -348,6 +381,9 @@ export default {
   overflow: hidden;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  height: 500px; /* Высота карточки */
 }
 
 .user-card:hover {
@@ -357,9 +393,21 @@ export default {
 
 .user-header {
   position: relative;
-  padding: 1.5rem;
+  padding: 1.2rem; /* Уменьшаем отступы в шапке с 1.5rem до 1.2rem */
   background: #f8f9fa;
   text-align: center;
+  flex-shrink: 0;
+  height: 140px; /* Уменьшаем высоту шапки с 150px до 140px */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.avatar-container {
+  width: 100px;
+  height: 100px;
+  margin: 0 auto;
+  position: relative;
 }
 
 .user-avatar {
@@ -369,6 +417,15 @@ export default {
   border: 4px solid white;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   object-fit: cover;
+}
+
+.default-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #e0e0e0;
+  color: #757575;
+  font-size: 40px;
 }
 
 .user-type-badge {
@@ -402,70 +459,101 @@ export default {
 }
 
 .user-info {
-  padding: 1.5rem;
+  padding: 1.5rem 1.5rem 1rem 1.5rem; /* Уменьшаю нижний отступ */
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .user-info h3 {
   margin: 0;
   font-size: 1.2rem;
   color: #2c3e50;
+  margin-bottom: 0.6rem; /* Уменьшаем нижний отступ с 0.75rem до 0.6rem */
+  text-align: center;
+  overflow-wrap: break-word;
+  line-height: 1.3; /* Оптимизируем межстрочный интервал для заголовка */
+  min-height: 1.2em; /* Минимальная высота для однострочного заголовка */
+  max-height: 3.9em; /* Максимальная высота для заголовка, примерно 3 строки */
+  overflow: hidden; /* Скрываем очень длинные заголовки */
 }
 
-.user-title {
-  color: #666;
-  margin: 0.5rem 0;
-  font-size: 0.95rem;
-}
-
-.user-company {
-  color: #2196F3;
-  font-weight: 500;
-  margin: 0.5rem 0;
-}
-
-.user-location {
+.user-info-content {
+  flex: 1;
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  min-height: 250px; /* Корректируем минимальную высоту для контента */
+  justify-content: flex-start;
+  overflow-y: auto;
+  padding-right: 5px;
+  scrollbar-width: thin;
+  scrollbar-color: #ddd #f9f9f9;
+  position: relative; /* Добавляем позиционирование */
+}
+
+/* Стилизация полосы прокрутки для Webkit (Chrome, Safari) */
+.user-info-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.user-info-content::-webkit-scrollbar-track {
+  background: #f9f9f9;
+  border-radius: 3px;
+}
+
+.user-info-content::-webkit-scrollbar-thumb {
+  background-color: #ddd;
+  border-radius: 3px;
+}
+
+.user-info-content::-webkit-scrollbar-thumb:hover {
+  background-color: #ccc;
+}
+
+/* Стили для информационных полей */
+.user-company,
+.user-title,
+.user-region,
+.user-address,
+.user-telegram,
+.user-phone {
+  display: flex;
+  align-items: flex-start;
   gap: 0.5rem;
+  margin: 0.4rem 0;
+  word-break: break-word;
+  line-height: 1.4;
+}
+
+.user-title,
+.user-region,
+.user-address,
+.user-telegram,
+.user-phone {
   color: #666;
   font-size: 0.9rem;
-  margin: 0.5rem 0;
 }
 
-.user-stats {
-  display: flex;
-  gap: 1rem;
-  margin: 1rem 0;
-}
-
-.stat {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: #666;
-  font-size: 0.9rem;
-}
-
-.user-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin: 1rem 0;
-}
-
-.tag {
-  background: #f5f5f5;
-  color: #666;
-  padding: 0.25rem 0.75rem;
-  border-radius: 1rem;
-  font-size: 0.85rem;
+.user-company i,
+.user-title i,
+.user-region i,
+.user-address i,
+.user-telegram i,
+.user-phone i {
+  flex-shrink: 0;
+  margin-top: 3px;
+  width: 18px;
+  text-align: center;
 }
 
 .user-actions {
-  padding: 1.5rem;
+  padding: 1.2rem 1.5rem;
   border-top: 1px solid #e0e0e0;
   display: flex;
   gap: 1rem;
+  margin-top: auto;
+  flex-shrink: 0;
 }
 
 .btn-primary,
@@ -560,6 +648,29 @@ export default {
   min-height: 100px;
 }
 
+.empty-info-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 5px;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.no-user-data {
+  color: #999;
+  font-style: italic;
+  text-align: center;
+  padding: 0.8rem;
+  border-top: 1px solid #eee;
+  border-bottom: 1px solid #eee;
+  width: 100%;
+  margin: 0;
+  font-size: 1rem;
+}
+
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
@@ -577,5 +688,15 @@ export default {
   .user-card {
     max-width: none;
   }
+}
+
+.user-company {
+  color: #2196F3;
+  font-weight: 500;
+}
+
+/* Добавляем класс для длинных адресов */
+.user-address {
+  margin-bottom: 0.6rem; /* Чуть больше отступ после адреса, так как он часто бывает многострочным */
 }
 </style> 

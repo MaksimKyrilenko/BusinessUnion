@@ -35,12 +35,14 @@
         <span>Аналитика рынка</span>
       </router-link>
 
-      <!-- Дополнительные ссылки -->
-      <router-link to="/startup/create" class="nav-item">
+      <!-- Ссылка на создание стартапа только для стартаперов -->
+      <router-link v-if="userType === 'startup_founder'" to="/startup/create" class="nav-item">
         <i class="fas fa-rocket"></i>
         <span>Создание стартапа</span>
       </router-link>
-      <router-link to="/startup/my-startups" class="nav-item">
+      
+      <!-- Остальные ссылки -->
+      <router-link v-if="userType === 'startup_founder'" to="/startup/my-startups" class="nav-item">
         <i class="fas fa-project-diagram"></i>
         <span>Мои стартапы</span>
       </router-link>
@@ -98,6 +100,9 @@ export default defineComponent({
     const userStore = useUserStore()
     const { isAuthenticated } = storeToRefs(userStore)
     
+    // Получаем тип пользователя для проверки прав доступа
+    const userType = userStore.user?.userType || localStorage.getItem('userType')
+    
     const logout = async () => {
       // Добавляем подтверждение выхода
       if (confirm('Вы действительно хотите выйти из системы?')) {
@@ -122,6 +127,7 @@ export default defineComponent({
 
     return {
       isAuthenticated,
+      userType,
       logout
     }
   }

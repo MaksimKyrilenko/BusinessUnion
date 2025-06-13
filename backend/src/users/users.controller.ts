@@ -71,6 +71,7 @@ export class UsersController {
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
+        middleName: user.middleName,
         userType: user.userType,
         profile: user.profile
       };

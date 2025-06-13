@@ -14,7 +14,7 @@ module.exports = defineConfig({
     port: 8081,
     proxy: {
       '/api': {
-        target: 'http://localhost:3000',
+        target: 'http://localhost:3001',
         changeOrigin: true,
         ws: true,
         logLevel: 'debug',
@@ -23,6 +23,16 @@ module.exports = defineConfig({
         },
         onProxyReq: (proxyReq, req) => {
           console.log('Proxy request:', req.method, req.url);
+        }
+      },
+      '/news-api': {
+        target: 'https://newsapi.org/v2',
+        changeOrigin: true,
+        pathRewrite: {
+          '^/news-api': ''
+        },
+        onProxyReq: (proxyReq, req) => {
+          console.log('News API request:', req.method, req.url);
         }
       }
     }

@@ -6,14 +6,9 @@
     <div v-else-if="userData" class="profile-content">
       <div class="profile-header">
         <h1>Профиль пользователя</h1>
-        <div class="header-actions">
-          <router-link v-if="isOwnProfile" to="/profile/edit" class="btn btn-outline">
-            Редактировать
-          </router-link>
-          <router-link v-else to="/people" class="btn btn-outline">
-            Назад к поиску
-          </router-link>
-        </div>
+        <router-link to="/people" class="btn btn-outline">
+          Назад к поиску
+        </router-link>
       </div>
 
       <div class="profile-info">
@@ -41,11 +36,6 @@
           <div class="profile-field">
             <span class="field-label">Отчество:</span>
             <span class="field-value">{{ userData.middleName || 'Не указано' }}</span>
-          </div>
-
-          <div class="profile-field">
-            <span class="field-label">Email:</span>
-            <span class="field-value">{{ userData.email }}</span>
           </div>
         </div>
 
@@ -144,7 +134,7 @@
           </div>
         </div>
 
-        <div v-if="userData.userType === 'INVESTOR'" class="profile-section">
+        <div v-if="userData.userType === 'investor'" class="profile-section">
           <h2>Инвестиционная деятельность</h2>
           
           <div v-if="userData.profile?.investmentSize" class="profile-field">
@@ -158,10 +148,6 @@
 
         <div v-if="userData.profile" class="profile-section">
           <h2>Контактная информация</h2>
-          <div class="profile-field">
-            <span class="field-label">Email:</span>
-            <span class="field-value">{{ userData.email }}</span>
-          </div>
           
           <div v-if="userData.profile.phoneNumber" class="profile-field">
             <span class="field-label">Телефон:</span>
@@ -176,6 +162,10 @@
           <div v-if="userData.profile.address" class="profile-field">
             <span class="field-label">Адрес:</span>
             <span class="field-value">{{ userData.profile.address }}</span>
+          </div>
+
+          <div v-if="!userData.profile.phoneNumber && !userData.profile.region && !userData.profile.address" class="profile-field empty-field">
+            <p>Информация отсутствует</p>
           </div>
         </div>
         
@@ -205,19 +195,20 @@
             <p>Информация отсутствует</p>
           </div>
         </div>
-      </div>
 
-      <div v-if="!isOwnProfile" class="profile-actions">
-        <button class="btn btn-primary" @click="connectWithUser">
-          <i class="fas fa-envelope"></i> Связаться
-        </button>
+        <div class="profile-actions">
+          <button class="btn btn-primary" @click="connectWithUser">
+            <i class="fas fa-envelope"></i> Связаться
+          </button>
+        </div>
       </div>
     </div>
     <div v-else class="error">
       Не удалось загрузить профиль
     </div>
-    
-    <Modal v-if="showConnectModal" @close="showConnectModal = false">
+
+    <!-- Модальное окно для отправки сообщения -->
+    <modal v-if="showConnectModal" @close="showConnectModal = false">
       <template #header>
         <h3>Связаться с {{ userData?.firstName }} {{ userData?.lastName }}</h3>
       </template>
@@ -239,202 +230,112 @@
           Отправить
         </button>
       </template>
-    </Modal>
+    </modal>
   </div>
 </template>
 
 <script>
-import api from '@/axios';
-import usersApiService from '@/services/usersApi';
+import { ref, computed, onMounted } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import Modal from '@/components/ui/Modal.vue';
+import usersApiService from '@/services/usersApi';
 
 export default {
-  name: 'Profile',
+  name: 'UserProfile',
   components: {
     Modal
   },
-  props: {
-    id: {
-      type: [String, Number],
-      default: null
-    }
-  },
-  data() {
-    return {
-      isLoading: true,
-      userData: null,
-      isOwnProfile: false,
-      showConnectModal: false,
-      messageText: ''
-    }
-  },
-  computed: {
-    userInitials() {
-      if (!this.userData) return '';
-      return (this.userData.firstName?.charAt(0) || '') + (this.userData.lastName?.charAt(0) || '');
-    },
-    hasSocialLinks() {
-      if (!this.userData.profile || !this.userData.profile.socialLinks) return false;
-      return Boolean(
-        this.userData.profile.socialLinks.linkedin ||
-        this.userData.profile.socialLinks.twitter ||
-        this.userData.profile.socialLinks.telegram ||
-        this.userData.profile.socialLinks.vk ||
-        this.userData.profile.socialLinks.instagram ||
-        this.userData.profile.socialLinks.facebook
-      );
-    }
-  },
-  async created() {
-    // Определяем свой профиль или чужой
-    const currentUserId = localStorage.getItem('userId');
-    if (!this.id) {
-      this.isOwnProfile = true;
-      await this.loadOwnProfile();
-    } else {
-      this.isOwnProfile = this.id == currentUserId;
-      await this.loadUserProfile(this.id);
-    }
-  },
-  methods: {
-    async loadOwnProfile() {
-      try {
-        // Получим ID текущего пользователя из localStorage
-        const userId = localStorage.getItem('userId');
-        
-        if (!userId) {
-          console.error('ID пользователя не найден в localStorage');
-          this.$router.push('/login');
-          return;
-        }
-        
-        console.log('Загружаем свой профиль для пользователя ID:', userId);
-        
-        // Загружаем профиль
-        const response = await api.get('/users/profile');
-        
-        // Проверяем, что ID загруженного профиля совпадает с ID в localStorage
-        if (response.data.id && response.data.id.toString() !== userId) {
-          console.warn('ID загруженного профиля не совпадает с ID в localStorage');
-          // Принудительно обновим localStorage
-          localStorage.setItem('userId', response.data.id.toString());
-        }
-        
-        if (response.data.profile === null) {
-          // Создаем новый профиль с валидными данными
-          const profileData = {
-            bio: '',
-            company: '',
-            position: '',
-            website: '',
-            socialLinks: {
-              linkedin: '',
-              twitter: '',
-              telegram: '',
-              vk: '',
-              instagram: '',
-              facebook: ''
-            },
-            specialization: [],
-            interests: [],
-            investmentSize: 0
-          };
-          
-          try {
-            // Используем обработку ошибок при создании профиля
-            const createResponse = await api.post('/users/profile', profileData);
-            console.log('Профиль успешно создан:', createResponse.data);
-            
-            // Получаем обновленные данные профиля
-            const updatedResponse = await api.get('/users/profile');
-            this.userData = updatedResponse.data;
-          } catch (profileError) {
-            console.error('Ошибка при создании профиля:', profileError.response?.data || profileError.message);
-            // Если не удалось создать профиль, все равно показываем основные данные пользователя
-            this.userData = response.data;
-            
-            if (profileError.response && profileError.response.status === 400) {
-              console.warn('Неверный формат данных при создании профиля');
-            }
-          }
-        } else {
-          this.userData = response.data;
-        }
-      } catch (error) {
-        this.handleError(error);
-      } finally {
-        this.isLoading = false;
-      }
-    },
-    
-    async loadUserProfile(userId) {
-      try {
-        console.log('Загружаем профиль пользователя ID:', userId);
-        
-        // Загружаем данные пользователя через API сервис
-        const userData = await usersApiService.getUserById(userId);
-        this.userData = userData;
-        
-      } catch (error) {
-        this.handleError(error);
-      } finally {
-        this.isLoading = false;
-      }
-    },
-    
-    handleError(error) {
-      console.error('Ошибка при загрузке профиля:', error.response?.data || error.message);
-      
-      // Если ошибка 401, перенаправляем на логин
-      if (error.response && error.response.status === 401) {
-        // Очищаем данные авторизации
-        localStorage.removeItem('token');
-        localStorage.removeItem('userId');
-        localStorage.removeItem('userType');
-        
-        this.$router.push('/login');
-        return;
-      }
-      
-      let errorMessage = 'Не удалось загрузить профиль.';
-      if (error.response && error.response.data && error.response.data.message) {
-        errorMessage += ' ' + error.response.data.message;
-      } else {
-        errorMessage += ' Пожалуйста, попробуйте позже.';
-      }
-      
-      this.$emit('error', errorMessage);
-    },
+  setup() {
+    const route = useRoute();
+    const router = useRouter();
+    const isLoading = ref(true);
+    const userData = ref(null);
+    const showConnectModal = ref(false);
+    const messageText = ref('');
 
-    formatCurrency(value) {
-      return new Intl.NumberFormat('ru-RU').format(value);
-    },
-    
-    openImageModal(image) {
-      // Здесь можно добавить логику для открытия модального окна с полноразмерным изображением
-      window.open(image, '_blank');
-    },
-    
-    connectWithUser() {
-      this.showConnectModal = true;
-    },
-    
-    async sendMessage() {
-      if (!this.messageText.trim()) return;
+    const userInitials = computed(() => {
+      if (!userData.value) return '';
+      return (userData.value.firstName?.charAt(0) || '') + (userData.value.lastName?.charAt(0) || '');
+    });
+
+    const hasSocialLinks = computed(() => {
+      if (!userData.value?.profile?.socialLinks) return false;
+      return Boolean(
+        userData.value.profile.socialLinks.linkedin ||
+        userData.value.profile.socialLinks.twitter ||
+        userData.value.profile.socialLinks.telegram ||
+        userData.value.profile.socialLinks.vk ||
+        userData.value.profile.socialLinks.instagram ||
+        userData.value.profile.socialLinks.facebook
+      );
+    });
+
+    const loadUserData = async () => {
+      isLoading.value = true;
+      try {
+        const userId = route.params.id;
+        if (!userId) {
+          throw new Error('ID пользователя не указан');
+        }
+
+        // Загружаем данные пользователя по ID через API
+        const user = await usersApiService.getUserById(userId);
+        userData.value = user;
+        
+        console.log('Профиль пользователя загружен:', userData.value);
+      } catch (error) {
+        console.error('Ошибка при загрузке профиля пользователя:', error);
+      } finally {
+        isLoading.value = false;
+      }
+    };
+
+    const connectWithUser = () => {
+      showConnectModal.value = true;
+    };
+
+    const sendMessage = async () => {
+      if (!messageText.value.trim()) return;
 
       try {
         // Здесь будет отправка сообщения на сервер
-        console.log('Отправка сообщения пользователю:', this.userData.id, this.messageText);
+        console.log('Отправка сообщения пользователю:', userData.value.id, messageText.value);
         
-        this.showConnectModal = false;
-        this.messageText = '';
+        showConnectModal.value = false;
+        messageText.value = '';
         
         // Показываем уведомление об успехе
         alert('Сообщение успешно отправлено');
       } catch (error) {
         console.error('Ошибка при отправке сообщения:', error);
       }
-    }
+    };
+
+    const formatCurrency = (value) => {
+      return new Intl.NumberFormat('ru-RU').format(value);
+    };
+
+    const openImageModal = (image) => {
+      // Здесь можно добавить логику для открытия модального окна с полноразмерным изображением
+      window.open(image, '_blank');
+    };
+
+    onMounted(() => {
+      loadUserData();
+    });
+
+    return {
+      isLoading,
+      userData,
+      userInitials,
+      hasSocialLinks,
+      showConnectModal,
+      messageText,
+      connectWithUser,
+      sendMessage,
+      formatCurrency,
+      openImageModal
+    };
   }
 }
 </script>
@@ -444,6 +345,7 @@ export default {
   max-width: 800px;
   margin: 0 auto;
   padding: 2rem;
+  margin-top: 60px;
 }
 
 .profile-header {
@@ -587,6 +489,9 @@ export default {
   transition: all 0.2s;
   font-size: 1rem;
   text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .btn-primary {
@@ -609,14 +514,43 @@ export default {
   background-color: #f0f4ff;
 }
 
-@media (max-width: 768px) {
-  .profile {
-    padding: 1rem;
-  }
+.profile-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+}
 
-  .profile-content {
-    padding: 1rem;
-  }
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  font-weight: 500;
+}
+
+.form-group textarea {
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 0.5rem;
+  resize: vertical;
+}
+
+.btn-secondary {
+  background-color: #e2e8f0;
+  color: #4a5568;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+  background-color: #cbd5e0;
 }
 
 .gallery-grid {
@@ -645,42 +579,22 @@ export default {
   background-position: center;
 }
 
-.profile-actions {
-  display: flex;
-  justify-content: center;
-  margin-top: 2rem;
-}
+@media (max-width: 768px) {
+  .profile {
+    padding: 1rem;
+  }
 
-.btn-secondary {
-  background-color: #e2e8f0;
-  color: #4a5568;
-  border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-secondary:hover {
-  background-color: #cbd5e0;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-}
-
-.form-group label {
-  font-weight: 500;
-}
-
-.form-group textarea {
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 0.5rem;
-  resize: vertical;
+  .profile-content {
+    padding: 1rem;
+  }
+  
+  .profile-field {
+    flex-direction: column;
+  }
+  
+  .field-label {
+    width: 100%;
+    margin-bottom: 0.25rem;
+  }
 }
 </style> 

@@ -29,6 +29,9 @@ export class UpdateProfileDto implements Partial<IProfile> {
     linkedin?: string;
     twitter?: string;
     telegram?: string;
+    vk?: string;
+    instagram?: string;
+    facebook?: string;
   };
 
   @IsOptional()
@@ -46,4 +49,35 @@ export class UpdateProfileDto implements Partial<IProfile> {
   @IsNumber()
   @Min(0)
   investmentSize?: number;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  gallery?: string[];
+  
+  @IsOptional()
+  @IsString()
+  phoneNumber?: string;
+  
+  @IsOptional()
+  @IsString()
+  address?: string;
+  
+  @IsOptional()
+  @IsString()
+  region?: string;
+  
+  @IsOptional()
+  @IsString()
+  education?: string;
+  
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  certifications?: string[];
+  
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  languages?: string[];
 } 

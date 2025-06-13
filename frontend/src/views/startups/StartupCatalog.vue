@@ -2,61 +2,58 @@
   <div class="startup-catalog">
     <h1>Каталог стартапов</h1>
     
-    <div class="catalog-container">
-      <!-- Поиск и фильтры -->
-      <div class="filters-panel">
-        <div class="search-box">
+    <!-- Поиск и фильтры (горизонтально) -->
+    <div class="filters-horizontal">
+      <div class="search-box">
+        <div class="search-input-container">
+          <i class="fas fa-search search-icon"></i>
           <input 
             type="text" 
             v-model="searchQuery" 
-            placeholder="Поиск стартапов..."
+            placeholder="Поиск по имени, компании или специализации..."
+            class="search-input"
           >
         </div>
+      </div>
+      
+      <div class="filters-row">
+        <div class="filter-item">
+          <select v-model="filters.stage" class="filter-select">
+            <option value="">Все типы</option>
+            <option value="idea">Идея</option>
+            <option value="mvp">MVP</option>
+            <option value="growth">Рост</option>
+            <option value="scaling">Масштабирование</option>
+          </select>
+        </div>
         
-        <div class="filters">
-          <div class="filter-group">
-            <label>Стадия</label>
-            <select v-model="filters.stage">
-              <option value="">Все стадии</option>
-              <option value="idea">Идея</option>
-              <option value="mvp">MVP</option>
-              <option value="growth">Рост</option>
-              <option value="scaling">Масштабирование</option>
-            </select>
-          </div>
-          
-          <div class="filter-group">
-            <label>Сектор</label>
-            <select v-model="filters.sector">
-              <option value="">Все секторы</option>
-              <option v-for="sector in sectors" 
-                      :key="sector.id" 
-                      :value="sector.id"
-              >
-                {{ sector.name }}
-              </option>
-            </select>
-          </div>
-          
-          <div class="filter-group">
-            <label>Инвестиции</label>
-            <div class="range-inputs">
-              <input 
-                type="number" 
-                v-model="filters.minInvestment" 
-                placeholder="От"
-              >
-              <span>-</span>
-              <input 
-                type="number" 
-                v-model="filters.maxInvestment" 
-                placeholder="До"
-              >
-            </div>
-          </div>
+        <div class="filter-item">
+          <select v-model="filters.sector" class="filter-select">
+            <option value="">Все отрасли</option>
+            <option v-for="sector in sectors" 
+                    :key="sector.id" 
+                    :value="sector.id"
+            >
+              {{ sector.name }}
+            </option>
+          </select>
+        </div>
+        
+        <div class="filter-item">
+          <select v-model="filters.location" class="filter-select">
+            <option value="">Все локации</option>
+            <option v-for="location in uniqueLocations" 
+                    :key="location" 
+                    :value="location"
+            >
+              {{ location }}
+            </option>
+          </select>
         </div>
       </div>
-
+    </div>
+    
+    <div class="catalog-container">
       <!-- Индикатор загрузки -->
       <div v-if="loading" class="loading-indicator">
         <div class="spinner"></div>
@@ -276,7 +273,8 @@ export default {
       stage: '',
       sector: '',
       minInvestment: '',
-      maxInvestment: ''
+      maxInvestment: '',
+      location: ''
     })
     const sectors = ref([])
     const startups = ref([])
@@ -287,6 +285,14 @@ export default {
     const loading = ref(false)
 
     // Вычисляемые свойства
+    const uniqueLocations = computed(() => {
+      const locations = startups.value
+        .map(startup => startup.location)
+        .filter(location => location && location.trim() !== '')
+      
+      return [...new Set(locations)].sort()
+    })
+    
     const filteredStartups = computed(() => {
       let filtered = [...startups.value]
       
@@ -297,7 +303,8 @@ export default {
           return (
             startup.title.toLowerCase().includes(query) ||
             startup.description.toLowerCase().includes(query) ||
-            (startup.location && startup.location.toLowerCase().includes(query))
+            (startup.location && startup.location.toLowerCase().includes(query)) ||
+            (startup.category && startup.category.name.toLowerCase().includes(query))
           )
         })
       }
@@ -324,6 +331,13 @@ export default {
       if (filters.value.maxInvestment) {
         const max = parseInt(filters.value.maxInvestment)
         filtered = filtered.filter(startup => startup.investmentNeeded <= max)
+      }
+      
+      // Фильтрация по местоположению
+      if (filters.value.location) {
+        filtered = filtered.filter(startup => 
+          startup.location === filters.value.location
+        )
       }
       
       return filtered
@@ -361,6 +375,22 @@ export default {
       } catch (error) {
         console.error('Ошибка при загрузке категорий:', error)
       }
+    }
+    
+    const applyFilters = () => {
+      currentPage.value = 1
+    }
+    
+    const resetFilters = () => {
+      filters.value = {
+        stage: '',
+        sector: '',
+        minInvestment: '',
+        maxInvestment: '',
+        location: ''
+      }
+      searchQuery.value = ''
+      currentPage.value = 1
     }
     
     const viewDetails = (id) => {
@@ -438,6 +468,7 @@ export default {
       filters,
       sectors,
       startups,
+      uniqueLocations,
       filteredStartups,
       currentPage,
       itemsPerPage,
@@ -454,7 +485,9 @@ export default {
       closeDetails,
       formatMoney,
       getStatusText,
-      getStageText
+      getStageText,
+      applyFilters,
+      resetFilters
     }
   }
 }
@@ -470,71 +503,78 @@ export default {
   font-size: 32px;
 }
 
-.catalog-container {
-  display: grid;
-  grid-template-columns: 300px 1fr;
-  gap: 20px;
-  margin-bottom: 30px;
-}
-
-.filters-panel {
-  background: white;
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  align-self: start;
+/* Стили для горизонтальных фильтров */
+.filters-horizontal {
+  background: transparent;
+  border-radius: 0;
+  padding: 20px 0;
+  box-shadow: none;
+  margin-bottom: 24px;
 }
 
 .search-box {
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
-.search-box input {
+.search-input-container {
+  position: relative;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6c757d;
+}
+
+.search-input {
   width: 100%;
-  padding: 10px 16px;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
+  padding: 12px 16px 12px 40px;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
   font-size: 16px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  background-color: #fff;
 }
 
-.filters {
+.search-input:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+  outline: none;
+}
+
+.filters-row {
   display: flex;
-  flex-direction: column;
   gap: 16px;
 }
 
-.filter-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.filter-item {
+  flex: 1;
 }
 
-.filter-group label {
-  font-size: 14px;
-  font-weight: 500;
-  color: #495057;
-}
-
-.filter-group select {
+.filter-select {
   width: 100%;
-  padding: 10px;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
+  padding: 12px;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
   background-color: white;
+  font-size: 15px;
+  transition: border-color 0.2s;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%236c757d' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
 }
 
-.range-inputs {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.filter-select:focus {
+  border-color: #007bff;
+  outline: none;
 }
 
-.range-inputs input {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
-  font-size: 14px;
+.catalog-container {
+  margin-bottom: 30px;
 }
 
 .startups-grid {
@@ -676,7 +716,6 @@ export default {
   align-items: center;
   justify-content: center;
   padding: 40px;
-  grid-column: 1 / -1;
 }
 
 .spinner {
@@ -697,160 +736,17 @@ export default {
 .no-results {
   padding: 40px;
   text-align: center;
-  grid-column: 1 / -1;
   color: #6c757d;
-}
-
-/* Детали проекта */
-.startup-details {
-  max-width: 800px;
-  background: white;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.details-header {
-  position: relative;
-}
-
-.details-image {
-  width: 100%;
-  height: 240px;
-  object-fit: cover;
-}
-
-.details-info {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
-  color: white;
-  padding: 20px;
-  display: flex;
-  align-items: flex-end;
-  gap: 16px;
-}
-
-.details-info h2 {
-  margin: 0 0 8px 0;
-  font-size: 24px;
-}
-
-.details-meta {
-  display: flex;
-  gap: 12px;
-  font-size: 14px;
-}
-
-.details-meta span {
-  padding: 4px 8px;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 4px;
-}
-
-.details-content {
-  padding: 24px;
-}
-
-.details-section {
-  margin-bottom: 24px;
-}
-
-.details-section h3 {
-  margin: 0 0 16px 0;
-  font-size: 18px;
-  color: #343a40;
-}
-
-.details-section p {
-  line-height: 1.6;
-  color: #495057;
-}
-
-.metrics-grid, .info-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
-}
-
-.metric-item, .info-item {
-  padding: 12px;
-  background: #f8f9fa;
-  border-radius: 6px;
-}
-
-.metric-label, .info-label {
-  font-size: 13px;
-  color: #6c757d;
-  margin-bottom: 4px;
-}
-
-.metric-value, .info-value {
-  font-size: 16px;
-  font-weight: 500;
-}
-
-.documents-list {
-  display: flex;
-  gap: 16px;
-}
-
-.document-link {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  background: #f1f3f5;
-  border-radius: 4px;
-  text-decoration: none;
-  color: #495057;
-  font-size: 14px;
-  transition: background 0.2s;
-}
-
-.document-link:hover {
-  background: #e9ecef;
-}
-
-.author-info {
-  background: #f8f9fa;
-  padding: 12px;
-  border-radius: 6px;
-}
-
-.author-name {
-  font-size: 16px;
-  font-weight: 500;
-  margin-bottom: 4px;
-}
-
-.author-email {
-  font-size: 14px;
-  color: #6c757d;
-}
-
-.details-actions {
-  margin-top: 24px;
-  display: flex;
-  justify-content: center;
 }
 
 @media (max-width: 768px) {
-  .catalog-container {
-    grid-template-columns: 1fr;
+  .filters-row {
+    flex-direction: column;
+    gap: 12px;
   }
   
   .startups-grid {
     grid-template-columns: 1fr;
-  }
-  
-  .metrics-grid, .info-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .documents-list {
-    flex-direction: column;
   }
 }
 </style> 

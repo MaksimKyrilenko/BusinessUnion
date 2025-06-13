@@ -7,6 +7,7 @@ import Messenger from '../views/Messenger.vue';
 import People from '../views/People.vue';
 import FinancialAnalytics from '../views/FinancialAnalytics.vue';
 import Profile from '../views/Profile.vue';
+import UserProfile from '../views/UserProfile.vue';
 import EditProfile from '../views/EditProfile.vue';
 import News from '../views/News.vue';
 import Education from '../views/Education.vue';
@@ -75,15 +76,22 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
-    path: '/profile',
-    name: 'Profile',
-    component: Profile,
-    meta: { requiresAuth: true }
-  },
-  {
     path: '/profile/edit',
     name: 'EditProfile',
     component: EditProfile,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/profile/:id',
+    name: 'UserProfile',
+    component: Profile,
+    props: true,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/profile',
+    name: 'Profile',
+    component: Profile,
     meta: { requiresAuth: true }
   },
   {
@@ -109,20 +117,20 @@ const routes = [
     path: '/startup/create',
     name: 'CreateStartup',
     component: CreateStartup,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true, requiredRole: 'startup_founder' }
   },
   {
     path: '/startup/edit/:id',
     name: 'EditStartup',
     component: CreateStartup,
     props: true,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true, requiredRole: 'startup_founder' }
   },
   {
     path: '/startup/my-startups',
     name: 'MyStartups',
     component: MyStartups,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true, requiredRole: 'startup_founder' }
   },
   {
     path: '/startup/grants',
@@ -186,32 +194,55 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
   const userStore = useUserStore();
   
-  // Если переходим на страницу, требующую аутентификации
-  if (to.meta.requiresAuth) {
+  try {
+    // Проверяем авторизацию пользователя
     const token = localStorage.getItem('token');
+    const isAuthenticated = token && userStore.isAuthenticated;
     
-    // Если нет токена, сразу на логин
-    if (!token) {
-      return next({ 
-        path: '/login', 
-        query: { redirect: to.fullPath }
-      });
-    }
-    
-    // Если есть токен, но нет данных пользователя
-    if (!userStore.isAuthenticated) {
+    // Если есть токен, но нет данных пользователя, загружаем их
+    if (token && !userStore.isAuthenticated) {
       await userStore.loadUser();
     }
     
+    // Если маршрут требует авторизации
+    if (to.meta.requiresAuth) {
+      // Если пользователь не авторизован
+      if (!token) {
+        console.log('Перенаправление на логин: требуется авторизация');
+        return next({ 
+          path: '/login', 
+          query: { redirect: to.fullPath }
+        });
+      }
+      
+      // Проверка роли пользователя
+      if (to.meta.requiredRole) {
+        const userType = userStore.user?.userType || localStorage.getItem('userType');
+        
+        if (userType !== to.meta.requiredRole) {
+          console.warn(`Доступ запрещен: требуется роль ${to.meta.requiredRole}, текущая роль: ${userType}`);
+          return next({ path: '/dashboard' });
+        }
+      }
+      
+      return next();
+    }
+    
+    // Если страница для гостей, а пользователь авторизован
+    if (to.meta.guest && isAuthenticated) {
+      console.log('Перенаправление авторизованного пользователя с гостевой страницы');
+      return next({ path: '/dashboard' });
+    }
+    
+    // В остальных случаях разрешаем переход
     return next();
+  } catch (error) {
+    console.error('Ошибка при проверке авторизации:', error);
+    // В случае ошибки очищаем данные авторизации и перенаправляем на логин
+    localStorage.removeItem('token');
+    userStore.clearUserData();
+    return next({ path: '/login' });
   }
-  
-  // Если пытаемся перейти на гостевую страницу будучи авторизованным
-  if (to.meta.guest && userStore.isAuthenticated) {
-    return next({ path: '/dashboard' });
-  }
-  
-  next();
 });
 
 export default router;

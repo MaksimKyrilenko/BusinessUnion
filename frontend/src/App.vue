@@ -19,12 +19,12 @@
 </template>
 
 <script>
-import { defineComponent, onMounted } from 'vue'
+import { defineComponent, onMounted, watch } from 'vue'
 import Navigation from '@/components/layout/Navigation.vue'
 import { useUserStore } from '@/stores/user'
 import { useNotification } from '@/utils/notification'
 import { storeToRefs } from 'pinia'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 
 export default defineComponent({
   name: 'App',
@@ -34,6 +34,7 @@ export default defineComponent({
   setup() {
     const userStore = useUserStore()
     const router = useRouter()
+    const route = useRoute()
     const { isAuthenticated } = storeToRefs(userStore)
     const { notifications, remove: removeNotification } = useNotification()
 
@@ -53,6 +54,12 @@ export default defineComponent({
         // Пробуем загрузить пользователя
         const success = await userStore.loadUser()
         console.log('Результат загрузки пользователя:', success ? 'успешно' : 'неудачно')
+        
+        // Если пользователь авторизован и находится на главной странице, перенаправляем на дашборд
+        if (success && route.path === '/') {
+          console.log('Перенаправление авторизованного пользователя с главной страницы на дашборд')
+          router.replace('/dashboard')
+        }
       } catch (error) {
         console.error('Ошибка при проверке авторизации:', error)
         userStore.clearUserData()
@@ -60,7 +67,17 @@ export default defineComponent({
     }
     
     // Вызываем проверку при загрузке
-    checkAuth()
+    onMounted(() => {
+      checkAuth()
+    })
+    
+    // Следим за изменениями авторизации
+    watch(isAuthenticated, (newValue) => {
+      if (newValue && route.meta.guest) {
+        console.log('Пользователь авторизован, перенаправление с гостевой страницы на дашборд')
+        router.replace('/dashboard')
+      }
+    })
 
     return {
       isAuthenticated,

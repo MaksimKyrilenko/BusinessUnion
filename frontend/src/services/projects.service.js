@@ -46,20 +46,44 @@ class ProjectsService {
 
   async getMyProjects() {
     try {
-      const response = await axios.get(`${API_URL}/projects/my`, { headers: authHeader() });
+      // Получаем ID текущего пользователя из localStorage
+      const userId = localStorage.getItem('userId');
+      
+      if (!userId) {
+        throw new Error('Не найден ID пользователя');
+      }
+      
+      console.log(`Запрашиваем проекты для пользователя с ID: ${userId}`);
+      
+      // Используем эндпоинт для получения проектов по ID автора
+      const response = await axios.get(`${API_URL}/projects/author/${userId}`, { 
+        headers: authHeader() 
+      });
+      
       return response.data;
     } catch (error) {
       console.error('Ошибка при получении моих проектов:', error.response || error);
-      if (error.response?.status === 400) {
+      
+      // Если произошла ошибка, пробуем альтернативный эндпоинт
+      try {
         console.warn('Попытка получить проекты пользователя через альтернативный эндпоинт');
-        // Пробуем альтернативный эндпоинт
-        const response = await axios.get(`${API_URL}/projects`, { 
-          headers: authHeader(),
-          params: { my: true }
+        const userId = localStorage.getItem('userId');
+        
+        // Пробуем получить все проекты и отфильтровать по текущему пользователю
+        const allProjects = await axios.get(`${API_URL}/projects`, { 
+          headers: authHeader()
         });
-        return response.data;
+        
+        // Фильтруем проекты, оставляя только те, где автор - текущий пользователь
+        const myProjects = allProjects.data.filter(project => 
+          project.author && project.author.id === parseInt(userId)
+        );
+        
+        return myProjects;
+      } catch (fallbackError) {
+        console.error('Ошибка при использовании альтернативного метода:', fallbackError);
+        throw fallbackError;
       }
-      throw error;
     }
   }
 

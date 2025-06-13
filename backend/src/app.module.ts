@@ -8,6 +8,7 @@ import { ProjectsModule } from './projects/projects.module';
 import { InvestmentsModule } from './investments/investments.module';
 import { AuthModule } from './auth/auth.module';
 import { ChatModule } from './chat/chat.module';
+import { EventsModule } from './events/events.module';
 import { User } from './users/user.entity';
 import { Profile } from './users/entities/profile.entity';
 import { Project } from './projects/project.entity';
@@ -15,6 +16,7 @@ import { Investment } from './investments/investment.entity';
 import { Chat } from './chat/entities/chat.entity';
 import { Message } from './chat/entities/message.entity';
 import { ChatUser } from './chat/entities/chat-user.entity';
+import { Event } from './events/entities/event.entity';
 import { FilesModule } from './files/files.module';
 import { MessageModule } from './messages/message.module';
 
@@ -34,7 +36,7 @@ import { MessageModule } from './messages/message.module';
         password: configService.get('DB_PASS'),
         database: configService.get('DB_NAME'),
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        synchronize: configService.get('DB_SYNCHRONIZE') === 'true',
+        synchronize: true, // Временно включаем для автоматического создания таблиц
         logging: configService.get('DB_LOGGING') === 'true',
       }),
     }),
@@ -43,6 +45,7 @@ import { MessageModule } from './messages/message.module';
     InvestmentsModule,
     AuthModule,
     ChatModule,
+    EventsModule,
     FilesModule,
     MessageModule,
   ],

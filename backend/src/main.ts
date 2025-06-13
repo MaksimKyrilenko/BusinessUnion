@@ -7,6 +7,10 @@ import * as cookieParser from 'cookie-parser';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   
+  // Настраиваем лимиты для body-parser
+  app.use(require('body-parser').json({ limit: '10mb' }));
+  app.use(require('body-parser').urlencoded({ limit: '10mb', extended: true }));
+  
   // Добавляем глобальный префикс /api
   app.setGlobalPrefix('api');
   
@@ -32,7 +36,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
-  // Запускаем приложение на порту 3000
-  await app.listen(3000);
+  // Запускаем приложение на порту 3001
+  await app.listen(3001);
 }
 bootstrap();
