@@ -305,10 +305,14 @@ class MessengerService {
   }
 
   addUserToChat(chatId, userId) {
-    return axios.post(`${API_URL}/chats/${chatId}/members`, 
-      { userId }, 
-      { headers: authHeader() }
-    )
+    if (!chatId || !userId) {
+      console.error('Ошибка: отсутствует chatId или userId при добавлении пользователя в чат')
+      return Promise.reject(new Error('Отсутствует ID чата или ID пользователя'))
+    }
+
+    console.log(`Добавление пользователя ${userId} в чат ${chatId}`)
+    
+    return axios.post(`${API_URL}/chats/${chatId}/users/${userId}`, {}, { headers: authHeader() })
       .then(response => {
         console.log(`Пользователь ${userId} успешно добавлен в чат ${chatId}`)
         return response
@@ -316,6 +320,45 @@ class MessengerService {
       .catch(error => {
         console.error(`Ошибка при добавлении пользователя ${userId} в чат ${chatId}:`, error)
         throw error
+      })
+  }
+
+  addUsersToChat(chatId, userIds) {
+    if (!chatId || !userIds || !Array.isArray(userIds) || userIds.length === 0) {
+      console.error('Ошибка: некорректные параметры при добавлении пользователей в чат')
+      return Promise.reject(new Error('Некорректные параметры для добавления пользователей'))
+    }
+
+    console.log(`Добавление ${userIds.length} пользователей в чат ${chatId}`)
+    
+    // Создаем массив промисов для каждого пользователя
+    const promises = userIds.map(userId => 
+      this.addUserToChat(chatId, userId)
+        .catch(error => {
+          console.error(`Ошибка при добавлении пользователя ${userId} в чат ${chatId}:`, error)
+          // Возвращаем объект ошибки, чтобы Promise.all не завершался ошибкой при частичной неудаче
+          return { error, userId }
+        })
+    )
+    
+    // Ждем завершения всех запросов
+    return Promise.all(promises)
+      .then(results => {
+        const successCount = results.filter(r => !r.error).length
+        const failCount = results.length - successCount
+        
+        console.log(`Добавлено ${successCount} пользователей, ${failCount} ошибок`)
+        
+        // Если все запросы завершились ошибкой, выбрасываем исключение
+        if (successCount === 0 && failCount > 0) {
+          throw new Error('Не удалось добавить ни одного пользователя в чат')
+        }
+        
+        return { 
+          successCount,
+          failCount,
+          results
+        }
       })
   }
 
@@ -327,6 +370,139 @@ class MessengerService {
       })
       .catch(error => {
         console.error(`Ошибка при удалении пользователя ${userId} из чата ${chatId}:`, error)
+        throw error
+      })
+  }
+
+  // Метод для обновления информации о группе
+  updateGroupInfo(chatId, updateData) {
+    if (!chatId) {
+      console.error('Ошибка: отсутствует chatId при обновлении информации о группе')
+      return Promise.reject(new Error('Отсутствует ID чата'))
+    }
+    
+    // Преобразуем ID в число для гарантии
+    const numericChatId = Number(chatId);
+    if (isNaN(numericChatId)) {
+      console.error(`Ошибка: некорректный формат ID чата: ${chatId}`)
+      return Promise.reject(new Error('Некорректный формат ID чата'))
+    }
+    
+    console.log(`Обновление информации о группе ${numericChatId}:`, updateData)
+    
+    // Получаем токен напрямую из localStorage
+    const token = localStorage.getItem('token');
+    console.log('Токен из localStorage:', token ? 'присутствует' : 'отсутствует');
+    
+    if (!token) {
+      console.error('Ошибка: токен не найден в localStorage');
+      return Promise.reject(new Error('Токен авторизации не найден'));
+    }
+    
+    // Формируем заголовки с токеном
+    const headers = {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    };
+    
+    console.log('Заголовки запроса:', {
+      Authorization: headers.Authorization ? 'Bearer xx...' : 'отсутствует',
+      ContentType: headers['Content-Type']
+    });
+    
+    return axios.put(`${API_URL}/chats/${numericChatId}`, updateData, { headers })
+      .then(response => {
+        console.log('Информация о группе успешно обновлена:', response.data)
+        return response
+      })
+      .catch(error => {
+        console.error('Ошибка при обновлении информации о группе:', error)
+        console.error('Детали ошибки:', {
+          status: error.response?.status,
+          statusText: error.response?.statusText,
+          data: error.response?.data,
+          config: error.config ? {
+            url: error.config.url,
+            method: error.config.method,
+            hasAuth: !!error.config.headers?.Authorization
+          } : 'Нет конфигурации'
+        })
+        throw error
+      })
+  }
+
+  // Метод для загрузки аватара группы
+  uploadGroupAvatar(chatId, formData) {
+    if (!chatId || !formData) {
+      console.error('Ошибка: отсутствует chatId или данные при загрузке аватара группы')
+      return Promise.reject(new Error('Отсутствует ID чата или данные аватара'))
+    }
+
+    // Преобразуем ID в число для гарантии
+    const numericChatId = Number(chatId);
+    if (isNaN(numericChatId)) {
+      console.error(`Ошибка: некорректный формат ID чата: ${chatId}`)
+      return Promise.reject(new Error('Некорректный формат ID чата'))
+    }
+
+    console.log(`Загрузка аватара для группы ${numericChatId}`)
+    
+    // Получаем токен напрямую из localStorage
+    const token = localStorage.getItem('token');
+    console.log('Токен из localStorage:', token ? 'присутствует' : 'отсутствует');
+    
+    if (!token) {
+      console.error('Ошибка: токен не найден в localStorage');
+      return Promise.reject(new Error('Токен авторизации не найден'));
+    }
+    
+    // Для multipart/form-data нельзя использовать Content-Type в заголовках
+    // axios автоматически установит правильный Content-Type с boundary
+    const headers = {
+      'Authorization': `Bearer ${token}`
+    };
+    
+    console.log('Заголовки запроса для загрузки аватара:', {
+      Authorization: headers.Authorization ? 'Bearer xx...' : 'отсутствует'
+    });
+    
+    return axios.post(`${API_URL}/chats/${numericChatId}/avatar`, formData, { headers })
+      .then(response => {
+        console.log('Аватар группы успешно загружен:', response.data)
+        return response
+      })
+      .catch(error => {
+        console.error('Ошибка при загрузке аватара группы:', error)
+        console.error('Детали ошибки:', {
+          status: error.response?.status,
+          statusText: error.response?.statusText,
+          data: error.response?.data,
+          config: error.config ? {
+            url: error.config.url,
+            method: error.config.method,
+            hasAuth: !!error.config.headers?.Authorization
+          } : 'Нет конфигурации'
+        })
+        throw error
+      })
+  }
+
+  // Метод для удаления группы
+  deleteGroup(chatId) {
+    if (!chatId) {
+      console.error('Ошибка: отсутствует chatId при удалении группы')
+      return Promise.reject(new Error('Отсутствует ID чата'))
+    }
+
+    console.log(`Удаление группы ${chatId}`)
+    
+    return axios.delete(`${API_URL}/chats/${chatId}`, { headers: authHeader() })
+      .then(response => {
+        console.log(`Группа ${chatId} успешно удалена`)
+        return response
+      })
+      .catch(error => {
+        console.error(`Ошибка при удалении группы ${chatId}:`, error)
         throw error
       })
   }

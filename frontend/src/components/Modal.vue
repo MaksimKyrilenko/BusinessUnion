@@ -38,40 +38,40 @@ export default {
 
 .modal-content {
   background: #ffffff;
-  padding: 3rem;
-  border-radius: 1rem;
-  box-shadow: 0 8px 32px rgba(33, 150, 243, 0.15);
+  padding: 0;
+  border-radius: 1.5rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
   position: relative;
   width: 95%;
   max-width: 600px;
   max-height: 90vh;
   overflow-y: auto;
-  border: 1px solid rgba(33, 150, 243, 0.1);
+  border: none;
   animation: modalAppear 0.3s ease-out;
-  padding-right: calc(3rem - 6px); /* Компенсируем ширину скроллбара */
 }
 
 .modal-close {
   position: absolute;
-  top: 1.2rem;
-  right: 1.2rem;
-  background: none;
+  top: 1rem;
+  right: 1rem;
+  background: #f1f5f9;
   border: none;
-  font-size: 1.8rem;
-  color: #666666;
+  font-size: 1.4rem;
+  color: #64748b;
   cursor: pointer;
   transition: all 0.3s ease;
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
+  z-index: 10;
 }
 
 .modal-close:hover {
-  color: #2196F3;
-  background: rgba(33, 150, 243, 0.1);
+  color: #334155;
+  background: #f9fafb;
   transform: rotate(90deg);
 }
 

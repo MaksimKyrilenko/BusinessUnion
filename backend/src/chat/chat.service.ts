@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Chat } from './entities/chat.entity';
@@ -363,5 +363,185 @@ export class ChatService {
       lastName: chatUser.user.lastName || '',
       isOnline: false // В реальном приложении здесь будет логика определения онлайн-статуса
     }));
+  }
+
+  async updateChatAvatar(chatId: number, userId: number, file: any): Promise<string> {
+    // Проверяем, является ли пользователь участником чата с правами администратора
+    const chatUser = await this.chatUserRepository.findOne({
+      where: { chatId, userId },
+    });
+
+    if (!chatUser) {
+      throw new NotFoundException(`Чат не найден или вы не имеете доступа`);
+    }
+
+    // Проверяем, имеет ли пользователь права для изменения аватара группы
+    if (chatUser.role !== ChatUserRole.OWNER && chatUser.role !== ChatUserRole.ADMIN) {
+      throw new BadRequestException('У вас нет прав для изменения аватара группы');
+    }
+
+    // Получаем чат
+    const chat = await this.chatRepository.findOne({ where: { id: chatId } });
+    if (!chat) {
+      throw new NotFoundException(`Чат с ID ${chatId} не найден`);
+    }
+
+    // Конвертируем файл в base64 для хранения в БД
+    const fs = require('fs');
+    const path = require('path');
+    
+    // Читаем файл, который был загружен Multer
+    const fileData = fs.readFileSync(file.path);
+    
+    // Конвертируем в base64
+    const avatarBase64 = `data:${file.mimetype};base64,${fileData.toString('base64')}`;
+    
+    // Удаляем временный файл
+    fs.unlinkSync(file.path);
+    
+    // Обновляем аватар в БД
+    chat.avatar = avatarBase64;
+    await this.chatRepository.save(chat);
+    
+    return avatarBase64;
+  }
+
+  async updateChat(chatId: number, userId: number, updateData: { name?: string; description?: string }): Promise<Chat> {
+    this.logger.log(`[updateChat] Начало обновления чата ${chatId}, пользователь ${userId}, данные:`, updateData);
+    
+    try {
+      // Проверяем, является ли пользователь участником чата с правами администратора
+      const chatUser = await this.chatUserRepository.findOne({
+        where: { chatId, userId },
+      });
+
+      if (!chatUser) {
+        this.logger.error(`[updateChat] Чат не найден или пользователь не имеет доступа: chatId=${chatId}, userId=${userId}`);
+        throw new NotFoundException(`Чат не найден или вы не имеете доступа`);
+      }
+
+      this.logger.log(`[updateChat] Найден chatUser:`, chatUser);
+
+      // Проверяем, имеет ли пользователь права для изменения информации о группе
+      if (chatUser.role !== ChatUserRole.OWNER && chatUser.role !== ChatUserRole.ADMIN) {
+        this.logger.error(`[updateChat] Недостаточно прав для изменения: роль=${chatUser.role}`);
+        throw new BadRequestException('У вас нет прав для изменения информации о группе');
+      }
+
+      // Получаем чат
+      const chat = await this.chatRepository.findOne({ where: { id: chatId } });
+      if (!chat) {
+        this.logger.error(`[updateChat] Чат с ID ${chatId} не найден`);
+        throw new NotFoundException(`Чат с ID ${chatId} не найден`);
+      }
+
+      this.logger.log(`[updateChat] Найден чат:`, chat);
+
+      // Обновляем только предоставленные поля
+      if (updateData.name !== undefined) {
+        this.logger.log(`[updateChat] Обновление названия: ${chat.name} -> ${updateData.name}`);
+        chat.name = updateData.name;
+      }
+      if (updateData.description !== undefined) {
+        this.logger.log(`[updateChat] Обновление описания: ${chat.description} -> ${updateData.description}`);
+        chat.description = updateData.description;
+      }
+
+      // Сохраняем обновленный чат
+      this.logger.log(`[updateChat] Сохранение изменений чата:`, chat);
+      const savedChat = await this.chatRepository.save(chat);
+      this.logger.log(`[updateChat] Чат успешно сохранен:`, savedChat);
+      
+      // Возвращаем обновленный чат
+      return this.findOne(chatId, userId);
+    } catch (error) {
+      this.logger.error(`[updateChat] Ошибка при обновлении чата ${chatId}:`, error);
+      throw error;
+    }
+  }
+
+  async addUserToChat(chatId: number, currentUserId: number, targetUserId: number): Promise<any> {
+    this.logger.log(`[addUserToChat] Добавление пользователя ${targetUserId} в чат ${chatId} от пользователя ${currentUserId}`);
+    
+    // Проверяем, является ли пользователь участником чата с правами администратора
+    const chatUser = await this.chatUserRepository.findOne({
+      where: { chatId, userId: currentUserId },
+      relations: ['chat'],
+    });
+    
+    if (!chatUser) {
+      this.logger.error(`[addUserToChat] Пользователь ${currentUserId} не имеет доступа к чату ${chatId}`);
+      throw new NotFoundException(`Чат с ID ${chatId} не найден или вы не имеете доступа`);
+    }
+    
+    // Проверяем тип чата - добавление пользователей возможно только для групповых чатов
+    if (chatUser.chat.type !== ChatType.GROUP) {
+      this.logger.error(`[addUserToChat] Нельзя добавить пользователя в личный чат ${chatId}`);
+      throw new BadRequestException('Добавление пользователей возможно только для групповых чатов');
+    }
+    
+    // Проверяем, имеет ли пользователь права для добавления участников
+    if (chatUser.role !== ChatUserRole.OWNER && chatUser.role !== ChatUserRole.ADMIN) {
+      this.logger.error(`[addUserToChat] Пользователь ${currentUserId} не имеет прав для добавления участников в чат ${chatId}`);
+      throw new BadRequestException('У вас нет прав для добавления участников в группу');
+    }
+    
+    // Проверяем существование добавляемого пользователя
+    const targetUser = await this.userRepository.findOne({ where: { id: targetUserId } });
+    if (!targetUser) {
+      this.logger.error(`[addUserToChat] Пользователь с ID ${targetUserId} не найден`);
+      throw new NotFoundException(`Пользователь с ID ${targetUserId} не найден`);
+    }
+    
+    // Проверяем, не является ли пользователь уже участником чата
+    const existingMember = await this.chatUserRepository.findOne({
+      where: { chatId, userId: targetUserId },
+    });
+    
+    if (existingMember) {
+      this.logger.warn(`[addUserToChat] Пользователь ${targetUserId} уже является участником чата ${chatId}`);
+      return { message: 'Пользователь уже является участником группы' };
+    }
+    
+    // Создаем нового участника чата с ролью участника
+    const newChatUser = this.chatUserRepository.create({
+      chatId,
+      userId: targetUserId,
+      role: ChatUserRole.MEMBER,
+    });
+    
+    try {
+      await this.chatUserRepository.save(newChatUser);
+      this.logger.log(`[addUserToChat] Пользователь ${targetUserId} успешно добавлен в чат ${chatId}`);
+      
+      // Возвращаем информацию о добавленном пользователе
+      const addedUser = await this.userRepository.findOne({
+        where: { id: targetUserId },
+        relations: ['profile']
+      });
+      
+      if (!addedUser) {
+        this.logger.error(`[addUserToChat] Не удалось найти добавленного пользователя ${targetUserId} после сохранения`);
+        return { message: 'Пользователь успешно добавлен в группу' };
+      }
+      
+      return {
+        message: 'Пользователь успешно добавлен в группу',
+        user: {
+          id: addedUser.id,
+          name: addedUser.firstName && addedUser.lastName 
+            ? `${addedUser.firstName} ${addedUser.lastName}` 
+            : `Пользователь ${addedUser.id}`,
+          email: addedUser.email,
+          role: ChatUserRole.MEMBER,
+          avatar: addedUser.profile?.avatar || null,
+          firstName: addedUser.firstName || '',
+          lastName: addedUser.lastName || '',
+        }
+      };
+    } catch (error) {
+      this.logger.error(`[addUserToChat] Ошибка при добавлении пользователя ${targetUserId} в чат ${chatId}:`, error);
+      throw new InternalServerErrorException('Ошибка при добавлении пользователя в группу');
+    }
   }
 } 

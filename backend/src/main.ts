@@ -14,10 +14,18 @@ async function bootstrap() {
   // Добавляем глобальный префикс /api
   app.setGlobalPrefix('api');
   
-  // Включаем CORS
+  // Включаем CORS с расширенной конфигурацией
   app.enableCors({
     origin: process.env.FRONTEND_URL || 'http://localhost:8081',
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
+  });
+
+  // Добавляем логирование входящих запросов
+  app.use((req, res, next) => {
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+    next();
   });
 
   // Используем cookie-parser

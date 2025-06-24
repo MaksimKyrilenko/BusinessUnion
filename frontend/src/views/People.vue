@@ -99,16 +99,18 @@
     <!-- Модальное окно для отправки сообщения -->
     <modal v-if="showConnectModal" @close="showConnectModal = false">
       <template #header>
-        <h3>Связаться с {{ selectedUser?.name }}</h3>
+        <h3>Связаться с {{ selectedUser?.fullName }}</h3>
       </template>
-      <template #default>
+      <template #body>
         <form @submit.prevent="sendMessage" class="connect-form">
           <div class="form-group">
-            <label>Сообщение</label>
+            <label for="message-text">Сообщение</label>
             <textarea 
+              id="message-text"
               v-model="messageText" 
               placeholder="Представьтесь и опишите цель вашего обращения..."
               rows="4"
+              class="message-textarea"
             ></textarea>
           </div>
         </form>
@@ -117,7 +119,7 @@
         <button class="btn-secondary" @click="showConnectModal = false">Отмена</button>
         <button class="btn-primary" @click="sendMessage" :disabled="!messageText.trim()">
           Отправить
-            </button>
+        </button>
       </template>
     </modal>
   </div>
@@ -249,16 +251,27 @@ export default {
       if (!messageText.value.trim()) return
 
       try {
-        // Здесь будет отправка сообщения на сервер
-        console.log('Отправка сообщения пользователю:', selectedUser.value.id, messageText.value)
+        const messengerService = await import('@/services/messenger.service')
+        
+        // Создаем личный чат с пользователем
+        const chatResponse = await messengerService.default.createPersonalChat(selectedUser.value.id)
+        const chat = chatResponse.data
+        
+        // Отправляем сообщение в созданный чат
+        await messengerService.default.sendMessage({
+          chatId: chat.id,
+          text: messageText.value.trim(),
+          type: 'text'
+        })
         
         showConnectModal.value = false
         messageText.value = ''
         
-        // Показываем уведомление об успехе
-        alert('Сообщение успешно отправлено')
+        // После отправки сообщения перенаправляем пользователя в мессенджер
+        router.push('/messenger')
       } catch (error) {
         console.error('Ошибка при отправке сообщения:', error)
+        alert('Произошла ошибка при отправке сообщения. Пожалуйста, попробуйте снова.')
       }
     }
 
@@ -446,6 +459,37 @@ export default {
 .user-type-badge.investor {
   background: #f3e5f5;
   color: #7b1fa2;
+}
+
+.connect-form {
+  width: 100%;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.message-textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  resize: vertical;
+  min-height: 120px;
+  transition: border-color 0.3s ease;
+}
+
+.message-textarea:focus {
+  outline: none;
+  border-color: #2196F3;
+  box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.1);
 }
 
 .user-type-badge.businessman {
