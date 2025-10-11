@@ -137,6 +137,84 @@
           </div>
         </div>
       </div>
+
+      <!-- Новые секции для расширенной аналитики -->
+      <div class="analytics-card">
+        <h2>💱 Экономические показатели</h2>
+        <div class="economic-indicators" v-if="!loading.economic && economicIndicators.exchangeRates">
+          <div class="indicator-section">
+            <h4>Курсы валют (к USD)</h4>
+            <div class="currency-grid">
+              <div v-for="(rate, currency) in economicIndicators.exchangeRates?.rates || {}" :key="currency" class="currency-item">
+                <span class="currency-code">{{ currency }}</span>
+                <span class="currency-rate">{{ rate.toFixed(4) }}</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="indicator-section">
+            <h4>Криптовалюты</h4>
+            <div class="crypto-grid">
+              <div v-for="(crypto, name) in economicIndicators.cryptoData || {}" :key="name" class="crypto-item">
+                <div class="crypto-name">{{ name.charAt(0).toUpperCase() + name.slice(1) }}</div>
+                <div class="crypto-price">${{ formatNumber(crypto.price) }}</div>
+                <div class="crypto-change" :class="{ positive: crypto.change24h > 0, negative: crypto.change24h < 0 }">
+                  {{ crypto.change24h > 0 ? '+' : '' }}{{ crypto.change24h.toFixed(2) }}%
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="indicator-section">
+            <h4>Фондовые индексы</h4>
+            <div class="stock-grid">
+              <div v-for="(index, name) in economicIndicators.stockIndices || {}" :key="name" class="stock-item">
+                <div class="stock-name">{{ name.toUpperCase() }}</div>
+                <div class="stock-price">${{ formatNumber(index.price) }}</div>
+                <div class="stock-change" :class="{ positive: index.change > 0, negative: index.change < 0 }">
+                  {{ index.changePercent }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div v-else class="loading">Загрузка экономических показателей...</div>
+      </div>
+
+      <div class="analytics-card">
+        <h2>🏭 Отраслевые тренды</h2>
+        <div class="industry-trends" v-if="!loading.industry && industryTrends.categoryTrends">
+          <div class="trends-section">
+            <h4>Топ категории проектов</h4>
+            <div class="category-trends">
+              <div v-for="trend in industryTrends.categoryTrends || []" :key="trend.name" class="trend-item">
+                <div class="trend-info">
+                  <div class="trend-name">{{ trend.name }}</div>
+                  <div class="trend-stats">
+                    <span>{{ trend.projectCount }} проектов</span>
+                    <span>ROI: {{ trend.averageRoi.toFixed(1) }}%</span>
+                  </div>
+                </div>
+                <div class="trend-investment">{{ formatCurrency(trend.totalInvestment) }}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="trends-section">
+            <h4>Новости рынка</h4>
+            <div class="news-list">
+              <div v-for="news in industryTrends.marketNews || []" :key="news.title" class="news-item">
+                <div class="news-title">{{ news.title }}</div>
+                <div class="news-summary">{{ news.summary }}</div>
+                <div class="news-sentiment" :class="{ positive: news.sentiment > 0.5, negative: news.sentiment < -0.5 }">
+                  {{ news.sentiment > 0 ? 'Позитивно' : news.sentiment < 0 ? 'Негативно' : 'Нейтрально' }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div v-else class="loading">Загрузка отраслевых трендов...</div>
+      </div>
     </div>
   </div>
 </template>
@@ -177,14 +255,73 @@ export default {
       'Фокус на кибербезопасности'
     ]);
 
+    // Новые переменные для расширенной аналитики
+    const economicIndicators = ref({
+      exchangeRates: { rates: {} },
+      cryptoData: {},
+      stockIndices: {}
+    });
+    const industryTrends = ref({
+      categoryTrends: [],
+      marketNews: []
+    });
+    const loading = ref({
+      economic: false,
+      industry: false
+    });
+
     const fetchData = async () => {
       try {
-        const response = await axios.get('/projects');
-        startups.value = response.data;
-        calculateStats();
+        // Загружаем реальные данные из API
+        const [projectsResponse, statsResponse, topResponse, riskResponse, forecastResponse, economicResponse, industryResponse] = await Promise.all([
+          axios.get('/projects'),
+          axios.get('/business-analytics/startup-stats'),
+          axios.get('/business-analytics/top-startups?limit=5'),
+          axios.get('/business-analytics/risk-analysis'),
+          axios.get('/business-analytics/market-forecast'),
+          axios.get('/business-analytics/economic-indicators'),
+          axios.get('/business-analytics/industry-trends')
+        ]);
+
+        startups.value = projectsResponse.data;
+        
+        // Обновляем статистику реальными данными
+        const stats = statsResponse.data;
+        totalStartups.value = stats.totalStartups;
+        activeStartups.value = stats.activeStartups;
+        totalInvestments.value = stats.totalInvestments;
+        averageRoi.value = Math.round(stats.averageRoi);
+        
+        // Обновляем топ стартапы
+        topStartups.value = topResponse.data;
+        
+        // Обновляем анализ рисков
+        const risk = riskResponse.data;
+        highRiskCount.value = risk.highRisk;
+        mediumRiskCount.value = risk.mediumRisk;
+        lowRiskCount.value = risk.lowRisk;
+        
+        // Обновляем прогноз рынка
+        const forecast = forecastResponse.data;
+        marketGrowth.value = forecast.marketGrowth;
+        marketTrends.value = forecast.trends;
+        
+        // Обновляем экономические показатели
+        if (economicResponse.data) {
+          economicIndicators.value = economicResponse.data;
+        }
+        
+        // Обновляем отраслевые тренды
+        if (industryResponse.data) {
+          industryTrends.value = industryResponse.data;
+        }
+        
         createCharts();
       } catch (error) {
         console.error('Error fetching data:', error);
+        // В случае ошибки используем моковые данные
+        calculateStats();
+        createCharts();
       }
     };
 
@@ -281,6 +418,13 @@ export default {
       fetchData();
     });
 
+    const formatNumber = (number) => {
+      return new Intl.NumberFormat('en-US', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2
+      }).format(number);
+    };
+
     return {
       categories,
       searchQuery,
@@ -296,9 +440,13 @@ export default {
       lowRiskCount,
       marketGrowth,
       marketTrends,
+      economicIndicators,
+      industryTrends,
+      loading,
       investmentChart,
       categoryChart,
       formatCurrency,
+      formatNumber,
       handleSearch
     };
   }
@@ -526,5 +674,187 @@ export default {
 
 .trends-list li:last-child {
   border-bottom: none;
+}
+
+/* Новые стили для экономических показателей */
+.economic-indicators {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.indicator-section {
+  background: #f8fafc;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.indicator-section h4 {
+  margin: 0 0 1rem;
+  color: #1e293b;
+  font-size: 1rem;
+}
+
+.currency-grid, .crypto-grid, .stock-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0.75rem;
+}
+
+.currency-item, .crypto-item, .stock-item {
+  background: white;
+  padding: 0.75rem;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  text-align: center;
+}
+
+.currency-code, .crypto-name, .stock-name {
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 0.875rem;
+  margin-bottom: 0.25rem;
+}
+
+.currency-rate, .crypto-price, .stock-price {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin-bottom: 0.25rem;
+}
+
+.crypto-change, .stock-change {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+}
+
+.crypto-change.positive, .stock-change.positive {
+  background: rgba(34, 197, 94, 0.1);
+  color: #16a34a;
+}
+
+.crypto-change.negative, .stock-change.negative {
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+}
+
+/* Стили для отраслевых трендов */
+.industry-trends {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.trends-section {
+  background: #f8fafc;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.trends-section h4 {
+  margin: 0 0 1rem;
+  color: #1e293b;
+  font-size: 1rem;
+}
+
+.category-trends {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.trend-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  padding: 1rem;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+}
+
+.trend-info {
+  flex: 1;
+}
+
+.trend-name {
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 0.25rem;
+}
+
+.trend-stats {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.trend-investment {
+  font-weight: 600;
+  color: #16a34a;
+  background: rgba(34, 197, 94, 0.1);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+}
+
+.news-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.news-item {
+  background: white;
+  padding: 1rem;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+}
+
+.news-title {
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.news-summary {
+  color: #64748b;
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+}
+
+.news-sentiment {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.news-sentiment.positive {
+  background: rgba(34, 197, 94, 0.1);
+  color: #16a34a;
+}
+
+.news-sentiment.negative {
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+}
+
+.news-sentiment:not(.positive):not(.negative) {
+  background: rgba(107, 114, 128, 0.1);
+  color: #6b7280;
+}
+
+.loading {
+  text-align: center;
+  padding: 2rem;
+  color: #64748b;
+  font-style: italic;
 }
 </style> 

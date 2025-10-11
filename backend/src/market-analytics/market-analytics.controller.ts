@@ -1,11 +1,15 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, UseGuards, Query } from '@nestjs/common';
 import { MarketAnalyticsService } from './market-analytics.service';
+import { BusinessAnalyticsService } from './business-analytics.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('market-analytics')
 @UseGuards(JwtAuthGuard)
 export class MarketAnalyticsController {
-  constructor(private readonly marketAnalyticsService: MarketAnalyticsService) {}
+  constructor(
+    private readonly marketAnalyticsService: MarketAnalyticsService,
+    private readonly businessAnalyticsService: BusinessAnalyticsService
+  ) {}
 
   @Get('summary')
   async getMarketSummary() {
@@ -26,4 +30,5 @@ export class MarketAnalyticsController {
   async getMarketNews() {
     return this.marketAnalyticsService.getMarketNews();
   }
+
 } 
