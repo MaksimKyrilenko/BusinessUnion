@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
@@ -20,12 +21,14 @@ import { Event } from './events/entities/event.entity';
 import { FilesModule } from './files/files.module';
 import { MessageModule } from './messages/message.module';
 import { MarketAnalyticsModule } from './market-analytics/market-analytics.module';
+import { EducationModule } from './education/education.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    ScheduleModule.forRoot(),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -50,6 +53,7 @@ import { MarketAnalyticsModule } from './market-analytics/market-analytics.modul
     FilesModule,
     MessageModule,
     MarketAnalyticsModule,
+    EducationModule,
   ],
   controllers: [AppController],
   providers: [AppService],
