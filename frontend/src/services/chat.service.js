@@ -73,6 +73,17 @@ class ChatService {
     console.log('Получено количество непрочитанных сообщений:', response.data);
     return response.data.count;
   }
+
+  /**
+   * Создание или получение личного чата с пользователем
+   * @param {number} userId ID пользователя
+   * @returns {Promise<Object>} Чат (созданный или существующий)
+   */
+  async createOrGetDirectChat(userId) {
+    const response = await axios.post(`${API_URL}/chats/personal/${userId}`, {}, { headers: authHeader() });
+    console.log('Создан или получен личный чат:', response.data);
+    return response.data;
+  }
 }
 
 export const chatService = new ChatService(); 

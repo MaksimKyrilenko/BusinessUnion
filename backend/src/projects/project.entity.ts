@@ -1,6 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { User } from '../users/user.entity';
 import { Investment } from '../investments/investment.entity';
+import { ProjectTeamMember } from './entities/project-team-member.entity';
 
 @Entity()
 export class Project {
@@ -22,7 +23,7 @@ export class Project {
   @Column('decimal', { precision: 5, scale: 2 })
   expectedRoi: number;
 
-  @Column({ nullable: true })
+  @Column('longtext', { nullable: true })
   image: string;
 
   @Column({ default: 'pending' })
@@ -63,6 +64,12 @@ export class Project {
 
   @OneToMany(() => Investment, investment => investment.project)
   investments: Investment[];
+
+  @OneToMany(() => ProjectTeamMember, teamMember => teamMember.project)
+  teamMembers: ProjectTeamMember[];
+
+  @Column({ nullable: true })
+  teamChatId: number;
 
   @CreateDateColumn()
   createdAt: Date;

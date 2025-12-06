@@ -34,12 +34,6 @@
         <i class="fas fa-chart-pie"></i>
         <span>Аналитика рынка</span>
       </router-link>
-
-      <!-- Ссылка на создание стартапа только для стартаперов -->
-      <router-link v-if="userType === 'startup_founder'" to="/startup/create" class="nav-item">
-        <i class="fas fa-rocket"></i>
-        <span>Создание стартапа</span>
-      </router-link>
       
       <!-- Остальные ссылки -->
       <router-link v-if="userType === 'startup_founder'" to="/startup/my-startups" class="nav-item">

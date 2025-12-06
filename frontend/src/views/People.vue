@@ -97,7 +97,7 @@
           </div>
 
     <!-- Модальное окно для отправки сообщения -->
-    <modal v-if="showConnectModal" @close="showConnectModal = false">
+    <Modal :show="showConnectModal" @close="showConnectModal = false">
       <template #header>
         <h3>Связаться с {{ selectedUser?.fullName }}</h3>
       </template>
@@ -121,7 +121,7 @@
           Отправить
         </button>
       </template>
-    </modal>
+    </Modal>
   </div>
 </template>
 

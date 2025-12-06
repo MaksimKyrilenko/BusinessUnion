@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Community } from './entities/community.entity';
@@ -11,7 +11,7 @@ import { UpdateCommunityDto } from './dto/update-community.dto';
 import { CreateCommunityPostDto } from './dto/create-community-post.dto';
 
 @Injectable()
-export class CommunitiesService {
+export class CommunitiesService implements OnModuleInit {
   constructor(
     @InjectRepository(Community)
     private communityRepository: Repository<Community>,
@@ -24,6 +24,38 @@ export class CommunitiesService {
     @InjectRepository(CommunityCategory)
     private communityCategoryRepository: Repository<CommunityCategory>,
   ) {}
+
+  async onModuleInit() {
+    // Инициализируем категории при старте модуля
+    await this.initializeCategories();
+  }
+
+  private async initializeCategories() {
+    try {
+      const existingCategories = await this.communityCategoryRepository.count();
+      
+      if (existingCategories === 0) {
+        console.log('Инициализация категорий сообществ...');
+        
+        const categories = [
+          { name: 'Стартапы', icon: 'fas fa-rocket', isActive: true },
+          { name: 'Инвесторы', icon: 'fas fa-chart-line', isActive: true },
+          { name: 'Бизнес', icon: 'fas fa-briefcase', isActive: true },
+          { name: 'Крипто', icon: 'fas fa-coins', isActive: true },
+        ];
+
+        for (const categoryData of categories) {
+          const category = this.communityCategoryRepository.create(categoryData);
+          await this.communityCategoryRepository.save(category);
+          console.log(`Создана категория: ${categoryData.name}`);
+        }
+        
+        console.log('Категории сообществ успешно инициализированы!');
+      }
+    } catch (error) {
+      console.error('Ошибка при инициализации категорий:', error);
+    }
+  }
 
   async create(createCommunityDto: CreateCommunityDto, creatorId: number): Promise<Community> {
     console.log('Service: Creating community with DTO:', createCommunityDto);
@@ -281,9 +313,19 @@ export class CommunitiesService {
   }
 
   async getCategories(): Promise<CommunityCategory[]> {
-    return this.communityCategoryRepository.find({
+    // Убеждаемся, что категории инициализированы
+    const count = await this.communityCategoryRepository.count();
+    if (count === 0) {
+      await this.initializeCategories();
+    }
+    
+    const categories = await this.communityCategoryRepository.find({
       where: { isActive: true },
+      order: { name: 'ASC' },
     });
+    
+    console.log(`Возвращаем ${categories.length} категорий`);
+    return categories;
   }
 
   async getUserCommunities(userId: number): Promise<Community[]> {

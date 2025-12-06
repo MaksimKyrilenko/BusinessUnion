@@ -3,73 +3,89 @@
     <h1>Аналитика инвестиций</h1>
 
     <div class="dashboard-grid">
-      <!-- Статистика инвестиций -->
-      <div class="dashboard-card">
+      <!-- Анализ стартапа через Yandex Cloud AI -->
+      <div class="dashboard-card analysis-card full-width">
         <div class="card-header">
-          <h2>Инвестиционный портфель</h2>
+          <h2>Анализ стартапа</h2>
         </div>
         <div class="card-content">
-          <div v-if="loading" class="loading-indicator">
-            <div class="spinner"></div>
-            <p>Загрузка данных...</p>
-          </div>
-          <div v-else-if="myInvestments.length === 0" class="empty-state">
-            <p>У вас пока нет инвестиций</p>
-            <BaseButton 
-              variant="primary" 
-              @click="goToStartupCatalog"
-            >
-              Перейти в каталог стартапов
-            </BaseButton>
-          </div>
-          <div v-else>
-            <div class="investments-stats">
-              <div class="stat-item">
-                <div class="stat-value">{{ formatMoney(totalInvested) }}</div>
-                <div class="stat-label">Общий объем инвестиций</div>
-              </div>
-              <div class="stat-item">
-                <div class="stat-value">{{ myInvestments.length }}</div>
-                <div class="stat-label">Количество проектов</div>
-              </div>
-              <div class="stat-item">
-                <div class="stat-value">{{ avgRoi }}%</div>
-                <div class="stat-label">Средний ROI</div>
+          <div class="analysis-section">
+            <div class="analysis-selector">
+              <label for="startup-select">Выберите стартап для анализа:</label>
+              <div class="analysis-controls">
+                <select 
+                  id="startup-select" 
+                  v-model="selectedStartupForAnalysis" 
+                  class="startup-select"
+                  :disabled="analyzing || availableStartups.length === 0"
+                >
+                  <option value="">-- Выберите стартап --</option>
+                  <option 
+                    v-for="startup in availableStartups" 
+                    :key="startup.id" 
+                    :value="startup.id"
+                  >
+                    {{ startup.title }} ({{ getStageText(startup.stage) }})
+                  </option>
+                </select>
+                <BaseButton 
+                  variant="primary" 
+                  @click="analyzeSelectedStartup"
+                  :disabled="!selectedStartupForAnalysis || analyzing"
+                  :loading="analyzing"
+                  class="analyze-btn"
+                >
+                  {{ analyzing ? 'Анализирую...' : 'Проанализировать' }}
+                </BaseButton>
               </div>
             </div>
-            
-            <h3>Мои инвестиции</h3>
-            <div class="investments-list">
-              <div 
-                v-for="investment in myInvestments" 
-                :key="investment.id" 
-                class="investment-item"
-              >
-                <div class="investment-details">
-                  <div class="investment-project">
-                    <div class="project-name">{{ investment.project.title }}</div>
-                    <div class="project-stage">{{ getStageText(investment.project.stage) }}</div>
+
+            <div v-if="parsedAnalysis.length > 0" class="analysis-result-container">
+              <h3 class="analysis-title">Результат анализа</h3>
+              <div class="analysis-blocks-grid">
+                <div 
+                  v-for="(section, index) in parsedAnalysis" 
+                  :key="index"
+                  class="analysis-block-card"
+                  :class="{ 'full-width-block': section.number === 5 }"
+                >
+                  <div class="block-header">
+                    <div class="block-number">{{ section.number }}</div>
+                    <h4 class="block-title">{{ section.title }}</h4>
                   </div>
-                  <div class="investment-amount">
-                    {{ formatMoney(investment.amount) }}
+                  <div class="block-content">
+                    <div 
+                      v-for="(item, itemIndex) in section.items" 
+                      :key="itemIndex"
+                      class="block-item"
+                    >
+                      <div v-if="item.type === 'paragraph'" class="item-paragraph">
+                        <strong v-if="item.label">{{ item.label }}</strong>
+                        <span v-if="item.text">{{ item.text }}</span>
+                      </div>
+                      <div v-if="item.type === 'list'" class="item-list">
+                        <strong v-if="item.label" class="list-label">{{ item.label }}</strong>
+                        <ul class="analysis-list">
+                          <li v-for="(listItem, listIndex) in item.items" :key="listIndex" class="analysis-list-item">
+                            {{ listItem }}
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <div class="investment-footer">
-                  <div class="investment-date">
-                    Инвестировано: {{ formatDate(investment.createdAt) }}
-                  </div>
-                  <button class="view-btn" @click="viewProject(investment.project.id)">
-                    Просмотр
-                  </button>
                 </div>
               </div>
+            </div>
+
+            <div v-if="analysisError" class="analysis-error">
+              <p><i class="fas fa-exclamation-circle"></i> {{ analysisError }}</p>
             </div>
           </div>
         </div>
       </div>
 
       <!-- Рекомендации по инвестициям -->
-      <div class="dashboard-card">
+      <div class="dashboard-card recommendations-card full-width">
         <div class="card-header">
           <h2>Рекомендуемые проекты</h2>
         </div>
@@ -81,14 +97,18 @@
           <div v-else-if="recommendedProjects.length === 0" class="empty-state">
             <p>Пока нет рекомендаций</p>
           </div>
-          <div v-else class="recommendations">
+          <div v-else class="recommendations-grid">
             <div 
               v-for="project in recommendedProjects" 
               :key="project.id" 
               class="recommended-project"
             >
               <div class="project-image">
-                <img :src="project.image || '/assets/images/placeholder-project.jpg'" :alt="project.title">
+                <img 
+                  :src="getImageSrc(project.image)" 
+                  :alt="project.title"
+                  @error="handleImageError"
+                >
               </div>
               <div class="project-info">
                 <div class="project-title">{{ project.title }}</div>
@@ -121,79 +141,7 @@
         </div>
       </div>
 
-      <!-- Диаграмма распределения инвестиций -->
-      <div class="dashboard-card">
-        <div class="card-header">
-          <h2>Распределение инвестиций</h2>
-        </div>
-        <div class="card-content">
-          <div v-if="loading" class="loading-indicator">
-            <div class="spinner"></div>
-            <p>Загрузка диаграммы...</p>
-          </div>
-          <div v-else-if="myInvestments.length === 0" class="empty-state">
-            <p>Нет данных для отображения</p>
-          </div>
-          <div v-else class="chart-container">
-            <div class="pie-chart-placeholder">
-              <div class="pie-segment" v-for="(segment, index) in pieChartData" :key="index" 
-                   :style="{ 
-                     backgroundColor: segment.color, 
-                     width: '80px', 
-                     height: '80px', 
-                     transform: `rotate(${segment.rotation}deg)`
-                   }">
-              </div>
-              <div class="pie-label">Инвестиции по категориям</div>
-            </div>
-            <div class="pie-legend">
-              <div v-for="(category, index) in investmentsByCategory" :key="index" class="legend-item">
-                <div class="legend-color" :style="{ backgroundColor: getCategoryColor(index) }"></div>
-                <div class="legend-text">
-                  <div class="legend-label">{{ category.name }}</div>
-                  <div class="legend-value">{{ formatMoney(category.amount) }}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      <!-- Таблица доходности -->
-      <div class="dashboard-card">
-        <div class="card-header">
-          <h2>Доходность проектов</h2>
-        </div>
-        <div class="card-content">
-          <div v-if="loading" class="loading-indicator">
-            <div class="spinner"></div>
-            <p>Загрузка данных...</p>
-          </div>
-          <div v-else-if="myInvestments.length === 0" class="empty-state">
-            <p>Нет данных для отображения</p>
-          </div>
-          <div v-else class="roi-table">
-            <table>
-              <thead>
-                <tr>
-                  <th>Проект</th>
-                  <th>Инвестиции</th>
-                  <th>Ожидаемая ROI</th>
-                  <th>Статус</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="investment in myInvestments" :key="investment.id">
-                  <td>{{ investment.project.title }}</td>
-                  <td>{{ formatMoney(investment.amount) }}</td>
-                  <td>{{ investment.project.expectedRoi }}%</td>
-                  <td>{{ getStatusText(investment.project.status) }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 </template>
@@ -214,6 +162,12 @@ export default {
     const loading = ref(true);
     const myInvestments = ref([]);
     const recommendedProjects = ref([]);
+    const availableStartups = ref([]);
+    const selectedStartupForAnalysis = ref('');
+    const analyzing = ref(false);
+    const analysisResult = ref('');
+    const analysisError = ref('');
+    const parsedAnalysis = ref([]);
 
     // Вычисляемые свойства
     const totalInvested = computed(() => {
@@ -283,14 +237,186 @@ export default {
     const fetchRecommendedProjects = async () => {
       try {
         // В реальном приложении здесь должен быть вызов API для получения рекомендаций
-        // Пока используем имитацию, беря первые 3 проекта из общего списка
+        // Пока используем имитацию, беря первые 6 проектов из общего списка
         const response = await projectsService.getAllProjects();
-        recommendedProjects.value = response.slice(0, 3);
+        recommendedProjects.value = response.slice(0, 6);
         console.log('Получены рекомендуемые проекты:', recommendedProjects.value);
       } catch (error) {
         console.error('Ошибка при получении рекомендуемых проектов:', error);
       }
     };
+
+    const fetchAvailableStartups = async () => {
+      try {
+        const response = await projectsService.getAllProjects();
+        availableStartups.value = response;
+        console.log('Получены стартапы для анализа:', availableStartups.value.length);
+      } catch (error) {
+        console.error('Ошибка при получении стартапов:', error);
+      }
+    };
+
+    const analyzeSelectedStartup = async () => {
+      if (!selectedStartupForAnalysis.value) {
+        analysisError.value = 'Пожалуйста, выберите стартап для анализа';
+        return;
+      }
+
+      analyzing.value = true;
+      analysisError.value = '';
+      analysisResult.value = '';
+
+      try {
+        const result = await projectsService.analyzeStartup(selectedStartupForAnalysis.value);
+        analysisResult.value = result;
+        parseAnalysisResult(result);
+        console.log('Анализ получен:', result);
+      } catch (error) {
+        console.error('Ошибка при анализе стартапа:', error);
+        analysisError.value = error.response?.data?.message || error.message || 'Не удалось проанализировать стартап';
+        parsedAnalysis.value = [];
+      } finally {
+        analyzing.value = false;
+      }
+    };
+
+    const parseAnalysisResult = (text) => {
+      if (!text) {
+        parsedAnalysis.value = [];
+        return;
+      }
+      
+      const sections = [];
+      // Разбиваем текст на части по заголовкам ###
+      const textSections = text.split(/(?=###\s*\d+\.)/);
+      
+      textSections.forEach((section) => {
+        if (!section.trim()) return;
+        
+        // Извлекаем заголовок
+        const headerMatch = section.match(/###\s*(\d+)\.\s*([^\n]+)/);
+        if (headerMatch) {
+          const number = parseInt(headerMatch[1]);
+          const title = headerMatch[2].trim();
+          const content = section.replace(/###\s*\d+\.\s*[^\n]+\n*/, '').trim();
+          
+          const items = parseSectionContent(content);
+          
+          sections.push({
+            number,
+            title,
+            items
+          });
+        }
+      });
+      
+      parsedAnalysis.value = sections;
+    };
+    
+    const parseSectionContent = (content) => {
+      if (!content) return [];
+      
+      const items = [];
+      const lines = content.split('\n').filter(line => line.trim());
+      
+      let currentItem = null;
+      
+      lines.forEach((line) => {
+        line = line.trim();
+        if (!line) return;
+        
+        // Проверяем, является ли строка списком
+        const listMatch = line.match(/^\*\s+(.+)$/);
+        if (listMatch) {
+          // Если это начало списка
+          if (!currentItem || currentItem.type !== 'list') {
+            if (currentItem) {
+              items.push(currentItem);
+            }
+            currentItem = {
+              type: 'list',
+              label: null,
+              items: []
+            };
+          }
+          currentItem.items.push(listMatch[1]);
+        } else {
+          // Если был список, сохраняем его
+          if (currentItem && currentItem.type === 'list') {
+            items.push(currentItem);
+            currentItem = null;
+          }
+          
+          // Проверяем, есть ли метка (текст с **)
+          const boldMatch = line.match(/\*\*([^*:]+):\*\*/);
+          if (boldMatch) {
+            // Если есть метка, создаем новый параграф
+            if (currentItem) {
+              items.push(currentItem);
+            }
+            const textAfterLabel = line.replace(/\*\*[^*:]+:\*\*\s*/, '').trim();
+            currentItem = {
+              type: 'paragraph',
+              label: boldMatch[1],
+              text: textAfterLabel || null
+            };
+          } else {
+            // Обычный текст
+            if (currentItem && currentItem.type === 'paragraph') {
+              // Добавляем к существующему параграфу
+              if (currentItem.text) {
+                currentItem.text += ' ' + line;
+              } else {
+                currentItem.text = line;
+              }
+            } else {
+              if (currentItem) {
+                items.push(currentItem);
+              }
+              currentItem = {
+                type: 'paragraph',
+                label: null,
+                text: line
+              };
+            }
+          }
+        }
+      });
+      
+      // Добавляем последний элемент
+      if (currentItem) {
+        items.push(currentItem);
+      }
+      
+      return items;
+    };
+
+    const getPlaceholderImage = () => {
+      // Используем простой SVG placeholder в base64, чтобы избежать 404 ошибок
+      const svg = `<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
+        <rect width="400" height="300" fill="#e0e0e0"/>
+        <text x="50%" y="50%" font-family="Arial, sans-serif" font-size="18" fill="#999" text-anchor="middle" dominant-baseline="middle">Нет изображения</text>
+      </svg>`;
+      return 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg)));
+    }
+
+    const getImageSrc = (image) => {
+      if (!image) return getPlaceholderImage()
+      // Если это base64, возвращаем как есть
+      if (image.startsWith('data:image')) {
+        return image
+      }
+      // Если это URL, возвращаем как есть
+      if (image.startsWith('http')) {
+        return image
+      }
+      // Относительный путь
+      return image.startsWith('/') ? image : `/${image}`
+    }
+
+    const handleImageError = (event) => {
+      event.target.src = getPlaceholderImage()
+    }
 
     const formatMoney = (amount) => {
       if (!amount) return '0 ₽';
@@ -363,7 +489,8 @@ export default {
       try {
         await Promise.all([
           fetchMyInvestments(),
-          fetchRecommendedProjects()
+          fetchRecommendedProjects(),
+          fetchAvailableStartups()
         ]);
       } finally {
         loading.value = false;
@@ -374,6 +501,11 @@ export default {
       loading,
       myInvestments,
       recommendedProjects,
+      availableStartups,
+      selectedStartupForAnalysis,
+      analyzing,
+      analysisResult,
+      analysisError,
       totalInvested,
       avgRoi,
       investmentsByCategory,
@@ -383,8 +515,14 @@ export default {
       getStatusText,
       getStageText,
       getCategoryColor,
+      getImageSrc,
+      handleImageError,
+      getPlaceholderImage,
       viewProject,
-      goToStartupCatalog
+      goToStartupCatalog,
+      analyzeSelectedStartup,
+      parsedAnalysis,
+      parseAnalysisResult
     };
   }
 };
@@ -543,10 +681,26 @@ h3 {
   cursor: pointer;
 }
 
-.recommendations {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+.recommendations-card.full-width {
+  grid-column: 1 / -1;
+}
+
+.recommendations-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+@media (max-width: 1200px) {
+  .recommendations-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .recommendations-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .recommended-project {
@@ -698,6 +852,222 @@ tr:hover {
   background-color: #f1f3f5;
 }
 
+.analysis-card {
+  grid-column: 1 / -1;
+}
+
+.analysis-card.full-width {
+  width: 100%;
+}
+
+.analysis-section {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.analysis-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.analysis-selector label {
+  font-weight: 600;
+  color: #212529;
+  font-size: 16px;
+}
+
+.analysis-controls {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.startup-select {
+  flex: 1;
+  padding: 12px 16px;
+  border: 2px solid #dee2e6;
+  border-radius: 8px;
+  font-size: 16px;
+  background-color: white;
+  transition: all 0.2s;
+}
+
+.startup-select:focus {
+  border-color: #2196F3;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+}
+
+.startup-select:disabled {
+  background-color: #f8f9fa;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.analyze-btn {
+  white-space: nowrap;
+  min-width: 180px;
+}
+
+.analysis-result-container {
+  margin-top: 24px;
+  padding: 0;
+}
+
+.analysis-title {
+  margin: 0 0 24px 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #212529;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.analysis-content {
+  color: #495057;
+  line-height: 1.8;
+}
+
+.analysis-blocks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 24px;
+  margin-top: 24px;
+}
+
+.analysis-block-card.full-width-block {
+  grid-column: 1 / -1;
+}
+
+.analysis-block-card {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  border-left: 4px solid #2196F3;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.analysis-block-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  transform: translateY(-4px);
+}
+
+.block-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.block-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: #2196F3;
+  color: white;
+  border-radius: 50%;
+  font-size: 18px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.block-title {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 600;
+  color: #212529;
+  line-height: 1.4;
+}
+
+.block-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.block-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.item-paragraph {
+  color: #495057;
+  line-height: 1.7;
+  font-size: 15px;
+}
+
+.item-paragraph strong {
+  color: #212529;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 6px;
+  font-size: 16px;
+}
+
+.item-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.list-label {
+  color: #212529;
+  font-weight: 600;
+  font-size: 16px;
+  margin-bottom: 6px;
+}
+
+.analysis-list {
+  margin: 0;
+  padding-left: 20px;
+  list-style: none;
+}
+
+.analysis-list-item {
+  position: relative;
+  padding: 8px 0 8px 20px;
+  color: #495057;
+  line-height: 1.7;
+  font-size: 15px;
+}
+
+.analysis-list-item::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: #2196F3;
+  font-size: 18px;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.analysis-error {
+  margin-top: 16px;
+  padding: 16px;
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 8px;
+  color: #856404;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.analysis-error i {
+  font-size: 18px;
+}
+
 @media (max-width: 1024px) {
   .dashboard-grid {
     grid-template-columns: 1fr;
@@ -712,6 +1082,26 @@ tr:hover {
     margin-left: 0;
     margin-top: 20px;
     width: 100%;
+  }
+
+  .analysis-controls {
+    flex-direction: column;
+  }
+
+  .analyze-btn {
+    width: 100%;
+  }
+
+  .analysis-blocks-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .analysis-block-card {
+    padding: 16px;
+  }
+
+  .block-title {
+    font-size: 16px;
   }
 }
 </style> 

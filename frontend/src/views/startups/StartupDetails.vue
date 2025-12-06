@@ -29,7 +29,11 @@
 
       <div class="startup-hero">
         <div class="hero-image">
-          <img :src="startup.image || '/assets/images/placeholder-project.jpg'" :alt="startup.title">
+          <img 
+            :src="getImageSrc(startup.image)" 
+            :alt="startup.title"
+            @error="handleImageError"
+          >
         </div>
         <div class="hero-content">
           <div class="hero-meta">
@@ -148,73 +152,11 @@
                 <div class="detail-value">{{ getStatusText(startup.status) }}</div>
               </div>
             </div>
-            
-            <div class="investment-actions">
-              <BaseButton 
-                variant="primary" 
-                block 
-                @click="showContactModal = true"
-              >
-                Инвестировать
-              </BaseButton>
-            </div>
-          </div>
-          
-          <div class="sidebar-card contact-card">
-            <h3>Связаться с автором</h3>
-            <p>Заинтересованы в этом проекте? Свяжитесь с автором для получения дополнительной информации.</p>
-            <BaseButton 
-              variant="outline" 
-              block 
-              @click="showContactModal = true"
-            >
-              Отправить сообщение
-            </BaseButton>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Модальное окно для связи с автором -->
-    <Modal v-if="showContactModal" @close="showContactModal = false">
-      <div class="contact-modal">
-        <h2>Связаться с автором проекта</h2>
-        <p>Заполните форму, чтобы отправить сообщение автору проекта "{{ startup?.title }}"</p>
-        
-        <form @submit.prevent="sendMessage">
-          <div class="form-group">
-            <label for="messageSubject">Тема</label>
-            <input 
-              id="messageSubject" 
-              v-model="contactForm.subject" 
-              type="text" 
-              placeholder="Укажите тему сообщения"
-              required
-            >
-          </div>
-          
-          <div class="form-group">
-            <label for="messageText">Сообщение</label>
-            <textarea 
-              id="messageText" 
-              v-model="contactForm.message" 
-              rows="5" 
-              placeholder="Введите ваше сообщение..."
-              required
-            ></textarea>
-          </div>
-          
-          <div class="form-actions">
-            <BaseButton type="button" variant="outline" @click="showContactModal = false">
-              Отмена
-            </BaseButton>
-            <BaseButton type="submit" variant="primary" :loading="contactForm.sending">
-              Отправить
-            </BaseButton>
-          </div>
-        </form>
-      </div>
-    </Modal>
   </div>
 </template>
 
@@ -225,7 +167,6 @@ import BaseButton from '@/components/ui/BaseButton.vue';
 import Modal from '@/components/ui/Modal.vue';
 import { projectsService } from '@/services/projects.service';
 import authService from '@/services/auth.service';
-import { chatService } from '@/services/chat.service';
 
 export default {
   name: 'StartupDetails',
@@ -239,14 +180,7 @@ export default {
     const startup = ref(null);
     const loading = ref(true);
     const error = ref(null);
-    const showContactModal = ref(false);
     const currentUser = ref(null);
-    
-    const contactForm = ref({
-      subject: '',
-      message: '',
-      sending: false
-    });
 
     // Получение данных о стартапе
     const fetchStartup = async () => {
@@ -326,6 +260,33 @@ export default {
       
       return stageMap[stage] || 'Неизвестно';
     };
+
+    const getPlaceholderImage = () => {
+      // Используем простой SVG placeholder в base64, чтобы избежать 404 ошибок
+      const svg = `<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
+        <rect width="400" height="300" fill="#e0e0e0"/>
+        <text x="50%" y="50%" font-family="Arial, sans-serif" font-size="18" fill="#999" text-anchor="middle" dominant-baseline="middle">Нет изображения</text>
+      </svg>`;
+      return 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg)));
+    }
+
+    const getImageSrc = (image) => {
+      if (!image) return getPlaceholderImage()
+      // Если это base64, возвращаем как есть
+      if (image.startsWith('data:image')) {
+        return image
+      }
+      // Если это URL, возвращаем как есть
+      if (image.startsWith('http')) {
+        return image
+      }
+      // Относительный путь
+      return image.startsWith('/') ? image : `/${image}`
+    }
+
+    const handleImageError = (event) => {
+      event.target.src = getPlaceholderImage()
+    }
     
     // Форматирование даты
     const formatDate = (dateString) => {
@@ -351,42 +312,6 @@ export default {
       }
     };
     
-    // Отправка сообщения автору
-    const sendMessage = async () => {
-      if (!startup.value || !startup.value.author || !contactForm.value.message) {
-        return;
-      }
-      
-      contactForm.value.sending = true;
-      
-      try {
-        // Создаем новый чат или используем существующий
-        const chatResponse = await chatService.createOrGetDirectChat(startup.value.authorId);
-        
-        // Отправляем сообщение
-        await chatService.sendMessage({
-          chatId: chatResponse.id,
-          text: contactForm.value.message,
-          subject: contactForm.value.subject
-        });
-        
-        // Закрываем модальное окно и очищаем форму
-        showContactModal.value = false;
-        contactForm.value.subject = '';
-        contactForm.value.message = '';
-        
-        // Переходим в чат
-        router.push({ 
-          name: 'Messenger',
-          params: { chatId: chatResponse.id }
-        });
-      } catch (err) {
-        console.error('Ошибка при отправке сообщения:', err);
-        // TODO: Показать пользователю ошибку
-      } finally {
-        contactForm.value.sending = false;
-      }
-    };
     
     onMounted(() => {
       fetchStartup();
@@ -397,17 +322,17 @@ export default {
       startup,
       loading,
       error,
-      showContactModal,
-      contactForm,
       isOwnStartup,
       getAuthorName,
       formatMoney,
       getStatusText,
       getStageText,
+      getImageSrc,
+      handleImageError,
+      getPlaceholderImage,
       formatDate,
       goBack,
-      editStartup,
-      sendMessage
+      editStartup
     };
   }
 };
@@ -451,12 +376,13 @@ export default {
 .startup-hero {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 30px;
+  gap: 0;
   margin-bottom: 40px;
   background: white;
-  border-radius: 8px;
+  border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .hero-image {
@@ -502,8 +428,10 @@ export default {
 
 .hero-content h1 {
   margin: 0 0 16px 0;
-  font-size: 32px;
+  font-size: 36px;
+  font-weight: 700;
   line-height: 1.2;
+  color: #1e293b;
 }
 
 .hero-location {
@@ -554,24 +482,26 @@ export default {
 
 .startup-content {
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: 1fr;
   gap: 30px;
 }
 
 .content-section {
   background: white;
-  border-radius: 8px;
-  padding: 24px;
+  border-radius: 16px;
+  padding: 32px;
   margin-bottom: 24px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .content-section h2 {
-  margin: 0 0 16px 0;
-  font-size: 20px;
-  color: #212529;
+  margin: 0 0 24px 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #1e293b;
   padding-bottom: 16px;
-  border-bottom: 1px solid #e9ecef;
+  border-bottom: 2px solid #e9ecef;
 }
 
 .section-content {
@@ -595,22 +525,31 @@ export default {
 
 .info-item {
   display: flex;
-  gap: 12px;
-  padding: 16px;
-  background: #f8f9fa;
-  border-radius: 8px;
+  gap: 16px;
+  padding: 20px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.info-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .info-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  background: #e9ecef;
-  border-radius: 50%;
-  color: #495057;
-  font-size: 16px;
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+  border-radius: 12px;
+  color: white;
+  font-size: 20px;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
 }
 
 .info-content {
@@ -637,21 +576,24 @@ export default {
   display: flex;
   align-items: center;
   gap: 16px;
-  padding: 16px;
-  background: #f8f9fa;
-  border-radius: 8px;
+  padding: 20px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  border-radius: 12px;
   text-decoration: none;
   color: #212529;
-  transition: background 0.2s;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .document-link:hover {
-  background: #e9ecef;
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.2);
 }
 
 .document-link i {
-  font-size: 24px;
-  color: #6c757d;
+  font-size: 28px;
+  color: #2196F3;
 }
 
 .document-info {
@@ -670,34 +612,42 @@ export default {
 
 .sidebar-card {
   background: white;
-  border-radius: 8px;
-  padding: 24px;
+  border-radius: 16px;
+  padding: 32px;
   margin-bottom: 24px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .sidebar-card h3 {
-  margin: 0 0 16px 0;
-  font-size: 18px;
-  color: #212529;
+  margin: 0 0 24px 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #1e293b;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #e9ecef;
 }
 
 .investment-amount {
-  background: #f1f8ff;
-  padding: 16px;
-  border-radius: 8px;
-  margin-bottom: 16px;
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  padding: 24px;
+  border-radius: 12px;
+  margin-bottom: 24px;
   text-align: center;
+  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.15);
 }
 
 .amount-label {
   font-size: 14px;
-  color: #0d47a1;
-  margin-bottom: 8px;
+  color: #1565c0;
+  margin-bottom: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .amount-value {
-  font-size: 24px;
+  font-size: 32px;
   font-weight: 700;
   color: #0d47a1;
 }
@@ -709,8 +659,18 @@ export default {
 .detail-item {
   display: flex;
   justify-content: space-between;
-  padding: 12px 0;
+  align-items: center;
+  padding: 16px 0;
   border-bottom: 1px solid #e9ecef;
+  transition: background 0.2s;
+}
+
+.detail-item:hover {
+  background: rgba(33, 150, 243, 0.03);
+  margin: 0 -16px;
+  padding-left: 16px;
+  padding-right: 16px;
+  border-radius: 8px;
 }
 
 .detail-item:last-child {
@@ -718,27 +678,21 @@ export default {
 }
 
 .detail-label {
-  color: #6c757d;
+  color: #64748b;
   font-size: 14px;
+  font-weight: 500;
 }
 
 .detail-value {
-  font-weight: 500;
+  font-weight: 600;
+  font-size: 16px;
+  color: #1e293b;
 }
 
 .investment-actions {
   margin-top: 16px;
 }
 
-.contact-card {
-  background: #f8f9fa;
-}
-
-.contact-card p {
-  margin-bottom: 16px;
-  color: #495057;
-  line-height: 1.5;
-}
 
 .loading-indicator, .error-message {
   display: flex;
@@ -753,7 +707,7 @@ export default {
   width: 40px;
   height: 40px;
   border: 4px solid #f3f3f3;
-  border-top: 4px solid #007bff;
+  border-top: 4px solid #2196F3;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 16px;
@@ -778,46 +732,6 @@ export default {
   100% { transform: rotate(360deg); }
 }
 
-.contact-modal {
-  padding: 20px;
-  max-width: 600px;
-}
-
-.contact-modal h2 {
-  margin: 0 0 8px 0;
-  font-size: 24px;
-}
-
-.contact-modal p {
-  margin-bottom: 24px;
-  color: #495057;
-}
-
-.form-group {
-  margin-bottom: 20px;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 500;
-}
-
-.form-group input,
-.form-group textarea {
-  width: 100%;
-  padding: 12px;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
-  font-size: 16px;
-}
-
-.form-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  margin-top: 24px;
-}
 
 @media (max-width: 768px) {
   .startup-hero {

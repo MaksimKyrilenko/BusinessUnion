@@ -1,5 +1,5 @@
 <template>
-  <div class="modal-overlay">
+  <div v-if="show" class="modal-overlay" @click.self="$emit('close')">
     <div class="modal-container" ref="modalContainer">
       <div class="modal-close" @click="$emit('close')">
         <i class="fas fa-times"></i>
@@ -23,38 +23,43 @@
 </template>
 
 <script>
-import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { ref, watch, onMounted, onBeforeUnmount } from 'vue';
 
 export default {
   name: 'Modal',
+  props: {
+    show: {
+      type: Boolean,
+      default: false
+    }
+  },
   emits: ['close'],
   setup(props, { emit }) {
     const modalContainer = ref(null);
 
-    // Удаляем handleOutsideClick, так как он вызывает проблемы с вложенными кликами
-    const handleOutsideClick = (event) => {
-      // Функция оставлена для совместимости, но не используется
-    };
-
     const handleEscapeKey = (event) => {
-      if (event.key === 'Escape') {
+      if (event.key === 'Escape' && props.show) {
         emit('close');
       }
     };
 
-    onMounted(() => {
-      document.addEventListener('keydown', handleEscapeKey);
-      document.body.style.overflow = 'hidden'; // Предотвращаем прокрутку содержимого под модальным окном
-    });
+    watch(() => props.show, (isVisible) => {
+      if (isVisible) {
+        document.addEventListener('keydown', handleEscapeKey);
+        document.body.style.overflow = 'hidden';
+      } else {
+        document.removeEventListener('keydown', handleEscapeKey);
+        document.body.style.overflow = '';
+      }
+    }, { immediate: true });
 
     onBeforeUnmount(() => {
       document.removeEventListener('keydown', handleEscapeKey);
-      document.body.style.overflow = ''; // Восстанавливаем прокрутку
+      document.body.style.overflow = '';
     });
 
     return {
-      modalContainer,
-      handleOutsideClick
+      modalContainer
     };
   }
 };

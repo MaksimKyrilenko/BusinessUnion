@@ -1,6 +1,6 @@
 <template>
   <div class="market-analytics">
-    <h1>Аналитика рынка</h1>
+    <h1>Бизнес аналитика</h1>
 
     <div class="filters">
       <SearchBar 

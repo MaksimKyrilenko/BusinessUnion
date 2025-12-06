@@ -1,0 +1,183 @@
+{
+  "timestamp": "2025-11-27T19:17:05.889Z",
+  "baseUrl": "http://localhost:3001/api",
+  "summary": {
+    "total": 16,
+    "passed": 14,
+    "failed": 2,
+    "skipped": 0,
+    "duration": 494
+  },
+  "tests": [
+    {
+      "name": "Health Check - /api/hello",
+      "category": "Basic",
+      "passed": true,
+      "timestamp": "2025-11-27T19:17:05.985Z",
+      "status": 200,
+      "response": "Hello from Nest.js!",
+      "duration": 3
+    },
+    {
+      "name": "Регистрация пользователя",
+      "category": "Authentication",
+      "passed": true,
+      "timestamp": "2025-11-27T19:17:06.137Z",
+      "status": 201,
+      "response": {
+        "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3RfMTc2NDI3MTAyNTk4NkB0ZXN0LmNvbSIsInN1YiI6OSwidXNlclR5cGUiOiJpbnZlc3RvciIsImlhdCI6MTc2NDI3MTAyNiwiZXhwIjoxNzY0Mjc0NjI2fQ.iXR7mVFmXl53wsPqkOgb2M41F-s0LpMRERB4lX7dbrE",
+        "user": {
+          "id": 9,
+          "email": "test_1764271025986@test.com",
+          "firstName": "Test",
+          "lastName": "User",
+          "userType": "investor",
+          "profile": {
+            "id": 9,
+            "avatar": null,
+            "bio": null
+          }
+        }
+      },
+      "duration": 151,
+      "error": null
+    },
+    {
+      "name": "Вход в систему",
+      "category": "Authentication",
+      "passed": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3RfMTc2NDI3MTAyNTk4NkB0ZXN0LmNvbSIsInN1YiI6OSwidXNlclR5cGUiOiJpbnZlc3RvciIsImlhdCI6MTc2NDI3MTAyNiwiZXhwIjoxNzY0Mjc0NjI2fQ.iXR7mVFmXl53wsPqkOgb2M41F-s0LpMRERB4lX7dbrE",
+      "timestamp": "2025-11-27T19:17:06.248Z",
+      "status": 200,
+      "hasToken": true,
+      "duration": 111,
+      "error": null
+    },
+    {
+      "name": "Вход через /users/login (альтернативный endpoint)",
+      "category": "Authentication",
+      "passed": false,
+      "timestamp": "2025-11-27T19:17:06.352Z",
+      "status": 500,
+      "hasToken": false,
+      "duration": 104,
+      "note": "Возможна проблема с обработкой ошибок в этом endpoint"
+    },
+    {
+      "name": "Получение профиля пользователя",
+      "category": "Users",
+      "passed": true,
+      "timestamp": "2025-11-27T19:17:06.364Z",
+      "status": 200,
+      "hasProfile": true,
+      "duration": 11,
+      "error": null
+    },
+    {
+      "name": "Поиск пользователей",
+      "category": "Users",
+      "passed": true,
+      "timestamp": "2025-11-27T19:17:06.382Z",
+      "status": 200,
+      "isArray": true,
+      "resultsCount": 7,
+      "duration": 17
+    },
+    {
+      "name": "Получение списка пользователей",
+      "category": "Users",
+      "passed": true,
+      "timestamp": "2025-11-27T19:17:06.391Z",
+      "status": 200,
+      "duration": 8
+    },
+    {
+      "name": "Получение списка проектов",
+      "category": "Projects",
+      "passed": true,
+      "timestamp": "2025-11-27T19:17:06.399Z",
+      "status": 200,
+      "isArray": true,
+      "duration": 7
+    },
+    {
+      "name": "Получение моих проектов",
+      "category": "Projects",
+      "passed": false,
+      "timestamp": "2025-11-27T19:17:06.408Z",
+      "status": 500,
+      "duration": 9,
+      "error": "Internal server error",
+      "note": "Возможна проблема с извлечением user.sub из JWT токена"
+    },
+    {
+      "name": "Получение списка событий",
+      "category": "Events",
+      "passed": true,
+      "timestamp": "2025-11-27T19:17:06.427Z",
+      "status": 200,
+      "isArray": true,
+      "duration": 17
+    },
+    {
+      "name": "Получение событий пользователя",
+      "category": "Events",
+      "passed": true,
+      "timestamp": "2025-11-27T19:17:06.438Z",
+      "status": 200,
+      "duration": 11
+    },
+    {
+      "name": "Получение списка курсов",
+      "category": "Education",
+      "passed": true,
+      "timestamp": "2025-11-27T19:17:06.451Z",
+      "status": 200,
+      "duration": 13
+    },
+    {
+      "name": "Получение списка платформ",
+      "category": "Education",
+      "passed": true,
+      "timestamp": "2025-11-27T19:17:06.454Z",
+      "status": 200,
+      "duration": 3
+    },
+    {
+      "name": "Получение валютных пар",
+      "category": "Financial Analytics",
+      "passed": true,
+      "timestamp": "2025-11-27T19:17:06.460Z",
+      "status": 200,
+      "duration": 5
+    },
+    {
+      "name": "Получение сводок рынка",
+      "category": "Financial Analytics",
+      "passed": true,
+      "timestamp": "2025-11-27T19:17:06.465Z",
+      "status": 200,
+      "duration": 5
+    },
+    {
+      "name": "Получение списка категорий",
+      "category": "Categories",
+      "passed": true,
+      "timestamp": "2025-11-27T19:17:06.474Z",
+      "status": 200,
+      "isArray": true,
+      "duration": 8
+    }
+  ],
+  "errors": [
+    {
+      "test": "Получение моих проектов",
+      "error": "Internal server error",
+      "details": {
+        "status": 500,
+        "duration": 9,
+        "error": "Internal server error",
+        "note": "Возможна проблема с извлечением user.sub из JWT токена"
+      }
+    }
+  ]
+}

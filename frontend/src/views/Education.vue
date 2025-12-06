@@ -301,7 +301,18 @@ export default {
         return [];
       }
       
-      let filtered = [...courses.value]; // Создаем копию массива
+      // Дедупликация курсов по title + platform для предотвращения дублирования
+      const uniqueCoursesMap = new Map();
+      for (const course of courses.value) {
+        const key = `${course.title?.toLowerCase() || ''}_${course.platform || ''}`;
+        if (key && !uniqueCoursesMap.has(key)) {
+          uniqueCoursesMap.set(key, course);
+        }
+      }
+      const uniqueCourses = Array.from(uniqueCoursesMap.values());
+      console.log(`After deduplication: ${uniqueCourses.length} unique courses (from ${courses.value.length} total)`);
+      
+      let filtered = [...uniqueCourses]; // Создаем копию массива
       console.log('Initial filtered courses:', filtered.length);
       
       // Фильтрация по категории
@@ -316,9 +327,9 @@ export default {
         const query = searchQuery.value.toLowerCase()
         console.log('Filtering by search query:', query);
         filtered = filtered.filter(course => 
-          course.title.toLowerCase().includes(query) ||
-          course.description.toLowerCase().includes(query) ||
-          course.platform.toLowerCase().includes(query)
+          course.title?.toLowerCase().includes(query) ||
+          course.description?.toLowerCase().includes(query) ||
+          course.platform?.toLowerCase().includes(query)
         )
         console.log('After search filter:', filtered.length);
       }

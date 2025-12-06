@@ -46,44 +46,28 @@ class ProjectsService {
 
   async getMyProjects() {
     try {
-      // Получаем ID текущего пользователя из localStorage
-      const userId = localStorage.getItem('userId');
-      
-      if (!userId) {
-        throw new Error('Не найден ID пользователя');
-      }
-      
-      console.log(`Запрашиваем проекты для пользователя с ID: ${userId}`);
-      
       // Используем эндпоинт для получения проектов по ID автора
-      const response = await axios.get(`${API_URL}/projects/author/${userId}`, { 
+      const response = await axios.get(`${API_URL}/projects/author/me`, { 
         headers: authHeader() 
       });
       
       return response.data;
     } catch (error) {
       console.error('Ошибка при получении моих проектов:', error.response || error);
+      throw error;
+    }
+  }
+
+  async getProjectsWhereIAmMember() {
+    try {
+      const response = await axios.get(`${API_URL}/projects/team/me`, { 
+        headers: authHeader() 
+      });
       
-      // Если произошла ошибка, пробуем альтернативный эндпоинт
-      try {
-        console.warn('Попытка получить проекты пользователя через альтернативный эндпоинт');
-        const userId = localStorage.getItem('userId');
-        
-        // Пробуем получить все проекты и отфильтровать по текущему пользователю
-        const allProjects = await axios.get(`${API_URL}/projects`, { 
-          headers: authHeader()
-        });
-        
-        // Фильтруем проекты, оставляя только те, где автор - текущий пользователь
-        const myProjects = allProjects.data.filter(project => 
-          project.author && project.author.id === parseInt(userId)
-        );
-        
-        return myProjects;
-      } catch (fallbackError) {
-        console.error('Ошибка при использовании альтернативного метода:', fallbackError);
-        throw fallbackError;
-      }
+      return response.data;
+    } catch (error) {
+      console.error('Ошибка при получении проектов, где я участник:', error.response || error);
+      throw error;
     }
   }
 
@@ -105,6 +89,12 @@ class ProjectsService {
         location: projectData.location,
         additionalInfo: projectData.additionalInfo
       };
+
+      // Добавляем изображение в base64, если оно есть
+      if (projectData.image) {
+        formattedData.image = projectData.image;
+        console.log('Добавлено изображение в base64, длина:', projectData.image.length);
+      }
 
       console.log('Форматированные данные:', formattedData);
       
@@ -135,6 +125,12 @@ class ProjectsService {
         };
       } else if (typeof formattedData.category.id !== 'number') {
         formattedData.category.id = Number(formattedData.category.id);
+      }
+
+      // Сохраняем изображение, если оно есть (может быть base64 или URL)
+      if (projectData.image) {
+        formattedData.image = projectData.image;
+        console.log('Добавлено изображение для обновления, длина:', projectData.image.length);
       }
       
       console.log('Обновление проекта:', id, formattedData);
@@ -202,6 +198,132 @@ class ProjectsService {
         console.warn('Ошибка при загрузке файлов, пропускаем:', error.response.data);
         return { success: false, message: 'Загрузка файлов не удалась' };
       }
+      throw error;
+    }
+  }
+
+  // Методы для работы с командой проекта
+
+  async getTeamMembers(projectId) {
+    try {
+      const response = await axios.get(`${API_URL}/projects/${projectId}/team`, {
+        headers: authHeader()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Ошибка при получении участников команды:', error.response || error);
+      throw error;
+    }
+  }
+
+  async addTeamMember(projectId, userId) {
+    try {
+      const response = await axios.post(`${API_URL}/projects/${projectId}/team`, {
+        userId: userId
+      }, {
+        headers: authHeader()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Ошибка при добавлении участника команды:', error.response || error);
+      throw error;
+    }
+  }
+
+  async updateTeamMemberRole(projectId, userId, role) {
+    try {
+      const response = await axios.patch(`${API_URL}/projects/${projectId}/team/${userId}/role`, {
+        role: role
+      }, {
+        headers: authHeader()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Ошибка при обновлении роли участника:', error.response || error);
+      throw error;
+    }
+  }
+
+  async removeTeamMember(projectId, userId) {
+    try {
+      const response = await axios.delete(`${API_URL}/projects/${projectId}/team/${userId}`, {
+        headers: authHeader()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Ошибка при удалении участника команды:', error.response || error);
+      throw error;
+    }
+  }
+
+  async getTeamChat(projectId) {
+    try {
+      const response = await axios.get(`${API_URL}/projects/${projectId}/team/chat`, {
+        headers: authHeader()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Ошибка при получении командного чата:', error.response || error);
+      throw error;
+    }
+  }
+
+  async getProjectTasks(projectId) {
+    try {
+      const response = await axios.get(`${API_URL}/projects/${projectId}/tasks`, {
+        headers: authHeader()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Ошибка при получении задач проекта:', error.response || error);
+      throw error;
+    }
+  }
+
+  async createProjectTask(projectId, taskData) {
+    try {
+      const response = await axios.post(`${API_URL}/projects/${projectId}/tasks`, taskData, {
+        headers: authHeader()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Ошибка при создании задачи:', error.response || error);
+      throw error;
+    }
+  }
+
+  async updateProjectTask(projectId, taskId, taskData) {
+    try {
+      const response = await axios.patch(`${API_URL}/projects/${projectId}/tasks/${taskId}`, taskData, {
+        headers: authHeader()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Ошибка при обновлении задачи:', error.response || error);
+      throw error;
+    }
+  }
+
+  async deleteProjectTask(projectId, taskId) {
+    try {
+      const response = await axios.delete(`${API_URL}/projects/${projectId}/tasks/${taskId}`, {
+        headers: authHeader()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Ошибка при удалении задачи:', error.response || error);
+      throw error;
+    }
+  }
+
+  async analyzeStartup(projectId) {
+    try {
+      const response = await axios.post(`${API_URL}/projects/${projectId}/analyze`, {}, {
+        headers: authHeader()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Ошибка при анализе стартапа:', error.response || error);
       throw error;
     }
   }

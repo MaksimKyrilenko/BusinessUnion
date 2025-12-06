@@ -71,7 +71,11 @@
              class="startup-card"
         >
           <div class="startup-image">
-            <img :src="startup.image || '/assets/images/placeholder-project.jpg'" :alt="startup.title">
+            <img 
+              :src="getImageSrc(startup.image)" 
+              :alt="startup.title"
+              @error="handleImageError"
+            >
             <div class="startup-stage">{{ getStageText(startup.stage) }}</div>
           </div>
           
@@ -153,7 +157,12 @@
     <Modal v-if="showDetails" @close="closeDetails">
       <div class="startup-details" v-if="selectedStartup">
         <div class="details-header">
-          <img :src="selectedStartup.image || '/assets/images/placeholder-project.jpg'" :alt="selectedStartup.title" class="details-image">
+          <img 
+            :src="getImageSrc(selectedStartup.image)" 
+            :alt="selectedStartup.title" 
+            class="details-image"
+            @error="handleImageError"
+          >
           <div class="details-info">
             <div>
               <h2>{{ selectedStartup.title }}</h2>
@@ -249,6 +258,42 @@
         </div>
       </div>
     </Modal>
+
+    <!-- Модальное окно для связи с автором стартапа -->
+    <Modal :show="showConnectModal" @close="closeConnectModal">
+      <template #header>
+        <h3>Связаться с создателем стартапа</h3>
+        <div v-if="selectedStartupForContact" class="startup-info-header">
+          <p class="startup-name">
+            Стартап: <strong>{{ selectedStartupForContact.title }}</strong>
+          </p>
+          <p v-if="selectedStartupForContact.author" class="author-name">
+            Создатель: <strong>{{ selectedStartupForContact.author.firstName }} {{ selectedStartupForContact.author.lastName }}</strong>
+          </p>
+        </div>
+      </template>
+      <template #body>
+        <form @submit.prevent="sendMessageToStartup" class="connect-form">
+          <div class="form-group">
+            <label for="message-text-startup">Сообщение</label>
+            <textarea 
+              id="message-text-startup"
+              v-model="messageText" 
+              placeholder="Представьтесь и опишите цель вашего обращения к создателю стартапа..."
+              rows="5"
+              class="message-textarea"
+              required
+            ></textarea>
+          </div>
+        </form>
+      </template>
+      <template #footer>
+        <button class="btn-secondary" @click="closeConnectModal">Отмена</button>
+        <button class="btn-primary" @click="sendMessageToStartup" :disabled="!messageText.trim()">
+          Отправить
+        </button>
+      </template>
+    </Modal>
   </div>
 </template>
 
@@ -283,6 +328,9 @@ export default {
     const showDetails = ref(false)
     const selectedStartup = ref(null)
     const loading = ref(false)
+    const showConnectModal = ref(false)
+    const selectedStartupForContact = ref(null)
+    const messageText = ref('')
 
     // Вычисляемые свойства
     const uniqueLocations = computed(() => {
@@ -397,19 +445,60 @@ export default {
       router.push(`/startups/${id}`)
     }
     
-    const contactStartup = async (id) => {
+    const contactStartup = (id) => {
+      const startup = startups.value.find(s => s.id === id)
+      if (startup) {
+        selectedStartupForContact.value = startup
+        messageText.value = ''
+        showConnectModal.value = true
+      }
+    }
+
+    const sendMessageToStartup = async () => {
+      if (!messageText.value.trim() || !selectedStartupForContact.value) return
+
       try {
-        const startup = startups.value.find(s => s.id === id)
+        const startup = selectedStartupForContact.value
         if (startup && startup.author) {
+          // Создаем или получаем чат с автором
           const chatResponse = await chatService.createOrGetDirectChat(startup.author.id)
+          
+          // Отправляем сообщение через messengerService (использует правильный формат)
+          const messengerService = await import('@/services/messenger.service')
+          await messengerService.default.sendMessage({
+            chatId: chatResponse.id,
+            text: messageText.value.trim(),
+            type: 'text'
+          })
+          
+          // Закрываем модальное окно
+          showConnectModal.value = false
+          messageText.value = ''
+          selectedStartupForContact.value = null
+          
+          // Переходим в мессенджер
           router.push({
             name: 'Messenger',
             params: { chatId: chatResponse.id }
           })
+        } else {
+          throw new Error('Автор стартапа не найден')
         }
       } catch (error) {
-        console.error('Ошибка при создании чата:', error)
+        console.error('Ошибка при отправке сообщения:', error)
+        console.error('Детали ошибки:', {
+          message: error.message,
+          response: error.response?.data,
+          status: error.response?.status
+        })
+        alert('Произошла ошибка при отправке сообщения. Пожалуйста, попробуйте снова.')
       }
+    }
+
+    const closeConnectModal = () => {
+      showConnectModal.value = false
+      messageText.value = ''
+      selectedStartupForContact.value = null
     }
     
     const changePage = (page) => {
@@ -448,6 +537,33 @@ export default {
       return stageMap[stage] || stage
     }
 
+    const getPlaceholderImage = () => {
+      // Используем простой SVG placeholder в base64, чтобы избежать 404 ошибок
+      const svg = `<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
+        <rect width="400" height="300" fill="#e0e0e0"/>
+        <text x="50%" y="50%" font-family="Arial, sans-serif" font-size="18" fill="#999" text-anchor="middle" dominant-baseline="middle">Нет изображения</text>
+      </svg>`;
+      return 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg)));
+    }
+
+    const getImageSrc = (image) => {
+      if (!image) return getPlaceholderImage()
+      // Если это base64, возвращаем как есть
+      if (image.startsWith('data:image')) {
+        return image
+      }
+      // Если это URL, возвращаем как есть
+      if (image.startsWith('http')) {
+        return image
+      }
+      // Относительный путь
+      return image.startsWith('/') ? image : `/${image}`
+    }
+
+    const handleImageError = (event) => {
+      event.target.src = getPlaceholderImage()
+    }
+
     // Наблюдение за изменениями фильтров
     watch(searchQuery, () => {
       currentPage.value = 1
@@ -481,11 +597,19 @@ export default {
       fetchCategories,
       viewDetails,
       contactStartup,
+      sendMessageToStartup,
+      closeConnectModal,
+      showConnectModal,
+      selectedStartupForContact,
+      messageText,
       changePage,
       closeDetails,
       formatMoney,
       getStatusText,
       getStageText,
+      getImageSrc,
+      handleImageError,
+      getPlaceholderImage,
       applyFilters,
       resetFilters
     }
@@ -737,6 +861,91 @@ export default {
   padding: 40px;
   text-align: center;
   color: #6c757d;
+}
+
+.connect-form {
+  padding: 0;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #212529;
+}
+
+.message-textarea {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #dee2e6;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  transition: border-color 0.2s;
+}
+
+.message-textarea:focus {
+  outline: none;
+  border-color: #2196F3;
+  box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+}
+
+.startup-info-header {
+  margin-top: 12px;
+}
+
+.startup-name,
+.author-name {
+  margin: 6px 0;
+  font-size: 14px;
+  color: #6c757d;
+}
+
+.startup-name strong,
+.author-name strong {
+  color: #212529;
+  font-weight: 600;
+}
+
+.btn-primary,
+.btn-secondary {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-primary {
+  background: #2196F3;
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #1976D2;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(33, 150, 243, 0.3);
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: #5a6268;
 }
 
 @media (max-width: 768px) {

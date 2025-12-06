@@ -93,7 +93,7 @@
       </div>
     </div>
 
-    <Modal v-if="showCreateModal" @close="showCreateModal = false">
+    <Modal :show="showCreateModal" @close="showCreateModal = false">
       <template #header>
         <h2>Создание сообщества</h2>
       </template>
@@ -124,8 +124,8 @@
 
           <div class="form-group">
             <label>Категория <span class="required">*</span></label>
-            <select v-model="newCommunity.categoryId" required class="form-select">
-              <option value="">Выберите категорию</option>
+            <select v-model="newCommunity.categoryId" required class="form-select" :disabled="categories.length === 0">
+              <option value="">{{ categories.length === 0 ? 'Загрузка категорий...' : 'Выберите категорию' }}</option>
               <option 
                 v-for="category in categories" 
                 :key="category.id" 
@@ -134,6 +134,9 @@
                 {{ category.name }}
               </option>
             </select>
+            <p v-if="categories.length === 0" class="form-hint" style="color: #e91e63; margin-top: 0.5rem;">
+              Категории загружаются...
+            </p>
           </div>
 
           <div class="form-group">
@@ -182,7 +185,7 @@
 </template>
 
 <script>
-import { defineComponent, ref, computed, onMounted } from 'vue'
+import { defineComponent, ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import Modal from '@/components/ui/Modal.vue'
@@ -244,6 +247,21 @@ export default defineComponent({
 
     onMounted(() => {
       loadData()
+    })
+
+    // Загружаем категории при открытии модального окна, если они ещё не загружены
+    watch(showCreateModal, async (isOpen) => {
+      if (isOpen && categories.value.length === 0) {
+        try {
+          console.log('Загружаем категории при открытии модального окна...')
+          const categoriesData = await communitiesService.getCategories()
+          console.log('Категории загружены:', categoriesData)
+          categories.value = categoriesData
+        } catch (err) {
+          console.error('Ошибка при загрузке категорий:', err)
+          error.value = 'Не удалось загрузить категории. Пожалуйста, обновите страницу.'
+        }
+      }
     })
 
     const filteredCommunities = computed(() => {

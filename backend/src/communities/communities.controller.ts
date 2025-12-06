@@ -32,8 +32,11 @@ export class CommunitiesController {
 
   @Get('categories')
   @Public()
-  getCategories() {
-    return this.communitiesService.getCategories();
+  async getCategories() {
+    console.log('Controller: Getting categories...');
+    const categories = await this.communitiesService.getCategories();
+    console.log(`Controller: Returning ${categories.length} categories`);
+    return categories;
   }
 
   @Get('my')

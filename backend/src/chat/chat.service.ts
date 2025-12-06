@@ -65,10 +65,13 @@ export class ChatService {
       .createQueryBuilder('chat')
       .leftJoinAndSelect('chat.users', 'chatUser')
       .leftJoinAndSelect('chatUser.user', 'user')
+      .leftJoinAndSelect('user.profile', 'userProfile')
       .leftJoinAndSelect('chat.messages', 'messages')
       .leftJoinAndSelect('messages.sender', 'sender')
+      .leftJoinAndSelect('sender.profile', 'senderProfile')
       .leftJoinAndSelect('messages.replyTo', 'replyTo')
       .leftJoinAndSelect('replyTo.sender', 'replyToSender')
+      .leftJoinAndSelect('replyToSender.profile', 'replyToSenderProfile')
       .where('chat.id = :id', { id })
       .orderBy('messages.createdAt', 'ASC')
       .getOne();

@@ -1,22 +1,20 @@
 <template>
-  <div class="create-startup">
-    <h1>{{ isEditMode ? 'Редактирование' : 'Создание' }} стартапа</h1>
-
+  <div class="create-startup-form">
     <div v-if="error" class="error-message">
       {{ error }}
     </div>
 
     <div v-if="loading" class="loading-indicator">
       <div class="spinner"></div>
-      <p>{{ isEditMode ? 'Загрузка данных стартапа...' : 'Проверка данных...' }}</p>
+      <p>Проверка данных...</p>
     </div>
 
     <form v-else @submit.prevent="handleSubmit" class="startup-form">
       <div class="form-group">
-        <label for="title">Название проекта</label>
+        <label for="modal-title">Название проекта</label>
         <input
           type="text"
-          id="title"
+          id="modal-title"
           v-model="form.title"
           class="form-control"
           required
@@ -25,21 +23,21 @@
       </div>
 
       <div class="form-group">
-        <label for="description">Описание проекта</label>
+        <label for="modal-description">Описание проекта</label>
         <textarea
-          id="description"
+          id="modal-description"
           v-model="form.description"
           class="form-control"
-          rows="5"
+          rows="4"
           required
           placeholder="Опишите ваш проект, его цели и преимущества"
         ></textarea>
       </div>
 
       <div class="form-group">
-        <label for="category">Категория</label>
+        <label for="modal-category">Категория</label>
         <select
-          id="category"
+          id="modal-category"
           v-model="form.category"
           class="form-control"
           required
@@ -52,9 +50,9 @@
       </div>
 
       <div class="form-group">
-        <label for="stage">Этап проекта</label>
+        <label for="modal-stage">Этап проекта</label>
         <select
-          id="stage"
+          id="modal-stage"
           v-model="form.stage"
           class="form-control"
           required
@@ -68,11 +66,11 @@
 
       <div class="form-row">
         <div class="form-group">
-          <label for="investmentNeeded">Требуемые инвестиции</label>
+          <label for="modal-investmentNeeded">Требуемые инвестиции</label>
           <div class="input-group">
             <input
               type="number"
-              id="investmentNeeded"
+              id="modal-investmentNeeded"
               v-model="form.investmentNeeded"
               class="form-control"
               required
@@ -84,11 +82,11 @@
         </div>
 
         <div class="form-group">
-          <label for="minInvestment">Минимальная инвестиция</label>
+          <label for="modal-minInvestment">Минимальная инвестиция</label>
           <div class="input-group">
             <input
               type="number"
-              id="minInvestment"
+              id="modal-minInvestment"
               v-model="form.minInvestment"
               class="form-control"
               required
@@ -101,11 +99,11 @@
       </div>
 
       <div class="form-group">
-        <label for="expectedRoi">Ожидаемая ROI (%)</label>
+        <label for="modal-expectedRoi">Ожидаемая ROI (%)</label>
         <div class="input-group">
           <input
             type="number"
-            id="expectedRoi"
+            id="modal-expectedRoi"
             v-model="form.expectedRoi"
             class="form-control"
             required
@@ -118,10 +116,10 @@
       </div>
 
       <div class="form-group">
-        <label for="location">Местоположение</label>
+        <label for="modal-location">Местоположение</label>
         <input
           type="text"
-          id="location"
+          id="modal-location"
           v-model="form.location"
           class="form-control"
           required
@@ -130,10 +128,10 @@
       </div>
 
       <div class="form-group">
-        <label for="businessPlan">Бизнес-план</label>
+        <label for="modal-businessPlan">Бизнес-план</label>
         <input
           type="file"
-          id="businessPlan"
+          id="modal-businessPlan"
           @change="handleFileUpload"
           class="form-control"
           accept=".pdf,.doc,.docx"
@@ -144,10 +142,10 @@
       </div>
 
       <div class="form-group">
-        <label for="presentation">Презентация</label>
+        <label for="modal-presentation">Презентация</label>
         <input
           type="file"
-          id="presentation"
+          id="modal-presentation"
           @change="handleFileUpload"
           class="form-control"
           accept=".pdf,.ppt,.pptx"
@@ -158,10 +156,10 @@
       </div>
 
       <div class="form-group">
-        <label for="image">Изображение проекта</label>
+        <label for="modal-image">Изображение проекта</label>
         <input
           type="file"
-          id="image"
+          id="modal-image"
           @change="handleFileUpload"
           class="form-control"
           accept="image/*"
@@ -172,11 +170,11 @@
       </div>
 
       <div class="form-group">
-        <label for="additionalInfo">Дополнительная информация</label>
+        <label for="modal-additionalInfo">Дополнительная информация</label>
         <div class="input-group">
           <input
             type="text"
-            id="additionalInfo"
+            id="modal-additionalInfo"
             v-model="form.additionalInfo.foundedAt"
             class="form-control"
             required
@@ -189,7 +187,7 @@
         <button 
           type="button" 
           class="btn btn-secondary"
-          @click="goBack"
+          @click="$emit('cancel')"
         >
           Отмена
         </button>
@@ -198,7 +196,7 @@
           class="btn btn-primary"
           :disabled="loading"
         >
-          {{ loading ? 'Сохранение...' : (isEditMode ? 'Сохранить изменения' : 'Создать стартап') }}
+          {{ loading ? 'Сохранение...' : 'Создать стартап' }}
         </button>
       </div>
     </form>
@@ -207,24 +205,21 @@
 
 <script>
 import { ref, onMounted } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
 import { projectsService } from '@/services/projects.service';
 
 export default {
-  name: 'CreateStartup',
+  name: 'CreateStartupForm',
   props: {
-    id: {
-      type: String,
-      required: false
+    projectId: {
+      type: [Number, String],
+      default: null
     }
   },
-  setup(props) {
-    const router = useRouter();
-    const route = useRoute();
+  emits: ['success', 'cancel'],
+  setup(props, { emit }) {
     const loading = ref(false);
     const error = ref(null);
     const categories = ref([]);
-    const isEditMode = ref(false);
     const stages = ref([
       { id: 'idea', name: 'Идея' },
       { id: 'mvp', name: 'MVP' },
@@ -254,54 +249,6 @@ export default {
       }
     });
 
-    // Проверяем, находимся ли мы в режиме редактирования
-    const checkEditMode = async () => {
-      if (props.id || route.params.id) {
-        const startupId = props.id || route.params.id;
-        
-        // Проверка валидности ID
-        if (!startupId || isNaN(Number(startupId))) {
-          error.value = 'Неверный идентификатор стартапа';
-          return;
-        }
-        
-        isEditMode.value = true;
-        
-        loading.value = true;
-        try {
-          const response = await projectsService.getProjectById(Number(startupId));
-          
-          // Заполняем форму данными проекта
-          form.value.title = response.title;
-          form.value.description = response.description;
-          form.value.category = response.categoryId || response.category?.id;
-          form.value.stage = response.stage;
-          form.value.investmentNeeded = response.investmentNeeded;
-          form.value.minInvestment = response.minInvestment;
-          form.value.expectedRoi = response.expectedRoi;
-          form.value.location = response.location;
-          
-          // Сохраняем изображение, если оно есть (может быть base64 или URL)
-          if (response.image) {
-            form.value.image = response.image;
-            // Если это base64, сохраняем также в imageBase64
-            if (response.image.startsWith('data:image')) {
-              form.value.imageBase64 = response.image;
-            }
-          }
-          
-          if (response.additionalInfo) {
-            form.value.additionalInfo = response.additionalInfo;
-          }
-        } catch (error) {
-          console.error('Ошибка при получении данных проекта:', error);
-          error.value = 'Не удалось загрузить данные проекта. Пожалуйста, попробуйте позже.';
-        } finally {
-          loading.value = false;
-        }
-      }
-    };
-
     const fetchCategories = async () => {
       try {
         const response = await projectsService.getAllCategories();
@@ -314,7 +261,7 @@ export default {
 
     const handleFileUpload = async (event) => {
       const file = event.target.files[0];
-      const field = event.target.id;
+      const field = event.target.id.replace('modal-', '');
       
       if (!file) return;
       
@@ -343,6 +290,42 @@ export default {
       });
     };
 
+    const loadProjectData = async () => {
+      if (!props.projectId) return;
+      
+      loading.value = true;
+      try {
+        const project = await projectsService.getProjectById(Number(props.projectId));
+        
+        // Заполняем форму данными проекта
+        form.value.title = project.title || '';
+        form.value.description = project.description || '';
+        form.value.category = project.categoryId || project.category?.id || null;
+        form.value.stage = project.stage || 'idea';
+        form.value.investmentNeeded = project.investmentNeeded || 100000;
+        form.value.minInvestment = project.minInvestment || 10000;
+        form.value.expectedRoi = project.expectedRoi || 30;
+        form.value.location = project.location || '';
+        
+        // Сохраняем изображение, если оно есть
+        if (project.image) {
+          form.value.image = project.image;
+          if (project.image.startsWith('data:image')) {
+            form.value.imageBase64 = project.image;
+          }
+        }
+        
+        if (project.additionalInfo) {
+          form.value.additionalInfo = { ...form.value.additionalInfo, ...project.additionalInfo };
+        }
+      } catch (err) {
+        console.error('Ошибка при загрузке данных проекта:', err);
+        error.value = 'Не удалось загрузить данные проекта';
+      } finally {
+        loading.value = false;
+      }
+    };
+
     const handleSubmit = async () => {
       try {
         loading.value = true;
@@ -360,9 +343,11 @@ export default {
         }
 
         let project;
-        if (isEditMode.value) {
-          project = await projectsService.updateProject(props.id || route.params.id, projectData);
+        if (props.projectId) {
+          // Режим редактирования
+          project = await projectsService.updateProject(Number(props.projectId), projectData);
         } else {
+          // Режим создания
           project = await projectsService.createProject(projectData);
         }
 
@@ -380,8 +365,8 @@ export default {
           }
         }
 
-        // Перенаправляем на страницу "Мои стартапы"
-        router.push('/startup/my-startups');
+        // Эмитим событие успешного создания/обновления
+        emit('success');
       } catch (err) {
         console.error('Ошибка при сохранении проекта:', err);
         error.value = err.response?.data?.message || 'Произошла ошибка при сохранении проекта';
@@ -390,13 +375,11 @@ export default {
       }
     };
 
-    const goBack = () => {
-      router.back();
-    };
-
-    onMounted(() => {
-      fetchCategories();
-      checkEditMode();
+    onMounted(async () => {
+      await fetchCategories();
+      if (props.projectId) {
+        await loadProjectData();
+      }
     });
 
     return {
@@ -405,27 +388,22 @@ export default {
       error,
       categories,
       stages,
-      isEditMode,
       handleFileUpload,
-      handleSubmit,
-      goBack
+      handleSubmit
     };
   }
 };
 </script>
 
 <style scoped>
-.create-startup {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 2rem;
+.create-startup-form {
+  max-width: 100%;
 }
 
 .startup-form {
   background: white;
-  padding: 2rem;
-  border-radius: 24px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  padding: 1rem;
+  border-radius: 16px;
 }
 
 .loading-indicator {
@@ -433,11 +411,7 @@ export default {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: white;
-  padding: 3rem;
-  border-radius: 24px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  margin-top: 1rem;
+  padding: 2rem;
 }
 
 .spinner {
@@ -456,7 +430,7 @@ export default {
 }
 
 .form-group {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
 }
 
 .form-row {
@@ -470,15 +444,17 @@ label {
   margin-bottom: 0.5rem;
   font-weight: 500;
   color: #2d3748;
+  font-size: 0.9rem;
 }
 
 .form-control {
   width: 100%;
   padding: 0.75rem 1rem;
   border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  font-size: 1rem;
+  border-radius: 12px;
+  font-size: 0.95rem;
   transition: all 0.3s ease;
+  box-sizing: border-box;
 }
 
 .form-control:focus {
@@ -502,13 +478,14 @@ label {
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   border-left: none;
-  border-top-right-radius: 16px;
-  border-bottom-right-radius: 16px;
+  border-top-right-radius: 12px;
+  border-bottom-right-radius: 12px;
   color: #64748b;
+  font-size: 0.95rem;
 }
 
 textarea.form-control {
-  min-height: 120px;
+  min-height: 100px;
   resize: vertical;
 }
 
@@ -526,7 +503,7 @@ input[type="file"].form-control:hover {
 
 .form-text {
   margin-top: 0.5rem;
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   color: #64748b;
 }
 
@@ -534,14 +511,16 @@ input[type="file"].form-control:hover {
   display: flex;
   justify-content: flex-end;
   gap: 1rem;
-  margin-top: 2rem;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e2e8f0;
 }
 
 .btn {
   padding: 0.75rem 1.5rem;
-  border-radius: 16px;
+  border-radius: 12px;
   font-weight: 500;
-  font-size: 1rem;
+  font-size: 0.95rem;
   transition: all 0.3s ease;
   cursor: pointer;
   border: none;
@@ -582,8 +561,16 @@ input[type="file"].form-control:hover {
   background-color: #fee2e2;
   color: #dc2626;
   padding: 1rem;
-  border-radius: 16px;
+  border-radius: 12px;
   margin-bottom: 1rem;
   border: 1px solid #fecaca;
+  font-size: 0.9rem;
 }
-</style> 
+
+@media (max-width: 768px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+

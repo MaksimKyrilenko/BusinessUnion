@@ -303,7 +303,7 @@
     </div>
 
     <!-- Модальные окна -->
-    <modal v-if="showCreateGroupModal" @close="showCreateGroupModal = false">
+    <Modal :show="showCreateGroupModal" @close="showCreateGroupModal = false">
       <div class="create-group-modal">
         <div class="modal-header">
           <h3>Создание группы</h3>
@@ -401,10 +401,10 @@
           </button>
         </div>
       </div>
-    </modal>
+    </Modal>
 
     <!-- Модальное окно информации о группе -->
-    <modal v-if="showGroupInfoModal" @close="showGroupInfoModal = false" class="group-info-fullscreen-modal">
+    <Modal :show="showGroupInfoModal" @close="showGroupInfoModal = false" class="group-info-fullscreen-modal">
       <div class="group-info-modal">
         
         <div class="group-info-content">
@@ -601,10 +601,10 @@
           </button>
         </div>
       </div>
-    </modal>
+    </Modal>
 
     <!-- Модальное окно редактирования сообщения -->
-    <modal v-if="showEditMessageModal" @close="cancelEditMessage">
+    <Modal :show="showEditMessageModal" @close="cancelEditMessage">
       <div class="edit-message-modal">
         <div class="modal-header">
           <h3>Редактирование сообщения</h3>
@@ -623,10 +623,10 @@
           <button class="btn-primary" @click="saveEditedMessage" :disabled="!editedMessageText.trim()">Сохранить</button>
         </div>
       </div>
-    </modal>
+    </Modal>
 
     <!-- Модальное окно пересылки сообщения -->
-    <modal v-if="showForwardMessageModal" @close="cancelForwardMessage">
+    <Modal :show="showForwardMessageModal" @close="cancelForwardMessage">
       <div class="forward-message-modal">
         <div class="modal-header">
           <h3>Переслать сообщение</h3>
@@ -675,10 +675,10 @@
           <button class="btn-primary" @click="confirmForwardMessage" :disabled="!selectedForwardChatId">Переслать</button>
         </div>
       </div>
-    </modal>
+    </Modal>
 
     <!-- Модальное окно для загрузки файлов -->
-    <modal v-if="showFileUploadModal" @close="cancelFileUpload">
+    <Modal :show="showFileUploadModal" @close="cancelFileUpload">
       <div class="file-upload-modal">
         <div class="modal-header">
           <h3>{{ isImageUpload ? 'Загрузка изображения' : 'Загрузка файла' }}</h3>
@@ -742,9 +742,9 @@
           </button>
         </div>
       </div>
-    </modal>
+    </Modal>
 
-    <modal v-if="showChatInfo" @close="showChatInfo = false" :class="'info-modal'">
+    <Modal :show="showChatInfo" @close="showChatInfo = false" :class="'info-modal'">
       <div class="chat-info-container" v-if="selectedChat">
         <div class="blue-background">
           <div class="group-avatar-container">
@@ -869,10 +869,10 @@
           </div>
         </div>
       </div>
-    </modal>
+    </Modal>
     
     <!-- Модальное окно редактирования группы -->
-    <modal v-if="showEditGroupModal" @close="showEditGroupModal = false">
+    <Modal :show="showEditGroupModal" @close="showEditGroupModal = false">
       <div class="edit-group-modal">
         <div class="modal-header">
           <h3>Редактирование группы</h3>
@@ -924,10 +924,10 @@
           <button class="btn-primary" @click="saveGroupChanges" :disabled="!editingGroup.name">Сохранить</button>
         </div>
       </div>
-    </modal>
+    </Modal>
     
     <!-- Модальное окно добавления участников -->
-    <modal v-if="showAddMembersModal" @close="showAddMembersModal = false">
+    <Modal :show="showAddMembersModal" @close="showAddMembersModal = false">
       <div class="add-members-modal" @click.stop="">
         <div class="modal-header">
           <h3>Добавление участников</h3>
@@ -1001,7 +1001,7 @@
           </button>
         </div>
       </div>
-    </modal>
+    </Modal>
   </div>
 </template>
 

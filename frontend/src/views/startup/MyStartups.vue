@@ -2,69 +2,166 @@
   <div class="my-startups">
     <div class="header-container">
       <h1>Мои стартапы</h1>
-      <button @click="createNewStartup" class="create-btn">
+      <button v-if="!selectedProjectId" @click="showCreateModal = true" class="create-btn">
         <i class="fas fa-plus"></i>
         Создать стартап
       </button>
-    </div>
-    
-    <div v-if="loading" class="loading-container">
-      <div class="spinner"></div>
-      <p>Загрузка стартапов...</p>
-    </div>
-    
-    <div v-else-if="startups.length === 0" class="empty-state">
-      <p>У вас пока нет созданных стартапов</p>
-      <button @click="createNewStartup" class="btn btn-primary">
-        Создать стартап
+      <button v-else @click="selectedProjectId = null" class="back-btn">
+        <i class="fas fa-arrow-left"></i>
+        Вернуться к списку
       </button>
     </div>
+
+    <!-- Модальное окно для создания стартапа -->
+    <Modal :show="showCreateModal" @close="closeCreateModal">
+      <template #header>
+        <h2>Создание стартапа</h2>
+      </template>
+      
+      <template #default>
+        <CreateStartupForm @success="handleStartupCreated" @cancel="closeCreateModal" />
+      </template>
+    </Modal>
     
-    <div v-else class="startups-grid">
-      <div v-for="startup in startups" :key="startup.id" class="startup-card">
-        <div class="startup-image">
-          <img :src="startup.image || '/placeholder.jpg'" :alt="startup.title" class="image">
-          <div class="stage-badge">{{ getStageText(startup.stage) }}</div>
+    <!-- Контент -->
+    <div class="tab-content">
+      <!-- Список стартапов -->
+      <div v-if="!selectedProjectId" class="startups-tab">
+        <div v-if="loading" class="loading-container">
+          <div class="spinner"></div>
+          <p>Загрузка стартапов...</p>
         </div>
         
-        <div class="startup-content">
-          <h2>{{ startup.title }}</h2>
-          <p class="description">{{ startup.description }}</p>
-          
-          <div class="stats">
-            <div class="stat-item">
-              <span class="label">Требуемые инвестиции:</span>
-              <span class="value">{{ formatCurrency(startup.investmentNeeded) }}</span>
+        <div v-else class="startups-lists">
+          <!-- Список "Созданные мной" -->
+          <div class="startup-list-section">
+            <div class="list-header" @click="createdByMeExpanded = !createdByMeExpanded">
+              <h2>
+                <i class="fas" :class="createdByMeExpanded ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+                Созданные мной
+                <span class="count-badge" v-if="createdByMe.length > 0">{{ createdByMe.length }}</span>
+              </h2>
             </div>
-            <div class="stat-item">
-              <span class="label">Собрано:</span>
-              <span class="value">{{ formatCurrency(startup.investmentCollected || 0) }}</span>
+            <div v-if="createdByMeExpanded" class="list-content">
+              <div v-if="createdByMe.length === 0" class="empty-state">
+                <p>У вас пока нет созданных стартапов</p>
+                <button @click="showCreateModal = true" class="btn btn-primary">
+                  Создать стартап
+                </button>
+              </div>
+              <div v-else class="startups-grid">
+          <div 
+            v-for="startup in createdByMe" 
+            :key="startup.id" 
+            class="startup-card clickable"
+            @click="openTeamManagement(startup.id)"
+          >
+            <div class="startup-image">
+              <img 
+                :src="getImageSrc(startup.image)" 
+                :alt="startup.title" 
+                class="image"
+                @error="handleImageError"
+              >
+              <div class="stage-badge">{{ getStageText(startup.stage) }}</div>
             </div>
-            <div class="stat-item">
-              <span class="label">Ожидаемая ROI:</span>
-              <span class="value">{{ startup.expectedRoi }}%</span>
+            
+            <div class="startup-content">
+              <h2>{{ startup.title }}</h2>
+              <p class="description">{{ startup.description }}</p>
+              
+              <div class="stats">
+                <div class="stat-item">
+                  <span class="label">Требуемые инвестиции:</span>
+                  <span class="value">{{ formatCurrency(startup.investmentNeeded) }}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="label">Собрано:</span>
+                  <span class="value">{{ formatCurrency(startup.investmentCollected || 0) }}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="label">Ожидаемая ROI:</span>
+                  <span class="value">{{ startup.expectedRoi }}%</span>
+                </div>
+                <div class="stat-item" v-if="startup.location">
+                  <span class="label">Местоположение:</span>
+                  <span class="value">{{ startup.location }}</span>
+                </div>
+              </div>
             </div>
-            <div class="stat-item" v-if="startup.location">
-              <span class="label">Местоположение:</span>
-              <span class="value">{{ startup.location }}</span>
-            </div>
-          </div>
-
-          <div class="status-badge" :class="startup.status">
-            {{ getStatusText(startup.status) }}
-          </div>
-
-          <div class="actions">
-            <button @click="editStartup(startup.id)" class="btn btn-secondary">
-              <i class="fas fa-edit"></i>
-              Редактировать
-            </button>
-            <button @click="viewDetails(startup.id)" class="btn btn-primary">
-              <i class="fas fa-eye"></i>
-              Подробнее
-            </button>
           </div>
         </div>
+          </div>
+        </div>
+
+          <!-- Список "Где я участник" -->
+          <div class="startup-list-section">
+            <div class="list-header" @click="memberOfExpanded = !memberOfExpanded">
+              <h2>
+                <i class="fas" :class="memberOfExpanded ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+                Где я участник
+                <span class="count-badge" v-if="memberOf.length > 0">{{ memberOf.length }}</span>
+              </h2>
+            </div>
+            <div v-if="memberOfExpanded" class="list-content">
+              <div v-if="memberOf.length === 0" class="empty-state">
+                <p>Вы пока не являетесь участником ни одного стартапа</p>
+              </div>
+              <div v-else class="startups-grid">
+                <div 
+                  v-for="startup in memberOf" 
+                  :key="startup.id" 
+                  class="startup-card clickable"
+                  @click="openTeamManagement(startup.id)"
+                >
+                  <div class="startup-image">
+                    <img 
+                      :src="getImageSrc(startup.image)" 
+                      :alt="startup.title" 
+                      class="image"
+                      @error="handleImageError"
+                    >
+                    <div class="stage-badge">{{ getStageText(startup.stage) }}</div>
+                  </div>
+                  
+                  <div class="startup-content">
+                    <h2>{{ startup.title }}</h2>
+                    <p class="description">{{ startup.description }}</p>
+                    
+                    <div class="stats">
+                      <div class="stat-item">
+                        <span class="label">Требуемые инвестиции:</span>
+                        <span class="value">{{ formatCurrency(startup.investmentNeeded) }}</span>
+                      </div>
+                      <div class="stat-item">
+                        <span class="label">Собрано:</span>
+                        <span class="value">{{ formatCurrency(startup.investmentCollected || 0) }}</span>
+                      </div>
+                      <div class="stat-item">
+                        <span class="label">Ожидаемая ROI:</span>
+                        <span class="value">{{ startup.expectedRoi }}%</span>
+                      </div>
+                      <div class="stat-item" v-if="startup.location">
+                        <span class="label">Местоположение:</span>
+                        <span class="value">{{ startup.location }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Управление командой -->
+      <div v-else class="team-tab">
+        <TeamManagement 
+          ref="teamManagementRef"
+          :startups="[...createdByMe, ...memberOf]"
+          :initial-project-id="selectedProjectId"
+          @refresh="fetchStartups"
+        />
       </div>
     </div>
   </div>
@@ -72,22 +169,39 @@
 
 <script>
 import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
 import { projectsService } from '@/services/projects.service';
+import Modal from '@/components/ui/Modal.vue';
+import CreateStartupForm from './CreateStartupForm.vue';
+import TeamManagement from './TeamManagement.vue';
 
 export default {
   name: 'MyStartups',
+  components: {
+    Modal,
+    CreateStartupForm,
+    TeamManagement
+  },
   setup() {
-    const router = useRouter();
-    const startups = ref([]);
+    const createdByMe = ref([]);
+    const memberOf = ref([]);
     const loading = ref(false);
+    const showCreateModal = ref(false);
+    const createdByMeExpanded = ref(true);
+    const memberOfExpanded = ref(true);
+    const selectedProjectId = ref(null);
+    const teamManagementRef = ref(null);
 
     const fetchStartups = async () => {
       loading.value = true;
       try {
-        const response = await projectsService.getMyProjects();
-        console.log('Получены стартапы:', response);
-        startups.value = response;
+        const [createdResponse, memberResponse] = await Promise.all([
+          projectsService.getMyProjects(),
+          projectsService.getProjectsWhereIAmMember()
+        ]);
+        console.log('Получены созданные стартапы:', createdResponse);
+        console.log('Получены стартапы, где я участник:', memberResponse);
+        createdByMe.value = createdResponse || [];
+        memberOf.value = memberResponse || [];
       } catch (error) {
         console.error('Ошибка при получении стартапов:', error);
       } finally {
@@ -123,29 +237,66 @@ export default {
       return stageMap[stage] || stage;
     };
 
-    const editStartup = (id) => {
-      router.push(`/startup/edit/${id}`);
+    const closeCreateModal = () => {
+      showCreateModal.value = false;
     };
 
-    const viewDetails = (id) => {
-      router.push(`/startups/${id}`);
+    const handleStartupCreated = () => {
+      showCreateModal.value = false;
+      fetchStartups(); // Обновляем список стартапов
     };
 
-    const createNewStartup = () => {
-      router.push('/startup/create');
+    const getImageSrc = (image) => {
+      if (!image) return getPlaceholderImage();
+      // Если это base64, возвращаем как есть
+      if (image.startsWith('data:image')) {
+        return image;
+      }
+      // Если это URL, возвращаем как есть
+      if (image.startsWith('http')) {
+        return image;
+      }
+      // Относительный путь
+      return image.startsWith('/') ? image : `/${image}`;
+    };
+
+    const getPlaceholderImage = () => {
+      // Используем простой SVG placeholder в base64, чтобы избежать 404 ошибок
+      const svg = `<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
+        <rect width="400" height="300" fill="#e0e0e0"/>
+        <text x="50%" y="50%" font-family="Arial, sans-serif" font-size="18" fill="#999" text-anchor="middle" dominant-baseline="middle">Нет изображения</text>
+      </svg>`;
+      return 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg)));
+    };
+
+    const handleImageError = (event) => {
+      event.target.src = getPlaceholderImage();
+    };
+
+    const openTeamManagement = (projectId) => {
+      selectedProjectId.value = projectId;
     };
 
     onMounted(fetchStartups);
 
     return {
-      startups,
+      createdByMe,
+      memberOf,
       loading,
+      showCreateModal,
+      createdByMeExpanded,
+      memberOfExpanded,
+      selectedProjectId,
+      teamManagementRef,
       formatCurrency,
       getStatusText,
       getStageText,
-      editStartup,
-      viewDetails,
-      createNewStartup
+      closeCreateModal,
+      handleStartupCreated,
+      getImageSrc,
+      handleImageError,
+      getPlaceholderImage,
+      openTeamManagement
     };
   }
 };
@@ -163,14 +314,138 @@ export default {
   margin-bottom: 2rem;
 }
 
-.create-btn {
-  background: #007bff;
-  color: white;
-  padding: 0.5rem 1rem;
+.tabs-container {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.tab-btn {
+  padding: 0.75rem 1.5rem;
+  background: none;
   border: none;
-  border-radius: 4px;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  font-size: 1rem;
+  color: #666;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.tab-btn:hover {
+  color: #2196F3;
+  background: rgba(33, 150, 243, 0.05);
+}
+
+.tab-btn.active {
+  color: #2196F3;
+  border-bottom-color: #2196F3;
+  font-weight: 600;
+}
+
+.tab-content {
+  min-height: 400px;
+}
+
+.startups-lists {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.startup-list-section {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.list-header {
+  padding: 1rem 1.5rem;
+  background: #f8f9fa;
+  border-bottom: 2px solid #e0e0e0;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.2s;
+}
+
+.list-header:hover {
+  background: #e9ecef;
+}
+
+.list-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #333;
+}
+
+.list-header h2 i {
+  color: #2196F3;
+  transition: transform 0.2s;
+}
+
+.count-badge {
+  background: #2196F3;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-left: auto;
+}
+
+.list-content {
+  padding: 1.5rem;
+}
+
+.create-btn {
+  background: #2196F3;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 12px;
   cursor: pointer;
   font-size: 0.875rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(33, 150, 243, 0.2);
+}
+
+.create-btn:hover {
+  background: #1976D2;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(33, 150, 243, 0.3);
+}
+
+.back-btn {
+  background: #2196F3;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(33, 150, 243, 0.2);
+}
+
+.back-btn:hover {
+  background: #1976D2;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(33, 150, 243, 0.3);
 }
 
 .startups-grid {
@@ -188,8 +463,13 @@ export default {
   transition: transform 0.2s;
 }
 
+.startup-card.clickable {
+  cursor: pointer;
+}
+
 .startup-card:hover {
   transform: translateY(-5px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 .startup-image {
@@ -292,13 +572,28 @@ export default {
 }
 
 .btn-primary {
-  background: #007bff;
+  background: #2196F3;
   color: white;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  background: #1976D2;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(33, 150, 243, 0.3);
 }
 
 .btn-secondary {
-  background: #6c757d;
+  background: #2196F3;
   color: white;
+  opacity: 0.8;
+  transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+  opacity: 1;
+  background: #1976D2;
+  transform: translateY(-1px);
 }
 
 .empty-state {
@@ -324,7 +619,7 @@ export default {
 
 .spinner {
   border: 4px solid rgba(0, 0, 0, 0.1);
-  border-top: 4px solid #007bff;
+  border-top: 4px solid #2196F3;
   border-radius: 50%;
   width: 40px;
   height: 40px;

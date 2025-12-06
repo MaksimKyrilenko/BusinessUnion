@@ -65,8 +65,27 @@ export class EducationService implements OnModuleInit {
       }
 
       this.logger.log(`Found ${courses.length} courses in database`);
-      return courses.map(course => ({
-        id: course.id.toString(),
+      
+      // Дедупликация курсов по title + platform для предотвращения дублирования
+      const uniqueCourses = new Map<string, CourseEntity>();
+      for (const course of courses) {
+        const key = `${course.title.toLowerCase()}_${course.platform}`;
+        if (!uniqueCourses.has(key)) {
+          uniqueCourses.set(key, course);
+        } else {
+          // Если найден дубликат, оставляем более свежий
+          const existing = uniqueCourses.get(key);
+          if (existing && course.updatedAt > existing.updatedAt) {
+            uniqueCourses.set(key, course);
+          }
+        }
+      }
+
+      const deduplicatedCourses = Array.from(uniqueCourses.values());
+      this.logger.log(`After deduplication: ${deduplicatedCourses.length} unique courses`);
+
+      return deduplicatedCourses.map(course => ({
+        id: course.externalId || course.id.toString(),
         title: course.title,
         description: course.description,
         platform: course.platform,
@@ -134,13 +153,24 @@ export class EducationService implements OnModuleInit {
     for (const course of courses) {
       try {
         // Проверяем, существует ли курс с таким externalId
-        const existingCourse = await this.courseRepository.findOne({
+        let existingCourse = await this.courseRepository.findOne({
           where: { externalId: course.id }
         });
+
+        // Если не найден по externalId, проверяем по title + platform (для старых записей)
+        if (!existingCourse) {
+          existingCourse = await this.courseRepository.findOne({
+            where: {
+              title: course.title,
+              platform: course.platform
+            }
+          });
+        }
 
         if (existingCourse) {
           // Обновляем существующий курс
           await this.courseRepository.update(existingCourse.id, {
+            externalId: course.id, // Обновляем externalId если его не было
             title: course.title,
             description: course.description,
             platform: course.platform,
@@ -182,7 +212,39 @@ export class EducationService implements OnModuleInit {
           this.logger.log(`Saved new course: ${course.title}`);
         }
       } catch (error) {
-        this.logger.error(`Error saving course ${course.title}:`, error);
+        // Если ошибка из-за дублирования externalId, пытаемся найти и обновить существующий
+        if (error.code === 'ER_DUP_ENTRY' || error.message?.includes('UNIQUE constraint')) {
+          this.logger.warn(`Duplicate externalId detected for course: ${course.title}, trying to update existing...`);
+          try {
+            const existing = await this.courseRepository.findOne({
+              where: { externalId: course.id }
+            });
+            if (existing) {
+              await this.courseRepository.update(existing.id, {
+                title: course.title,
+                description: course.description,
+                platform: course.platform,
+                url: course.url,
+                price: course.price,
+                rating: course.rating,
+                duration: course.duration,
+                level: course.level,
+                icon: course.icon,
+                color: course.color,
+                category: course.category,
+                features: course.features,
+                oldPrice: course.oldPrice,
+                isActive: true,
+                updatedAt: new Date()
+              });
+              this.logger.log(`Updated duplicate course: ${course.title}`);
+            }
+          } catch (updateError) {
+            this.logger.error(`Error updating duplicate course ${course.title}:`, updateError);
+          }
+        } else {
+          this.logger.error(`Error saving course ${course.title}:`, error);
+        }
       }
     }
     
@@ -194,9 +256,10 @@ export class EducationService implements OnModuleInit {
     
     try {
       // Возвращаем статические курсы Coursera, так как парсинг блокируется
+      // Используем стабильные ID на основе title + platform для предотвращения дублирования
       const courses: Course[] = [
         {
-          id: `coursera_${Date.now()}_1`,
+          id: 'coursera_entrepreneurship_basics',
           title: 'Основы предпринимательства',
           description: 'Изучите основы создания и развития бизнеса с нуля. От идеи до первого клиента.',
           platform: 'coursera',
@@ -211,7 +274,7 @@ export class EducationService implements OnModuleInit {
           features: ['Сертификат', 'Практические задания', 'Менторство']
         },
         {
-          id: `coursera_${Date.now()}_2`,
+          id: 'coursera_financial_markets',
           title: 'Финансовые рынки и инвестиции',
           description: 'Поймите принципы работы финансовых рынков и научитесь принимать инвестиционные решения.',
           platform: 'coursera',
@@ -226,7 +289,7 @@ export class EducationService implements OnModuleInit {
           features: ['Сертификат', 'Практические задания', 'Менторство']
         },
         {
-          id: `coursera_${Date.now()}_3`,
+          id: 'coursera_blockchain_crypto',
           title: 'Блокчейн и криптовалюты',
           description: 'Изучите технологии блокчейна и принципы работы с криптовалютами.',
           platform: 'coursera',
@@ -255,9 +318,10 @@ export class EducationService implements OnModuleInit {
     
     try {
       // Возвращаем статические курсы Udemy, так как парсинг блокируется
+      // Используем стабильные ID на основе title + platform для предотвращения дублирования
       const courses: Course[] = [
         {
-          id: `udemy_${Date.now()}_1`,
+          id: 'udemy_startup_complete_course',
           title: 'Полный курс по созданию стартапа',
           description: 'От идеи до IPO: полный цикл создания и развития стартапа с нуля.',
           platform: 'udemy',
@@ -273,7 +337,7 @@ export class EducationService implements OnModuleInit {
           features: ['Пожизненный доступ', 'Сертификат', 'Поддержка']
         },
         {
-          id: `udemy_${Date.now()}_2`,
+          id: 'udemy_stock_investing',
           title: 'Инвестиции в акции и облигации',
           description: 'Научитесь инвестировать в ценные бумаги и строить портфель.',
           platform: 'udemy',
@@ -289,7 +353,7 @@ export class EducationService implements OnModuleInit {
           features: ['Пожизненный доступ', 'Сертификат', 'Поддержка']
         },
         {
-          id: `udemy_${Date.now()}_3`,
+          id: 'udemy_crypto_trading_beginners',
           title: 'Трейдинг криптовалют для начинающих',
           description: 'Основы торговли на криптовалютном рынке и технический анализ.',
           platform: 'udemy',
@@ -305,7 +369,7 @@ export class EducationService implements OnModuleInit {
           features: ['Пожизненный доступ', 'Сертификат', 'Поддержка']
         },
         {
-          id: `udemy_${Date.now()}_4`,
+          id: 'udemy_business_management',
           title: 'Управление бизнесом и командой',
           description: 'Стратегии эффективного управления компанией и мотивации сотрудников.',
           platform: 'udemy',
