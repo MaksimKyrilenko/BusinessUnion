@@ -104,6 +104,15 @@ export default {
   background-color: #5a6268;
 }
 
+.base-button.danger {
+  background-color: #dc3545;
+  color: white;
+}
+
+.base-button.danger:hover:not(:disabled) {
+  background-color: #c82333;
+}
+
 /* Sizes */
 .base-button.small {
   padding: 0.5rem 0.75rem;

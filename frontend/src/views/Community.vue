@@ -101,27 +101,30 @@
       <template #default>
         <form @submit.prevent="createCommunity" class="create-form">
           <div class="form-group">
-            <label>Название сообщества</label>
+            <label>Название сообщества <span class="required">*</span></label>
             <input 
               v-model="newCommunity.name" 
               type="text" 
               required
-              placeholder="Введите название"
+              placeholder="Введите название сообщества"
+              class="form-input"
             >
           </div>
 
           <div class="form-group">
-            <label>Описание</label>
+            <label>Описание <span class="required">*</span></label>
             <textarea 
               v-model="newCommunity.description" 
               required
-              placeholder="Опишите ваше сообщество"
+              placeholder="Опишите ваше сообщество, его цели и тематику"
+              rows="4"
+              class="form-textarea"
             ></textarea>
           </div>
 
           <div class="form-group">
-            <label>Категория</label>
-            <select v-model="newCommunity.categoryId" required>
+            <label>Категория <span class="required">*</span></label>
+            <select v-model="newCommunity.categoryId" required class="form-select">
               <option value="">Выберите категорию</option>
               <option 
                 v-for="category in categories" 
@@ -135,7 +138,24 @@
 
           <div class="form-group">
             <label>Изображение сообщества</label>
-            <input type="file" @change="handleImageUpload" accept="image/*">
+            <div v-if="newCommunity.imagePreview" class="image-preview-container">
+              <img :src="newCommunity.imagePreview" alt="Preview" class="preview-image">
+              <button @click="removeImage" class="remove-image-btn" type="button">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+            <input 
+              type="file" 
+              @change="handleImageUpload" 
+              accept="image/*"
+              id="community-image"
+              style="display: none"
+            >
+            <label for="community-image" class="image-upload-label">
+              <i class="fas fa-image"></i>
+              {{ newCommunity.imagePreview ? 'Изменить изображение' : 'Загрузить изображение' }}
+            </label>
+            <p class="form-hint">Рекомендуемый размер: 1200x400px. Максимальный размер: 5MB</p>
           </div>
         </form>
       </template>
@@ -189,7 +209,9 @@ export default defineComponent({
       name: '',
       description: '',
       categoryId: '',
-      image: null
+      image: null,
+      imagePreview: null,
+      imageFile: null
     })
 
     const loadData = async () => {
@@ -260,45 +282,100 @@ export default defineComponent({
 
     const createCommunity = async () => {
       if (!newCommunity.value.name || !newCommunity.value.description || !newCommunity.value.categoryId) {
+        error.value = 'Заполните все обязательные поля'
         return
       }
 
       creating.value = true
       try {
+        let imageUrl = null
+
+        // Если есть файл изображения, загружаем его на сервер
+        if (newCommunity.value.imageFile) {
+          try {
+            const uploadResult = await communitiesService.uploadImage(newCommunity.value.imageFile)
+            imageUrl = uploadResult.url
+            // Освобождаем локальный blob URL
+            if (newCommunity.value.imagePreview && newCommunity.value.imagePreview.startsWith('blob:')) {
+              URL.revokeObjectURL(newCommunity.value.imagePreview)
+            }
+          } catch (uploadErr) {
+            console.error('Ошибка при загрузке изображения:', uploadErr)
+            error.value = 'Ошибка при загрузке изображения'
+            creating.value = false
+            return
+          }
+        }
+
         const communityData = {
-          name: newCommunity.value.name,
-          description: newCommunity.value.description,
+          name: newCommunity.value.name.trim(),
+          description: newCommunity.value.description.trim(),
           categoryId: parseInt(newCommunity.value.categoryId),
-          isPrivate: false
+          isPrivate: false,
+          image: imageUrl
         }
 
         const createdCommunity = await communitiesService.createCommunity(communityData)
         
-        // Добавляем созданное сообщество в список без перезагрузки
-        // Перезагружаем данные только если нужно получить актуальную информацию об участниках
+        // Перезагружаем данные для получения актуальной информации
         await loadData()
         
         showCreateModal.value = false
         
+        // Очищаем форму
+        if (newCommunity.value.imagePreview && newCommunity.value.imagePreview.startsWith('blob:')) {
+          URL.revokeObjectURL(newCommunity.value.imagePreview)
+        }
         newCommunity.value = {
           name: '',
           description: '',
           categoryId: '',
-          image: null
+          image: null,
+          imagePreview: null,
+          imageFile: null
         }
       } catch (err) {
         console.error('Ошибка при создании сообщества:', err)
-        error.value = 'Ошибка при создании сообщества'
+        error.value = err.response?.data?.message || 'Ошибка при создании сообщества'
       } finally {
         creating.value = false
       }
     }
 
-    const handleImageUpload = (event) => {
+    const handleImageUpload = async (event) => {
       const file = event.target.files[0]
       if (file) {
-        newCommunity.value.image = URL.createObjectURL(file)
+        try {
+          // Проверяем размер файла (5MB)
+          if (file.size > 5 * 1024 * 1024) {
+            error.value = 'Размер файла не должен превышать 5MB'
+            event.target.value = ''
+            return
+          }
+
+          // Освобождаем предыдущий blob URL, если есть
+          if (newCommunity.value.imagePreview && newCommunity.value.imagePreview.startsWith('blob:')) {
+            URL.revokeObjectURL(newCommunity.value.imagePreview)
+          }
+          // Показываем превью локально
+          newCommunity.value.imagePreview = URL.createObjectURL(file)
+          newCommunity.value.imageFile = file
+        } catch (err) {
+          console.error('Ошибка при обработке изображения:', err)
+          error.value = 'Ошибка при обработке изображения'
+        }
       }
+      event.target.value = ''
+    }
+
+    const removeImage = () => {
+      // Освобождаем blob URL
+      if (newCommunity.value.imagePreview && newCommunity.value.imagePreview.startsWith('blob:')) {
+        URL.revokeObjectURL(newCommunity.value.imagePreview)
+      }
+      newCommunity.value.imagePreview = null
+      newCommunity.value.imageFile = null
+      newCommunity.value.image = null
     }
 
     const showCommunityDetails = (community) => {
@@ -404,6 +481,7 @@ export default defineComponent({
       getCategoryIcon,
       createCommunity,
       handleImageUpload,
+      removeImage,
       showCommunityDetails,
       joinCommunity,
       leaveCommunity,
@@ -661,6 +739,8 @@ export default defineComponent({
   flex-direction: column;
   gap: 1.5rem;
   padding: 0.5rem;
+  max-width: 600px;
+  margin: 0 auto;
 }
 
 .form-group {
@@ -670,47 +750,130 @@ export default defineComponent({
 }
 
 .form-group label {
-  font-weight: 500;
+  font-weight: 600;
   color: var(--text-primary);
   font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
 }
 
-.form-group input,
-.form-group textarea,
-.form-group select {
-  padding: 0.75rem 1rem;
-  border: 1px solid var(--border-color);
+.required {
+  color: #e91e63;
+  font-weight: 700;
+}
+
+.form-input,
+.form-textarea,
+.form-select {
+  padding: 0.875rem 1rem;
+  border: 2px solid #e2e8f0;
   border-radius: var(--radius-lg);
   font-size: 0.95rem;
   background: #f8fafc;
   transition: all 0.3s ease;
+  font-family: inherit;
+  width: 100%;
 }
 
-.form-group input:focus,
-.form-group textarea:focus,
-.form-group select:focus {
+.form-input:focus,
+.form-textarea:focus,
+.form-select:focus {
   outline: none;
   border-color: var(--primary-color);
   box-shadow: 0 0 0 3px rgba(124, 77, 255, 0.1);
   background: white;
 }
 
-.form-group textarea {
-  min-height: 120px;
+.form-textarea {
+  min-height: 100px;
   resize: vertical;
+  line-height: 1.6;
 }
 
-.form-group input[type="file"] {
-  padding: 0.5rem;
-  background: white;
-  border: 2px dashed var(--border-color);
+.form-select {
   cursor: pointer;
-  text-align: center;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  padding-right: 2.5rem;
 }
 
-.form-group input[type="file"]:hover {
+.image-preview-container {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  margin-top: 0.5rem;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 2px solid var(--border-color);
+}
+
+.image-preview-container .preview-image {
+  width: 100%;
+  max-height: 300px;
+  object-fit: cover;
+  display: block;
+}
+
+.image-preview-container .remove-image-btn {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+}
+
+.image-preview-container .remove-image-btn:hover {
+  background: rgba(0, 0, 0, 0.9);
+  transform: scale(1.1);
+}
+
+.image-upload-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.5rem;
+  border: 2px dashed #cbd5e0;
+  border-radius: var(--radius-lg);
+  background: white;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+  font-weight: 500;
+  margin-top: 0.5rem;
+  width: 100%;
+}
+
+.image-upload-label:hover {
   border-color: var(--primary-color);
   background: #f8fafc;
+  color: var(--primary-color);
+  border-style: solid;
+}
+
+.image-upload-label i {
+  font-size: 1.1rem;
+}
+
+.form-hint {
+  margin: 0.5rem 0 0 0;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  font-style: italic;
 }
 
 :deep(.modal-footer) {
@@ -722,33 +885,41 @@ export default defineComponent({
   border-top: 1px solid var(--border-color);
 }
 
-:deep(.modal-footer .base-button) {
-  min-width: 120px;
+:deep(.modal-footer .btn) {
   padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: var(--radius-lg);
   font-size: 0.95rem;
   font-weight: 500;
-  border-radius: var(--radius-lg);
+  cursor: pointer;
   transition: all 0.3s ease;
+  min-width: 120px;
 }
 
-:deep(.modal-footer .base-button:last-child) {
-  background: var(--primary-gradient);
+:deep(.modal-footer .btn-primary) {
+  background: var(--primary-color);
   color: white;
-  border: none;
 }
 
-:deep(.modal-footer .base-button:last-child:hover) {
+:deep(.modal-footer .btn-primary:hover:not(:disabled)) {
+  background: var(--primary-hover);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.2);
+  box-shadow: 0 4px 12px rgba(124, 77, 255, 0.2);
 }
 
-:deep(.modal-footer .base-button[variant="secondary"]) {
+:deep(.modal-footer .btn-primary:disabled) {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+:deep(.modal-footer .btn-secondary) {
   background: #f1f5f9;
   color: var(--text-primary);
   border: 1px solid var(--border-color);
 }
 
-:deep(.modal-footer .base-button[variant="secondary"]:hover) {
+:deep(.modal-footer .btn-secondary:hover) {
   background: #e2e8f0;
 }
 

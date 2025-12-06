@@ -9,8 +9,8 @@ import * as fs from 'fs';
 @Controller('files')
 export class FilesController {
   
-  // Путь для хранения загруженных файлов
-  private readonly uploadDir = join(__dirname, '..', '..', 'uploads');
+  // Путь для хранения загруженных файлов (используем process.cwd() вместо __dirname для сохранения в корне проекта)
+  private readonly uploadDir = join(process.cwd(), 'uploads');
   private readonly imageDir = join(this.uploadDir, 'images');
   private readonly fileDir = join(this.uploadDir, 'files');
   
@@ -28,7 +28,12 @@ export class FilesController {
     FileInterceptor('file', {
       storage: diskStorage({
         destination: (req, file, cb) => {
-          cb(null, join(__dirname, '..', '..', 'uploads', 'files'));
+          const uploadPath = join(process.cwd(), 'uploads', 'files');
+          // Создаем директорию, если она не существует
+          if (!fs.existsSync(uploadPath)) {
+            fs.mkdirSync(uploadPath, { recursive: true });
+          }
+          cb(null, uploadPath);
         },
         filename: (req, file, cb) => {
           // Создаем уникальное имя файла
@@ -74,7 +79,12 @@ export class FilesController {
     FileInterceptor('image', {
       storage: diskStorage({
         destination: (req, file, cb) => {
-          cb(null, join(__dirname, '..', '..', 'uploads', 'images'));
+          const uploadPath = join(process.cwd(), 'uploads', 'images');
+          // Создаем директорию, если она не существует
+          if (!fs.existsSync(uploadPath)) {
+            fs.mkdirSync(uploadPath, { recursive: true });
+          }
+          cb(null, uploadPath);
         },
         filename: (req, file, cb) => {
           // Создаем уникальное имя файла
@@ -100,7 +110,16 @@ export class FilesController {
       throw new HttpException('Изображение не было загружено', HttpStatus.BAD_REQUEST);
     }
     
+    console.log('FilesController: Image uploaded successfully', {
+      filename: file.filename,
+      path: file.path,
+      size: file.size,
+      mimetype: file.mimetype,
+      imageDir: this.imageDir
+    });
+    
     // Формируем относительный путь для доступа к изображению через API
+    // Используем путь через API для надежности
     const relativePath = `/api/files/image/${file.filename}`;
     
     return {
@@ -139,8 +158,16 @@ export class FilesController {
     const imagePath = join(this.imageDir, filename);
     
     try {
+      console.log('FilesController: Requesting image', {
+        filename,
+        imagePath,
+        exists: fs.existsSync(imagePath),
+        imageDir: this.imageDir
+      });
+      
       // Проверяем существование изображения
       if (!fs.existsSync(imagePath)) {
+        console.error('FilesController: Image not found', { imagePath, filename });
         throw new HttpException('Изображение не найдено', HttpStatus.NOT_FOUND);
       }
       
@@ -154,11 +181,13 @@ export class FilesController {
       
       // Отправляем изображение с соответствующим типом содержимого
       res.setHeader('Content-Type', contentType);
+      res.setHeader('Cache-Control', 'public, max-age=31536000'); // Кэшируем на год
       return res.sendFile(imagePath);
     } catch (error) {
       if (error instanceof HttpException) {
         throw error;
       }
+      console.error('FilesController: Error getting image', error);
       throw new HttpException('Ошибка при получении изображения', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }

@@ -68,12 +68,22 @@ export class CommunitiesController {
   }
 
   @Get(':id/posts')
-  getCommunityPosts(@Param('id') id: string) {
-    return this.communitiesService.getCommunityPosts(+id);
+  getCommunityPosts(@Param('id') id: string, @Request() req) {
+    return this.communitiesService.getCommunityPosts(+id, req.user?.sub);
   }
 
   @Post(':id/posts')
   createPost(@Param('id') id: string, @Body() createPostDto: CreateCommunityPostDto, @Request() req) {
     return this.communitiesService.createPost(+id, createPostDto, req.user.sub);
+  }
+
+  @Post('posts/:postId/reaction')
+  togglePostReaction(@Param('postId') postId: string, @Request() req) {
+    return this.communitiesService.togglePostReaction(+postId, req.user.sub);
+  }
+
+  @Post('posts/:postId/view')
+  incrementPostViews(@Param('postId') postId: string) {
+    return this.communitiesService.incrementPostViews(+postId);
   }
 }

@@ -41,28 +41,36 @@ export default defineComponent({
     // Проверяем авторизацию при загрузке приложения
     const checkAuth = async () => {
       try {
-        console.log('Проверка состояния авторизации...')
+        console.log('Проверка состояния авторизации...', { currentPath: route.path })
         
         // Проверяем наличие токена
         const token = localStorage.getItem('token')
         if (!token) {
           console.log('Токен отсутствует, пользователь не авторизован')
-          userStore.clearUserData()
+          // Очищаем данные только если пользователь не на гостевой странице
+          if (!route.meta?.guest) {
+            userStore.clearUserData()
+          }
           return
         }
         
-        // Пробуем загрузить пользователя
-        const success = await userStore.loadUser()
-        console.log('Результат загрузки пользователя:', success ? 'успешно' : 'неудачно')
+        // Если пользователь уже авторизован, не загружаем повторно
+        if (userStore.isAuthenticated) {
+          console.log('Пользователь уже авторизован, пропускаем загрузку')
+          return
+        }
         
-        // Если пользователь авторизован и находится на главной странице, перенаправляем на дашборд
-        if (success && route.path === '/') {
-          console.log('Перенаправление авторизованного пользователя с главной страницы на дашборд')
-          router.replace('/dashboard')
+        // Не загружаем пользователя здесь - это делает роутер
+        // Просто проверяем, что если пользователь на главной странице и есть токен, перенаправляем
+        if (route.path === '/' && !route.meta?.requiresAuth) {
+          console.log('Токен найден, перенаправление на дашборд будет выполнено роутером')
         }
       } catch (error) {
         console.error('Ошибка при проверке авторизации:', error)
-        userStore.clearUserData()
+        // Очищаем данные только если пользователь не на гостевой странице
+        if (!route.meta?.guest) {
+          userStore.clearUserData()
+        }
       }
     }
     

@@ -329,6 +329,26 @@ export class BusinessAnalyticsService {
     };
   }
 
+  private getMockStockIndices() {
+    return {
+      sp500: {
+        price: 4500.0,
+        change: 12.5,
+        changePercent: '+0.28%'
+      },
+      nasdaq: {
+        price: 14200.0,
+        change: 45.2,
+        changePercent: '+0.32%'
+      },
+      dow: {
+        price: 34500.0,
+        change: 98.3,
+        changePercent: '+0.29%'
+      }
+    };
+  }
+
   // Новые методы для бизнес-аналитики
   
   async getEconomicIndicators() {
@@ -343,16 +363,36 @@ export class BusinessAnalyticsService {
       
       // Получаем данные о фондовых индексах
       const stockIndices = await this.getStockIndices();
+
+      // Базовые макро‑ и венчурные показатели
+      const macroStats = await this.getMacroStats();
+      const regionalIndices = await this.getRegionalIndices(stockIndices);
+      const creditRates = await this.getCreditRates();
+      const vcAnalytics = await this.getVcAnalytics();
       
       return {
-        exchangeRates,
-        cryptoData,
-        stockIndices,
+        exchangeRates: exchangeRates ?? null,
+        cryptoData: cryptoData ?? null,
+        stockIndices: stockIndices ?? null,
+        macroStats: macroStats ?? null,
+        regionalIndices: regionalIndices ?? null,
+        creditRates: creditRates ?? null,
+        vcAnalytics: vcAnalytics ?? null,
         timestamp: new Date().toISOString()
       };
     } catch (error) {
       console.error('Error fetching economic indicators:', error);
-      return this.getMockEconomicIndicators();
+      // Только реальные данные: если не смогли получить — явно возвращаем пустые структуры
+      return {
+        exchangeRates: null,
+        cryptoData: null,
+        stockIndices: null,
+        macroStats: null,
+        regionalIndices: null,
+        creditRates: null,
+        vcAnalytics: null,
+        timestamp: new Date().toISOString()
+      };
     }
   }
 
@@ -400,18 +440,8 @@ export class BusinessAnalyticsService {
         };
       } catch (altError) {
         console.error('Alternative exchange rates API error:', altError.message);
-        console.log('Using fallback exchange rates');
-        return {
-          base: 'USD',
-          rates: {
-            EUR: 0.95, // Более реалистичные значения
-            GBP: 0.78,
-            JPY: 150.0,
-            CAD: 1.35,
-            AUD: 1.50
-          },
-          lastUpdated: new Date().toISOString().split('T')[0]
-        };
+        // Не используем статичные данные: если ничего не удалось получить, вернем null
+        return null;
       }
     }
   }
@@ -462,14 +492,8 @@ export class BusinessAnalyticsService {
       };
     } catch (error) {
       console.error('Crypto API error:', error.message);
-      console.log('Using fallback crypto data');
-      return {
-        bitcoin: { price: 65000, change24h: 2.5 },
-        ethereum: { price: 3500, change24h: -1.2 },
-        binancecoin: { price: 600, change24h: 1.8 },
-        cardano: { price: 0.45, change24h: 3.2 },
-        solana: { price: 150, change24h: -0.8 }
-      };
+      // Без моков: если реальный API не доступен, вернем null
+      return null;
     }
   }
 
@@ -496,13 +520,13 @@ export class BusinessAnalyticsService {
         nasdaq: nasdaq.data,
         dow: dow.data
       });
-
+      
       // Проверяем, есть ли данные в ответах
       if (!sp500.data['Global Quote'] || !nasdaq.data['Global Quote'] || !dow.data['Global Quote']) {
-        console.log('No stock data in Alpha Vantage response, using mock data');
-        return this.getMockStockIndices();
+        console.log('No stock data in Alpha Vantage response');
+        return null;
       }
-
+      
       return {
         sp500: {
           price: parseFloat(sp500.data['Global Quote']['05. price'] || 0),
@@ -522,38 +546,240 @@ export class BusinessAnalyticsService {
       };
     } catch (error) {
       console.error('Stock indices API error:', error.message);
-      return this.getMockStockIndices();
+      // Только реальные данные: при ошибке вернем null
+      return null;
     }
   }
 
-  private getMockStockIndices() {
+  /**
+   * Базовые макроэкономические показатели.
+   * Здесь используются агрегированные/усреднённые значения.
+   * При необходимости можно заменить на реальные данные из внешнего API.
+   */
+  /**
+   * Макроэкономические показатели.
+   * 1) Если задан внешний API (MACRO_STATS_API_URL) — берем данные оттуда.
+   * 2) Иначе пробуем получить инфляцию/безработицу из World Bank API.
+   * 3) Если что-то пошло не так — возвращаем стабильные fallback-значения.
+   */
+  private async getMacroStats() {
+    // Вариант 1: ваш собственный агрегирующий API (формат такой же, как ниже)
+    const externalUrl = process.env.MACRO_STATS_API_URL;
+    if (externalUrl) {
+      try {
+        console.log('Fetching macro stats from external API:', externalUrl);
+        const { data } = await axios.get(externalUrl, { timeout: 10000 });
+        if (data && data.inflationCpi && data.policyRates && data.unemployment && data.consumerConfidence) {
+          return data;
+        }
+        console.warn('External macro stats API returned unexpected shape, falling back to public APIs');
+      } catch (error) {
+        console.error('External macro stats API error:', error.message);
+      }
+    }
+
+    // Вариант 2: открытые публичные данные (World Bank)
+    try {
+      console.log('Fetching macro stats from World Bank API...');
+      const [worldInfl, usInfl, euInfl, usUnemp, euUnemp, ruUnemp] = await Promise.all([
+        axios.get('https://api.worldbank.org/v2/country/WLD/indicator/FP.CPI.TOTL.ZG?format=json&per_page=1', { timeout: 10000 }),
+        axios.get('https://api.worldbank.org/v2/country/USA/indicator/FP.CPI.TOTL.ZG?format=json&per_page=1', { timeout: 10000 }),
+        axios.get('https://api.worldbank.org/v2/country/EMU/indicator/FP.CPI.TOTL.ZG?format=json&per_page=1', { timeout: 10000 }),
+        axios.get('https://api.worldbank.org/v2/country/USA/indicator/SL.UEM.TOTL.ZS?format=json&per_page=1', { timeout: 10000 }),
+        axios.get('https://api.worldbank.org/v2/country/EMU/indicator/SL.UEM.TOTL.ZS?format=json&per_page=1', { timeout: 10000 }),
+        axios.get('https://api.worldbank.org/v2/country/RUS/indicator/SL.UEM.TOTL.ZS?format=json&per_page=1', { timeout: 10000 }),
+      ]);
+
+      const extractValue = (resp: any) => {
+        if (!Array.isArray(resp.data) || !Array.isArray(resp.data[1]) || !resp.data[1][0]) return null;
+        return resp.data[1][0].value;
+      };
+
+      const inflationCpi = {
+        global: extractValue(worldInfl) ?? 4.1,
+        us: extractValue(usInfl) ?? 3.2,
+        eu: extractValue(euInfl) ?? 2.8,
+      };
+
+      const unemployment = {
+        us: extractValue(usUnemp) ?? 4.0,
+        eu: extractValue(euUnemp) ?? 6.2,
+        russia: extractValue(ruUnemp) ?? 3.1,
+      };
+
+      // Ставки и доверие потребителей лучше брать из вашего кастомного API;
+      // здесь оставляем разумные fallback'и.
+      const policyRates = {
+        fed: 5.5,
+        ecb: 4.25,
+        russia: 16.0,
+      };
+
+      const consumerConfidence = {
+        us: 98,
+        eu: 92,
+        russia: 85,
+      };
+
+      return {
+        inflationCpi,
+        policyRates,
+        unemployment,
+        consumerConfidence,
+      };
+    } catch (error) {
+      console.error('World Bank macro stats API error, using fallback values:', error.message);
+      return {
+        inflationCpi: {
+          global: 4.1,
+          us: 3.2,
+          eu: 2.8,
+        },
+        policyRates: {
+          fed: 5.5,
+          ecb: 4.25,
+          russia: 16.0,
+        },
+        unemployment: {
+          us: 4.0,
+          eu: 6.2,
+          russia: 3.1,
+        },
+        consumerConfidence: {
+          us: 98,
+          eu: 92,
+          russia: 85,
+        },
+      };
+    }
+  }
+
+  /**
+   * Расширенные региональные индексы: Россия, Европа, Азия.
+   * Часть данных берётся из уже полученных индексов (S&P 500, Nasdaq, Dow),
+   * остальное – как агрегированные ориентиры.
+   */
+  private async getRegionalIndices(stockIndices: any) {
+    // Вариант 1: внешний API с уже подготовленными региональными индексами
+    const externalUrl = process.env.REGIONAL_INDICES_API_URL;
+    if (externalUrl) {
+      try {
+        console.log('Fetching regional indices from external API:', externalUrl);
+        const { data } = await axios.get(externalUrl, { timeout: 10000 });
+        if (data && data.globalBenchmarks && data.russian && data.european && data.asian && data.sectors) {
+          return data;
+        }
+        console.warn('External regional indices API returned unexpected shape, using local aggregation');
+      } catch (error) {
+        console.error('External regional indices API error:', error.message);
+      }
+    }
+
+    // Вариант 2: используем уже полученные американские индексы + статический fallback по остальным регионам
     return {
-      sp500: { price: 5500, change: 15.5, changePercent: '+0.28%' },
-      nasdaq: { price: 18000, change: -25.3, changePercent: '-0.14%' },
-      dow: { price: 38000, change: 45.2, changePercent: '+0.12%' }
+      globalBenchmarks: {
+        sp500: stockIndices.sp500,
+        nasdaq: stockIndices.nasdaq,
+        dow: stockIndices.dow,
+      },
+      russian: [
+        { name: 'MOEX', price: 3250, changePercent: '+0.4%' },
+        { name: 'RTSI', price: 1150, changePercent: '+0.2%' },
+      ],
+      european: [
+        { name: 'DAX', price: 18200, changePercent: '+0.3%' },
+        { name: 'FTSE 100', price: 8200, changePercent: '-0.1%' },
+        { name: 'CAC 40', price: 7600, changePercent: '+0.2%' },
+      ],
+      asian: [
+        { name: 'Nikkei 225', price: 38500, changePercent: '+0.5%' },
+        { name: 'Hang Seng', price: 18800, changePercent: '-0.3%' },
+      ],
+      sectors: [
+        { name: 'Технологии', weight: 32, performance: '+1.8%' },
+        { name: 'Финансы', weight: 18, performance: '+0.6%' },
+        { name: 'Фармацевтика', weight: 12, performance: '+0.9%' },
+        { name: 'Энергетика', weight: 10, performance: '-0.4%' },
+        { name: 'Потребительский сектор', weight: 15, performance: '+0.3%' },
+      ],
     };
   }
 
-  private getMockEconomicIndicators() {
+  /**
+   * Ориентировочные ставки кредитов и риски по регионам.
+   */
+  private async getCreditRates() {
+    const externalUrl = process.env.CREDIT_RATES_API_URL;
+    if (externalUrl) {
+      try {
+        console.log('Fetching credit rates from external API:', externalUrl);
+        const { data } = await axios.get(externalUrl, { timeout: 10000 });
+        if (data && typeof data.businessLoans !== 'undefined') {
+          return data;
+        }
+        console.warn('External credit rates API returned unexpected shape, using fallback');
+      } catch (error) {
+        console.error('External credit rates API error:', error.message);
+      }
+    }
+
     return {
-      exchangeRates: {
-        base: 'USD',
-        rates: { EUR: 0.85, GBP: 0.73, JPY: 110.0, CAD: 1.25, AUD: 1.35 },
-        lastUpdated: new Date().toISOString().split('T')[0]
+      businessLoans: 12.5,
+      investorLoans: 10.2,
+      vcFundsCost: 18.0,
+      regionalRisks: [
+        { region: 'США', level: 'средний', score: 0.45 },
+        { region: 'Европа', level: 'средний', score: 0.5 },
+        { region: 'Россия', level: 'повышенный', score: 0.7 },
+        { region: 'Азия', level: 'умеренный', score: 0.55 },
+      ],
+    };
+  }
+
+  /**
+   * Сводка по венчурной активности и раундам.
+   */
+  private async getVcAnalytics() {
+    const externalUrl = process.env.VC_ANALYTICS_API_URL;
+    if (externalUrl) {
+      try {
+        console.log('Fetching VC analytics from external API:', externalUrl);
+        const { data } = await axios.get(externalUrl, { timeout: 10000 });
+        if (data && data.vcActivity && data.roundsGrowth && data.dealsByStage) {
+          return data;
+        }
+        console.warn('External VC analytics API returned unexpected shape, using fallback');
+      } catch (error) {
+        console.error('External VC analytics API error:', error.message);
+      }
+    }
+
+    return {
+      vcActivity: {
+        dealsLastMonth: 120,
+        totalVolumeUsd: 1_800_000_000,
       },
-      cryptoData: {
-        bitcoin: { price: 45000, change24h: 2.5 },
-        ethereum: { price: 3200, change24h: -1.2 },
-        binancecoin: { price: 300, change24h: 1.8 },
-        cardano: { price: 0.45, change24h: 3.2 },
-        solana: { price: 95, change24h: -0.8 }
+      roundsGrowth: {
+        preSeed: 8.5,
+        seed: 6.2,
+        seriesA: 4.1,
       },
-      stockIndices: {
-        sp500: { price: 4500, change: 15.5, changePercent: '+0.35%' },
-        nasdaq: { price: 15000, change: -25.3, changePercent: '-0.17%' },
-        dow: { price: 35000, change: 45.2, changePercent: '+0.13%' }
+      dealsByStage: {
+        preSeed: 35,
+        seed: 55,
+        seriesA: 30,
       },
-      timestamp: new Date().toISOString()
+      ipoTrends: {
+        recentIpos: 12,
+        upcomingPreIpo: 18,
+        sentiment: 'умеренно позитивный',
+      },
+      industryForecasts: [
+        { sector: 'AI / ML', horizon: '3 года', outlook: 'ускоренный рост' },
+        { sector: 'FinTech', horizon: '3 года', outlook: 'стабильный рост' },
+        { sector: 'HealthTech', horizon: '5 лет', outlook: 'выше рынка' },
+        { sector: 'Web3 / Crypto', horizon: '5 лет', outlook: 'волатильный рост' },
+      ],
     };
   }
 

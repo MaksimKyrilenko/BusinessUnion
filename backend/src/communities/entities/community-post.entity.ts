@@ -1,6 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
 import { Community } from './community.entity';
 import { User } from '../../users/user.entity';
+import { CommunityPostReaction } from './community-post-reaction.entity';
 
 @Entity()
 export class CommunityPost {
@@ -15,6 +16,9 @@ export class CommunityPost {
 
   @Column({ default: 0 })
   likesCount: number;
+
+  @Column({ default: 0 })
+  viewsCount: number;
 
   @Column({ default: 0 })
   commentsCount: number;
@@ -32,6 +36,9 @@ export class CommunityPost {
   @ManyToOne(() => Community, community => community.posts, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'communityId' })
   community: Community;
+
+  @OneToMany(() => CommunityPostReaction, reaction => reaction.post)
+  reactions: CommunityPostReaction[];
 
   @CreateDateColumn()
   createdAt: Date;

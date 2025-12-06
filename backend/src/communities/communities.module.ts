@@ -5,6 +5,7 @@ import { CommunitiesController } from './communities.controller';
 import { Community } from './entities/community.entity';
 import { CommunityMember } from './entities/community-member.entity';
 import { CommunityPost } from './entities/community-post.entity';
+import { CommunityPostReaction } from './entities/community-post-reaction.entity';
 import { CommunityCategory } from './entities/community-category.entity';
 
 @Module({
@@ -13,6 +14,7 @@ import { CommunityCategory } from './entities/community-category.entity';
       Community,
       CommunityMember,
       CommunityPost,
+      CommunityPostReaction,
       CommunityCategory,
     ]),
   ],

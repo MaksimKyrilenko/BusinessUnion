@@ -23,6 +23,7 @@ import { MessageModule } from './messages/message.module';
 import { MarketAnalyticsModule } from './market-analytics/market-analytics.module';
 import { EducationModule } from './education/education.module';
 import { CommunitiesModule } from './communities/communities.module';
+import { CryptoTrackerModule } from './crypto-tracker/crypto-tracker.module';
 
 @Module({
   imports: [
@@ -56,6 +57,7 @@ import { CommunitiesModule } from './communities/communities.module';
     MarketAnalyticsModule,
     EducationModule,
     CommunitiesModule,
+    CryptoTrackerModule,
   ],
   controllers: [AppController],
   providers: [AppService],

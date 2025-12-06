@@ -155,6 +155,30 @@ class CommunitiesService {
     }
   }
 
+  // Загрузить изображение
+  async uploadImage(file) {
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      
+      const token = localStorage.getItem('token');
+      const headers = {
+        'Content-Type': 'multipart/form-data',
+      };
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+      
+      const response = await axios.post(`${API_BASE_URL}/api/files/upload/image`, formData, {
+        headers
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Ошибка при загрузке изображения:', error);
+      throw error;
+    }
+  }
+
   // Создать пост в сообществе
   async createPost(communityId, postData) {
     try {
@@ -173,6 +197,28 @@ class CommunitiesService {
       return response.data;
     } catch (error) {
       console.error('Ошибка при получении категорий:', error);
+      throw error;
+    }
+  }
+
+  // Переключить реакцию на пост (лайк)
+  async togglePostReaction(postId) {
+    try {
+      const response = await this.api.post(`/posts/${postId}/reaction`);
+      return response.data;
+    } catch (error) {
+      console.error('Ошибка при лайке поста:', error);
+      throw error;
+    }
+  }
+
+  // Увеличить счётчик просмотров поста
+  async incrementPostViews(postId) {
+    try {
+      const response = await this.api.post(`/posts/${postId}/view`);
+      return response.data;
+    } catch (error) {
+      console.error('Ошибка при увеличении просмотров:', error);
       throw error;
     }
   }

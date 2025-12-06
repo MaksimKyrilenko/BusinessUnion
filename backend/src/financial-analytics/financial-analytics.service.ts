@@ -21,13 +21,34 @@ export class FinancialAnalyticsService {
       name: 'USD/JPY',
       price: 148.25,
       change: 0.22
+    },
+    {
+      symbol: 'BTCUSDT',
+      name: 'BTC/USDT',
+      price: 67250,
+      change: 1.35
+    },
+    {
+      symbol: 'ETHUSDT',
+      name: 'ETH/USDT',
+      price: 3200,
+      change: -0.75
+    },
+    {
+      symbol: 'BNBUSDT',
+      name: 'BNB/USDT',
+      price: 430,
+      change: 0.45
     }
   ];
 
   private readonly basePrices = {
     EURUSD: 1.0925,
     GBPUSD: 1.2745,
-    USDJPY: 148.25
+    USDJPY: 148.25,
+    BTCUSDT: 67250,
+    ETHUSDT: 3200,
+    BNBUSDT: 430
   };
 
   private readonly technicalIndicators: { [key: string]: TechnicalIndicator[] } = {
@@ -45,6 +66,21 @@ export class FinancialAnalyticsService {
       { name: 'RSI', value: '45.80', signal: 'SELL' },
       { name: 'MACD', value: '0.0025', signal: 'BUY' },
       { name: 'Moving Average', value: '148.30', signal: 'NEUTRAL' }
+    ],
+    BTCUSDT: [
+      { name: 'RSI', value: '62.10', signal: 'BUY' },
+      { name: 'MACD', value: '125.45', signal: 'BUY' },
+      { name: 'Moving Average', value: '67120', signal: 'NEUTRAL' }
+    ],
+    ETHUSDT: [
+      { name: 'RSI', value: '54.35', signal: 'NEUTRAL' },
+      { name: 'MACD', value: '18.21', signal: 'BUY' },
+      { name: 'Moving Average', value: '3190', signal: 'SELL' }
+    ],
+    BNBUSDT: [
+      { name: 'RSI', value: '48.75', signal: 'SELL' },
+      { name: 'MACD', value: '6.12', signal: 'NEUTRAL' },
+      { name: 'Moving Average', value: '432', signal: 'NEUTRAL' }
     ]
   };
 
@@ -116,7 +152,15 @@ export class FinancialAnalyticsService {
     const numPoints = points[range];
     const interval = (range === '1d') ? 3600000 : 86400000;
     const basePrice = this.basePrices[symbol];
-    const volatility = 0.002; // 0.2% волатильность
+    const volatilityMap = {
+      EURUSD: 0.002,
+      GBPUSD: 0.0025,
+      USDJPY: 0.0015,
+      BTCUSDT: 0.02,
+      ETHUSDT: 0.03,
+      BNBUSDT: 0.015
+    };
+    const volatility = volatilityMap[symbol] || 0.002;
 
     for (let i = 0; i < numPoints; i++) {
       const timestamp = now - (i * interval);

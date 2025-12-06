@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Community } from './entities/community.entity';
 import { CommunityMember } from './entities/community-member.entity';
 import { CommunityPost } from './entities/community-post.entity';
+import { CommunityPostReaction } from './entities/community-post-reaction.entity';
 import { CommunityCategory } from './entities/community-category.entity';
 import { CreateCommunityDto } from './dto/create-community.dto';
 import { UpdateCommunityDto } from './dto/update-community.dto';
@@ -18,6 +19,8 @@ export class CommunitiesService {
     private communityMemberRepository: Repository<CommunityMember>,
     @InjectRepository(CommunityPost)
     private communityPostRepository: Repository<CommunityPost>,
+    @InjectRepository(CommunityPostReaction)
+    private communityPostReactionRepository: Repository<CommunityPostReaction>,
     @InjectRepository(CommunityCategory)
     private communityCategoryRepository: Repository<CommunityCategory>,
   ) {}
@@ -74,7 +77,7 @@ export class CommunitiesService {
     
     const community = await this.communityRepository.findOne({
       where: { id },
-      relations: ['creator', 'members', 'posts', 'posts.author'],
+      relations: ['creator', 'members', 'posts', 'posts.author', 'posts.author.profile'],
     });
 
     if (!community) {
@@ -140,6 +143,19 @@ export class CommunitiesService {
   async leaveCommunity(communityId: number, userId: number): Promise<void> {
     console.log('Service: Leaving community', { communityId, userId });
     
+    // Проверяем, является ли пользователь создателем сообщества
+    const community = await this.communityRepository.findOne({
+      where: { id: communityId },
+    });
+
+    if (!community) {
+      throw new NotFoundException('Сообщество не найдено');
+    }
+
+    if (community.creatorId === userId) {
+      throw new ForbiddenException('Создатель не может покинуть сообщество. Используйте удаление сообщества.');
+    }
+    
     const member = await this.communityMemberRepository.findOne({
       where: { communityId, userId },
     });
@@ -190,15 +206,78 @@ export class CommunitiesService {
 
     console.log('Service: Creating post:', post);
 
-    return this.communityPostRepository.save(post);
+    const savedPost = await this.communityPostRepository.save(post);
+    
+    // Загружаем автора с профилем для возврата полных данных
+    const postWithAuthor = await this.communityPostRepository.findOne({
+      where: { id: savedPost.id },
+      relations: ['author', 'author.profile'],
+    });
+
+    return postWithAuthor || savedPost;
   }
 
-  async getCommunityPosts(communityId: number): Promise<CommunityPost[]> {
-    return this.communityPostRepository.find({
+  async getCommunityPosts(communityId: number, userId?: number): Promise<CommunityPost[]> {
+    const posts = await this.communityPostRepository.find({
       where: { communityId },
-      relations: ['author'],
+      relations: ['author', 'author.profile', 'reactions', 'reactions.user'],
       order: { createdAt: 'DESC' },
     });
+
+    // Если передан userId, добавляем информацию о том, лайкнул ли пользователь каждый пост
+    if (userId) {
+      for (const post of posts) {
+        const userReaction = post.reactions?.find(r => r.userId === userId);
+        (post as any).isLiked = !!userReaction;
+      }
+    }
+
+    return posts;
+  }
+
+  async togglePostReaction(postId: number, userId: number): Promise<{ isLiked: boolean; likesCount: number }> {
+    const post = await this.communityPostRepository.findOne({
+      where: { id: postId },
+    });
+
+    if (!post) {
+      throw new NotFoundException('Пост не найден');
+    }
+
+    // Проверяем, есть ли уже реакция от этого пользователя
+    const existingReaction = await this.communityPostReactionRepository.findOne({
+      where: { postId, userId },
+    });
+
+    if (existingReaction) {
+      // Удаляем реакцию (убираем лайк)
+      await this.communityPostReactionRepository.remove(existingReaction);
+      post.likesCount = Math.max(0, post.likesCount - 1);
+      await this.communityPostRepository.save(post);
+      return { isLiked: false, likesCount: post.likesCount };
+    } else {
+      // Создаем реакцию (добавляем лайк)
+      const reaction = this.communityPostReactionRepository.create({
+        postId,
+        userId,
+        type: 'like',
+      });
+      await this.communityPostReactionRepository.save(reaction);
+      post.likesCount += 1;
+      await this.communityPostRepository.save(post);
+      return { isLiked: true, likesCount: post.likesCount };
+    }
+  }
+
+  async incrementPostViews(postId: number): Promise<void> {
+    const post = await this.communityPostRepository.findOne({
+      where: { id: postId },
+    });
+
+    if (post) {
+      post.viewsCount = (post.viewsCount || 0) + 1;
+      await this.communityPostRepository.save(post);
+    }
   }
 
   async getCategories(): Promise<CommunityCategory[]> {

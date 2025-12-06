@@ -79,10 +79,10 @@
               <label for="userType">Тип пользователя</label>
               <select id="userType" v-model="userType" required>
                 <option value="">Выберите тип пользователя</option>
+                <option value="startup_founder">Стартап</option>
                 <option value="investor">Инвестор</option>
-                <option value="startup">Стартап</option>
                 <option value="businessman">Бизнесмен</option>
-                <option value="trader">Трейдер</option>
+                <option value="crypto_trader">Крипто-трейдер</option>
               </select>
             </div>
 

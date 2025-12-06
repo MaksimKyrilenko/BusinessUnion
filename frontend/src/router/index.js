@@ -194,32 +194,57 @@ const router = createRouter({
 
 // Защита маршрутов
 router.beforeEach(async (to, from, next) => {
-  const userStore = useUserStore();
-  
-  if (to.matched.some(record => record.meta.requiresAuth)) {
-    if (!userStore.isAuthenticated) {
-      next({
+  try {
+    const userStore = useUserStore();
+    const token = localStorage.getItem('token');
+    
+    // Для защищенных маршрутов
+    if (to.matched.some(record => record.meta.requiresAuth)) {
+      // Если есть токен, но пользователь еще не загружен, пытаемся загрузить
+      if (token && !userStore.isAuthenticated && !userStore.loading) {
+        try {
+          await userStore.loadUser();
+        } catch (error) {
+          console.error('Ошибка при загрузке пользователя:', error);
+        }
+      }
+      
+      // Проверяем авторизацию после попытки загрузки
+      if (!userStore.isAuthenticated && !token) {
+        next({
           path: '/login', 
           query: { redirect: to.fullPath }
         });
-    } else {
+        return;
+      }
+      
+      // Проверяем роль, если требуется
       if (to.matched.some(record => record.meta.requiredRole)) {
-        if (userStore.hasRole(to.meta.requiredRole)) {
-          next();
-        } else {
+        if (!userStore.hasRole(to.meta.requiredRole)) {
           next('/dashboard');
+          return;
         }
-      } else {
-        next();
-    }
-    }
-  } else if (to.matched.some(record => record.meta.guest)) {
-    if (!userStore.isAuthenticated) {
+      }
+      
       next();
-    } else {
-      next('/dashboard');
+      return;
     }
-  } else {
+    
+    // Для гостевых страниц
+    if (to.matched.some(record => record.meta.guest)) {
+      if ((userStore.isAuthenticated || token) && from.name !== null && from.path !== to.path) {
+        next('/dashboard');
+        return;
+      }
+      next();
+      return;
+    }
+    
+    // Для остальных маршрутов
+    next();
+  } catch (error) {
+    console.error('Ошибка в роутере:', error);
+    // В случае ошибки разрешаем переход
     next();
   }
 });

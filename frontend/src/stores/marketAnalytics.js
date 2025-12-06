@@ -6,6 +6,7 @@ export const useMarketAnalyticsStore = defineStore('marketAnalytics', {
     cryptoData: [],
     stockData: null,
     newsData: [],
+    macroData: {},
     loading: false,
     error: null,
   }),
@@ -19,6 +20,18 @@ export const useMarketAnalyticsStore = defineStore('marketAnalytics', {
         this.cryptoData = data.crypto;
         this.stockData = data.stocks;
         this.newsData = data.news;
+      } catch (error) {
+        this.error = error.message;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async fetchMacroData() {
+      this.loading = true;
+      this.error = null;
+      try {
+        this.macroData = await MarketAnalyticsService.getEconomicIndicators();
       } catch (error) {
         this.error = error.message;
       } finally {
