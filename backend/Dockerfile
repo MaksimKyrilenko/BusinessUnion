@@ -15,10 +15,7 @@ RUN npm install --legacy-peer-deps && \
 COPY . .
 
 # Собираем приложение
-RUN npm run build && \
-    echo "=== Build completed, checking dist structure ===" && \
-    find dist -name "*.js" -type f | head -20 && \
-    (test -f dist/main.js || test -f dist/src/main.js) || (echo "ERROR: main.js not found after build!" && ls -la dist/ && exit 1)
+RUN npm run build
 
 # Продакшн образ
 FROM node:20-alpine
@@ -40,8 +37,8 @@ COPY --from=builder /app/src ./src
 COPY --from=builder /app/tsconfig.json ./tsconfig.json
 COPY --from=builder /app/tsconfig.build.json ./tsconfig.build.json
 
-# Проверяем что dist/main.js существует
-RUN test -f dist/main.js || (echo "ERROR: dist/main.js not found!" && ls -la dist/ && exit 1)
+# Проверяем что dist/src/main.js существует
+RUN test -f dist/src/main.js || (echo "ERROR: dist/src/main.js not found!" && ls -la dist/ && ls -la dist/src/ 2>/dev/null || echo "src directory not found" && exit 1)
 
 # Создаем директорию для uploads
 RUN mkdir -p /app/uploads/avatars /app/uploads/images /app/uploads/files && \
