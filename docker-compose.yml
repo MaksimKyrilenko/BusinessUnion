@@ -67,11 +67,21 @@ services:
       sh -c "
         echo 'Waiting for database to be ready...' &&
         sleep 15 &&
-        echo 'Checking if dist/main.js exists...' &&
-        ls -la /app/dist/ || echo 'dist directory not found' &&
-        echo 'Skipping migrations (using synchronize: true)...' &&
-        echo 'Starting application...' &&
-        node dist/main.js
+        echo 'Checking for main.js...' &&
+        if [ -f /app/dist/main.js ]; then
+          echo 'Found /app/dist/main.js, starting...' &&
+          node dist/main.js
+        elif [ -f /app/dist/src/main.js ]; then
+          echo 'Found /app/dist/src/main.js, starting...' &&
+          node dist/src/main.js
+        else
+          echo 'ERROR: main.js not found!' &&
+          echo 'Searching for main.js:' &&
+          find /app/dist -name 'main.js' 2>/dev/null || echo 'No main.js found' &&
+          echo 'Contents of /app/dist:' &&
+          ls -la /app/dist/ 2>/dev/null || echo 'dist directory does not exist' &&
+          exit 1
+        fi
       "
     logging:
       driver: "json-file"
