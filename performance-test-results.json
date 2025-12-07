@@ -1,0 +1,303 @@
+{
+  "timestamp": "2025-11-27T19:29:54.118Z",
+  "baseUrl": "http://localhost:3001/api",
+  "configuration": {
+    "concurrentRequests": 10,
+    "requestsPerEndpoint": 50,
+    "timeout": 30000
+  },
+  "summary": {
+    "totalRequests": 600,
+    "successfulRequests": 550,
+    "failedRequests": 50,
+    "totalDuration": 1596,
+    "averageResponseTime": 74.98902999999959,
+    "minResponseTime": 0,
+    "maxResponseTime": 167.4075,
+    "requestsPerSecond": "375.94"
+  },
+  "endpoints": [
+    {
+      "name": "Health Check",
+      "endpoint": "GET /hello",
+      "totalRequests": 50,
+      "successfulRequests": 50,
+      "failedRequests": 0,
+      "successRate": 100,
+      "totalDuration": 93,
+      "requestsPerSecond": "537.63",
+      "responseTime": {
+        "min": 29.0033,
+        "max": 67.2769,
+        "avg": 63.55756,
+        "median": 65.1722,
+        "p95": 67.246,
+        "p99": 67.2769
+      },
+      "averageDataSize": 21,
+      "statusCodes": {
+        "200": 50
+      },
+      "errors": []
+    },
+    {
+      "name": "Список проектов",
+      "endpoint": "GET /projects",
+      "totalRequests": 50,
+      "successfulRequests": 50,
+      "failedRequests": 0,
+      "successRate": 100,
+      "totalDuration": 130,
+      "requestsPerSecond": "384.62",
+      "responseTime": {
+        "min": 50.5587,
+        "max": 122.7643,
+        "avg": 106.95156999999998,
+        "median": 110.6741,
+        "p95": 121.7083,
+        "p99": 122.7643
+      },
+      "averageDataSize": 2,
+      "statusCodes": {
+        "200": 50
+      },
+      "errors": []
+    },
+    {
+      "name": "Список событий",
+      "endpoint": "GET /events",
+      "totalRequests": 50,
+      "successfulRequests": 50,
+      "failedRequests": 0,
+      "successRate": 100,
+      "totalDuration": 111,
+      "requestsPerSecond": "450.45",
+      "responseTime": {
+        "min": 32.274,
+        "max": 99.3993,
+        "avg": 86.97117800000002,
+        "median": 93.3874,
+        "p95": 99.0893,
+        "p99": 99.3993
+      },
+      "averageDataSize": 2,
+      "statusCodes": {
+        "200": 50
+      },
+      "errors": []
+    },
+    {
+      "name": "Список курсов",
+      "endpoint": "GET /education/courses",
+      "totalRequests": 50,
+      "successfulRequests": 50,
+      "failedRequests": 0,
+      "successRate": 100,
+      "totalDuration": 166,
+      "requestsPerSecond": "301.20",
+      "responseTime": {
+        "min": 53.9099,
+        "max": 153.254,
+        "avg": 110.27995999999999,
+        "median": 113.2335,
+        "p95": 150.2299,
+        "p99": 153.254
+      },
+      "averageDataSize": 27757,
+      "statusCodes": {
+        "200": 50
+      },
+      "errors": []
+    },
+    {
+      "name": "Список платформ",
+      "endpoint": "GET /education/platforms",
+      "totalRequests": 50,
+      "successfulRequests": 50,
+      "failedRequests": 0,
+      "successRate": 100,
+      "totalDuration": 42,
+      "requestsPerSecond": "1190.48",
+      "responseTime": {
+        "min": 8.0563,
+        "max": 35.2043,
+        "avg": 20.763238,
+        "median": 18.7861,
+        "p95": 34.3683,
+        "p99": 35.2043
+      },
+      "averageDataSize": 482,
+      "statusCodes": {
+        "200": 50
+      },
+      "errors": []
+    },
+    {
+      "name": "Валютные пары",
+      "endpoint": "GET /financial-analytics/currency-pairs",
+      "totalRequests": 50,
+      "successfulRequests": 50,
+      "failedRequests": 0,
+      "successRate": 100,
+      "totalDuration": 41,
+      "requestsPerSecond": "1219.51",
+      "responseTime": {
+        "min": 13.0738,
+        "max": 32.9389,
+        "avg": 25.687683999999994,
+        "median": 28.265,
+        "p95": 32.388,
+        "p99": 32.9389
+      },
+      "averageDataSize": 399,
+      "statusCodes": {
+        "200": 50
+      },
+      "errors": []
+    },
+    {
+      "name": "Сводки рынка",
+      "endpoint": "GET /financial-analytics/market-summaries",
+      "totalRequests": 50,
+      "successfulRequests": 50,
+      "failedRequests": 0,
+      "successRate": 100,
+      "totalDuration": 36,
+      "requestsPerSecond": "1388.89",
+      "responseTime": {
+        "min": 9.2529,
+        "max": 27.8681,
+        "avg": 19.780398,
+        "median": 20.3215,
+        "p95": 27.4412,
+        "p99": 27.8681
+      },
+      "averageDataSize": 763,
+      "statusCodes": {
+        "200": 50
+      },
+      "errors": []
+    },
+    {
+      "name": "Список категорий",
+      "endpoint": "GET /categories",
+      "totalRequests": 50,
+      "successfulRequests": 50,
+      "failedRequests": 0,
+      "successRate": 100,
+      "totalDuration": 66,
+      "requestsPerSecond": "757.58",
+      "responseTime": {
+        "min": 22.4376,
+        "max": 58.9252,
+        "avg": 49.51469,
+        "median": 52.2026,
+        "p95": 58.5328,
+        "p99": 58.9252
+      },
+      "averageDataSize": 1827,
+      "statusCodes": {
+        "200": 50
+      },
+      "errors": []
+    },
+    {
+      "name": "Профиль пользователя",
+      "endpoint": "GET /users/profile",
+      "totalRequests": 50,
+      "successfulRequests": 50,
+      "failedRequests": 0,
+      "successRate": 100,
+      "totalDuration": 162,
+      "requestsPerSecond": "308.64",
+      "responseTime": {
+        "min": 88.4595,
+        "max": 153.6393,
+        "avg": 120.27318599999998,
+        "median": 119.629,
+        "p95": 151.9995,
+        "p99": 153.6393
+      },
+      "averageDataSize": 539,
+      "statusCodes": {
+        "200": 50
+      },
+      "errors": []
+    },
+    {
+      "name": "Поиск пользователей",
+      "endpoint": "GET /users/search?q=test",
+      "totalRequests": 50,
+      "successfulRequests": 50,
+      "failedRequests": 0,
+      "successRate": 100,
+      "totalDuration": 176,
+      "requestsPerSecond": "284.09",
+      "responseTime": {
+        "min": 87.4498,
+        "max": 167.4075,
+        "avg": 129.10799400000005,
+        "median": 130.4582,
+        "p95": 165.9888,
+        "p99": 167.4075
+      },
+      "averageDataSize": 841,
+      "statusCodes": {
+        "200": 50
+      },
+      "errors": []
+    },
+    {
+      "name": "Мои проекты",
+      "endpoint": "GET /projects/author/me",
+      "totalRequests": 50,
+      "successfulRequests": 0,
+      "failedRequests": 50,
+      "successRate": 0,
+      "totalDuration": 136,
+      "requestsPerSecond": "367.65",
+      "responseTime": {
+        "min": 0,
+        "max": 0,
+        "avg": 0,
+        "median": 0,
+        "p95": 0,
+        "p99": 0
+      },
+      "averageDataSize": 0,
+      "statusCodes": {
+        "500": 50
+      },
+      "errors": []
+    },
+    {
+      "name": "События пользователя",
+      "endpoint": "GET /events/user/events",
+      "totalRequests": 50,
+      "successfulRequests": 50,
+      "failedRequests": 0,
+      "successRate": 100,
+      "totalDuration": 127,
+      "requestsPerSecond": "393.70",
+      "responseTime": {
+        "min": 53.4043,
+        "max": 119.5053,
+        "avg": 91.99187199999999,
+        "median": 93.9878,
+        "p95": 118.2346,
+        "p99": 119.5053
+      },
+      "averageDataSize": 2,
+      "statusCodes": {
+        "200": 50
+      },
+      "errors": []
+    }
+  ],
+  "errors": [
+    {
+      "endpoint": "Мои проекты",
+      "errors": []
+    }
+  ]
+}
