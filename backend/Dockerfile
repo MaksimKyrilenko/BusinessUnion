@@ -1,5 +1,5 @@
 # Используем официальный образ Node.js как базовый
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 
 # Устанавливаем рабочую директорию
 WORKDIR /app
@@ -8,7 +8,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Устанавливаем ВСЕ зависимости (включая dev для сборки)
-RUN npm ci --legacy-peer-deps && \
+RUN npm install --legacy-peer-deps && \
     npm cache clean --force
 
 # Копируем исходный код
@@ -18,7 +18,7 @@ COPY . .
 RUN npm run build
 
 # Продакшн образ
-FROM node:18-alpine
+FROM node:20-alpine
 
 # Устанавливаем рабочую директорию
 WORKDIR /app
@@ -27,7 +27,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Устанавливаем только production зависимости
-RUN npm ci --omit=dev --legacy-peer-deps && \
+RUN npm install --omit=dev --legacy-peer-deps && \
     npm cache clean --force
 
 # Копируем собранное приложение из builder
