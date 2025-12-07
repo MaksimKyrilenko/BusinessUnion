@@ -12,3 +12,4 @@ sleep 15
 echo "Starting application..."
 exec su-exec node node dist/src/main.js
 
+

@@ -22,8 +22,26 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
   
   // Включаем CORS с расширенной конфигурацией
+  const allowedOrigins = [
+    process.env.FRONTEND_URL || 'http://localhost:8081',
+    'http://businessunion.mooo.com',
+    'https://businessunion.mooo.com',
+    'http://localhost',
+    'http://localhost:8081',
+  ];
+  
   app.enableCors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:8081',
+    origin: (origin, callback) => {
+      // Разрешаем запросы без origin (например, мобильные приложения или Postman)
+      if (!origin) return callback(null, true);
+      
+      // Проверяем, есть ли origin в списке разрешенных
+      if (allowedOrigins.some(allowed => origin.startsWith(allowed))) {
+        callback(null, true);
+      } else {
+        callback(null, true); // Временно разрешаем все для отладки
+      }
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
     allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],

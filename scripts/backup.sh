@@ -80,3 +80,4 @@ echo "✓ Backup completed successfully!"
 # Логирование
 echo "$(date): Backup completed successfully" >> "$BACKUP_DIR/backup.log"
 
+

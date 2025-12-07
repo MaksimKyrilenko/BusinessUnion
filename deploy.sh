@@ -91,3 +91,4 @@ echo "   docker compose down             # Остановка и удалени�
 echo ""
 echo "📖 Подробная документация: DEPLOYMENT.md"
 
+

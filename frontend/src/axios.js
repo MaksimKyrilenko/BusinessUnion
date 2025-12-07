@@ -1,11 +1,11 @@
 import axios from 'axios';
 import router from '@/router';
 
-// Используем переменную окружения или fallback на localhost
-const apiBaseURL = process.env.VUE_APP_API_URL || 'http://localhost:3001';
+// Используем относительный путь через nginx proxy или переменную окружения
+const apiBaseURL = process.env.VUE_APP_API_URL || '';
 
 const api = axios.create({
-  baseURL: `${apiBaseURL}/api`,
+  baseURL: apiBaseURL ? `${apiBaseURL}/api` : '/api',
   headers: {
     'Content-Type': 'application/json',
   },
