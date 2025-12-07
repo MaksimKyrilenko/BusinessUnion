@@ -26,13 +26,16 @@ WORKDIR /app
 # Копируем package.json для установки production зависимостей
 COPY package*.json ./
 
-# Устанавливаем только production зависимости
+# Устанавливаем production зависимости + ts-node для миграций
 RUN npm install --omit=dev --legacy-peer-deps && \
+    npm install --save-dev ts-node tsconfig-paths --legacy-peer-deps && \
     npm cache clean --force
 
 # Копируем собранное приложение из builder
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/src ./src
+COPY --from=builder /app/tsconfig.json ./tsconfig.json
+COPY --from=builder /app/tsconfig.build.json ./tsconfig.build.json
 
 # Создаем директорию для uploads
 RUN mkdir -p /app/uploads/avatars /app/uploads/images /app/uploads/files && \
