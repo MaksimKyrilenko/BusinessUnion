@@ -7,8 +7,8 @@ WORKDIR /app
 # Копируем файлы package.json и package-lock.json
 COPY package*.json ./
 
-# Устанавливаем зависимости
-RUN npm ci --only=production && \
+# Устанавливаем ВСЕ зависимости (включая dev для сборки)
+RUN npm ci && \
     npm cache clean --force
 
 # Копируем исходный код
