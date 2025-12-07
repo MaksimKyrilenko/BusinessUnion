@@ -40,16 +40,16 @@ COPY --from=builder /app/tsconfig.build.json ./tsconfig.build.json
 # Проверяем что dist/src/main.js существует
 RUN test -f dist/src/main.js || (echo "ERROR: dist/src/main.js not found!" && ls -la dist/ && ls -la dist/src/ 2>/dev/null || echo "src directory not found" && exit 1)
 
-# Создаем директорию для uploads
-RUN mkdir -p /app/uploads/avatars /app/uploads/images /app/uploads/files && \
-    chown -R node:node /app/uploads
+# Устанавливаем su-exec для переключения пользователя
+RUN apk add --no-cache su-exec
 
-# Используем непривилегированного пользователя
-USER node
+# Копируем entrypoint скрипт
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # Открываем порт
 EXPOSE 3001
 
-# Запускаем приложение
-CMD ["npm", "run", "start:prod"]
+# Запускаем через entrypoint
+ENTRYPOINT ["docker-entrypoint.sh"]
 

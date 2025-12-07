@@ -63,13 +63,6 @@ services:
         condition: service_healthy
     networks:
       - businessunion-network
-    command: >
-      sh -c "
-        echo 'Waiting for database to be ready...' &&
-        sleep 15 &&
-        echo 'Starting application from dist/src/main.js...' &&
-        node dist/src/main.js
-      "
     logging:
       driver: "json-file"
       options:
