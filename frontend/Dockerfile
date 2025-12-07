@@ -1,6 +1,10 @@
 # Стадия сборки
 FROM node:18-alpine AS builder
 
+# Принимаем аргумент сборки для API URL (должен быть пустым для production!)
+ARG VUE_APP_API_URL=
+ENV VUE_APP_API_URL=${VUE_APP_API_URL}
+
 # Устанавливаем рабочую директорию
 WORKDIR /app
 

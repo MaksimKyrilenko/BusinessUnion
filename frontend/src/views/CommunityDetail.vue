@@ -701,8 +701,8 @@ export default defineComponent({
       if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
         return imagePath
       }
-      // Если это относительный путь, добавляем базовый URL API
-      const API_BASE_URL = process.env.VUE_APP_API_URL || 'http://localhost:3001'
+      // Используем пустую строку для относительных путей - nginx проксирует на backend
+      const API_BASE_URL = ''
       
       // Если путь начинается с /api/, используем API URL
       if (imagePath.startsWith('/api/')) {

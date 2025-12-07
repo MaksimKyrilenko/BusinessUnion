@@ -183,7 +183,7 @@ export default defineComponent({
       loading.value.rates = true
       try {
         const token = localStorage.getItem('token')
-        const res = await fetch('http://localhost:3001/api/dashboard/exchange-rates', { headers: { 'Authorization': `Bearer ${token}` } })
+        const res = await fetch('/api/dashboard/exchange-rates', { headers: { 'Authorization': `Bearer ${token}` } })
         if (res.ok) exchangeRates.value = await res.json()
         else exchangeRates.value = { USD: { rate: 91.25, change: 0.5 }, EUR: { rate: 98.75, change: -0.3 }, GBP: { rate: 115.50, change: 0.2 }, CNY: { rate: 12.65, change: 0.1 }, RUB: { rate: 1, change: 0 } }
       } catch { exchangeRates.value = { USD: { rate: 91.25, change: 0.5 }, EUR: { rate: 98.75, change: -0.3 }, GBP: { rate: 115.50, change: 0.2 }, CNY: { rate: 12.65, change: 0.1 }, RUB: { rate: 1, change: 0 } } }
@@ -193,7 +193,7 @@ export default defineComponent({
       loading.value.messages = true
       try {
         const token = localStorage.getItem('token')
-        const [s, m] = await Promise.all([fetch('http://localhost:3001/api/dashboard/message-stats', { headers: { 'Authorization': `Bearer ${token}` } }), fetch('http://localhost:3001/api/dashboard/recent-messages', { headers: { 'Authorization': `Bearer ${token}` } })])
+        const [s, m] = await Promise.all([fetch('/api/dashboard/message-stats', { headers: { 'Authorization': `Bearer ${token}` } }), fetch('/api/dashboard/recent-messages', { headers: { 'Authorization': `Bearer ${token}` } })])
         if (s.ok) messageStats.value = await s.json()
         if (m.ok) recentMessages.value = await m.json() || []
       } catch (e) { console.error(e) }
@@ -203,7 +203,7 @@ export default defineComponent({
       loading.value.community = true
       try {
         const token = localStorage.getItem('token')
-        const res = await fetch('http://localhost:3001/api/dashboard/community-stats', { headers: { 'Authorization': `Bearer ${token}` } })
+        const res = await fetch('/api/dashboard/community-stats', { headers: { 'Authorization': `Bearer ${token}` } })
         if (res.ok) communityStats.value = await res.json()
       } catch (e) { console.error(e) }
       finally { loading.value.community = false }
@@ -212,20 +212,20 @@ export default defineComponent({
       loading.value.education = true
       try {
         const token = localStorage.getItem('token')
-        const [c, t] = await Promise.all([fetch('http://localhost:3001/api/dashboard/recommended-courses', { headers: { 'Authorization': `Bearer ${token}` } }).catch(() => ({ ok: false })), fetch('http://localhost:3001/api/dashboard/market-trends', { headers: { 'Authorization': `Bearer ${token}` } }).catch(() => ({ ok: false }))])
+        const [c, t] = await Promise.all([fetch('/api/dashboard/recommended-courses', { headers: { 'Authorization': `Bearer ${token}` } }).catch(() => ({ ok: false })), fetch('/api/dashboard/market-trends', { headers: { 'Authorization': `Bearer ${token}` } }).catch(() => ({ ok: false }))])
         if (c.ok) recommendedCourses.value = await c.json() || []
         if (t.ok) marketTrends.value = await t.json() || []
       } catch { recommendedCourses.value = []; marketTrends.value = [] }
       finally { loading.value.education = false }
     }
-    const fetchAnalytics = async () => { loading.value.analytics = true; try { await fetch('http://localhost:3001/api/dashboard/analytics', { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }) } catch {} finally { loading.value.analytics = false } }
+    const fetchAnalytics = async () => { loading.value.analytics = true; try { await fetch('/api/dashboard/analytics', { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }) } catch {} finally { loading.value.analytics = false } }
     const fetchRecentNews = async () => {
       loading.value.news = true
       try {
         const api = (await import('@/services/newsApi')).default
         const d = await api.getTopNews('', 'publishedAt', 'ru')
         if (d?.length) { recentNews.value = d.slice(0, 5).map((a, i) => ({ id: i, category: a.category || 'Новости', title: a.title, description: a.description, date: a.publishedAt || new Date(), url: a.url || '/news' })); return }
-        const res = await fetch('http://localhost:3001/api/dashboard/news', { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } })
+        const res = await fetch('/api/dashboard/news', { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } })
         if (res.ok) recentNews.value = (await res.json() || []).map(n => ({ ...n, url: n.url || '/news' }))
       } catch {} finally { loading.value.news = false }
     }

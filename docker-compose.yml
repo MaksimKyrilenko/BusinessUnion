@@ -77,7 +77,7 @@ services:
           cpus: '0.5'
           memory: 512M
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3001/api/api/hello"]
+      test: ["CMD", "curl", "-f", "http://localhost:3001/api/hello"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -89,7 +89,8 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        VUE_APP_API_URL: ${VUE_APP_API_URL:-http://localhost:3001}
+        # Пустое значение = используется относительный путь /api (проксируется nginx)
+        VUE_APP_API_URL: ${VUE_APP_API_URL:-}
     container_name: businessunion-frontend
     restart: always
     ports:

@@ -1,7 +1,8 @@
 import axios from 'axios'
 import authHeader from './auth-header'
 
-const API_URL = 'http://localhost:8081/api'
+// Используем относительный путь - nginx проксирует /api на backend
+const API_URL = '/api'
 
 class MessengerService {
   // Методы для работы с чатами

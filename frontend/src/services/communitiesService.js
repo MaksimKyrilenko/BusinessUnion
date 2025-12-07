@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.VUE_APP_API_URL || 'http://localhost:3001';
+// Используем пустую строку для относительных путей - nginx проксирует /api на backend
+const API_BASE_URL = '';
 
 class CommunitiesService {
   constructor() {
