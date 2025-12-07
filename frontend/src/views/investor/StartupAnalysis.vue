@@ -1,147 +1,149 @@
 <template>
   <div class="startup-analysis">
-    <h1>Аналитика инвестиций</h1>
+    <!-- Page Header -->
+    <div class="page-header">
+      <h1>Аналитика инвестиций</h1>
+    </div>
 
-    <div class="dashboard-grid">
-      <!-- Анализ стартапа через Yandex Cloud AI -->
-      <div class="dashboard-card analysis-card full-width">
-        <div class="card-header">
-          <h2>Анализ стартапа</h2>
-        </div>
-        <div class="card-content">
-          <div class="analysis-section">
-            <div class="analysis-selector">
-              <label for="startup-select">Выберите стартап для анализа:</label>
-              <div class="analysis-controls">
-                <select 
-                  id="startup-select" 
-                  v-model="selectedStartupForAnalysis" 
-                  class="startup-select"
-                  :disabled="analyzing || availableStartups.length === 0"
+    <div class="page-content">
+      <!-- Анализ стартапа -->
+      <section class="analysis-section">
+        <div class="section-card">
+          <div class="section-header">
+            <h2>Анализ стартапа</h2>
+          </div>
+          <div class="analysis-form">
+            <label for="startup-select">Выберите стартап для анализа:</label>
+            <div class="form-row">
+              <select 
+                id="startup-select" 
+                v-model="selectedStartupForAnalysis" 
+                class="startup-select"
+                :disabled="analyzing || availableStartups.length === 0"
+              >
+                <option value="">-- Выберите стартап --</option>
+                <option 
+                  v-for="startup in availableStartups" 
+                  :key="startup.id" 
+                  :value="startup.id"
                 >
-                  <option value="">-- Выберите стартап --</option>
-                  <option 
-                    v-for="startup in availableStartups" 
-                    :key="startup.id" 
-                    :value="startup.id"
-                  >
-                    {{ startup.title }} ({{ getStageText(startup.stage) }})
-                  </option>
-                </select>
-                <BaseButton 
-                  variant="primary" 
-                  @click="analyzeSelectedStartup"
-                  :disabled="!selectedStartupForAnalysis || analyzing"
-                  :loading="analyzing"
-                  class="analyze-btn"
-                >
-                  {{ analyzing ? 'Анализирую...' : 'Проанализировать' }}
-                </BaseButton>
-              </div>
+                  {{ startup.title }} ({{ getStageText(startup.stage) }})
+                </option>
+              </select>
+              <button 
+                class="analyze-btn"
+                @click="analyzeSelectedStartup"
+                :disabled="!selectedStartupForAnalysis || analyzing"
+              >
+                <i v-if="analyzing" class="fas fa-spinner fa-spin"></i>
+                <i v-else class="fas fa-chart-line"></i>
+                {{ analyzing ? 'Анализ...' : 'Анализировать' }}
+              </button>
             </div>
+          </div>
 
-            <div v-if="parsedAnalysis.length > 0" class="analysis-result-container">
-              <h3 class="analysis-title">Результат анализа</h3>
-              <div class="analysis-blocks-grid">
-                <div 
-                  v-for="(section, index) in parsedAnalysis" 
-                  :key="index"
-                  class="analysis-block-card"
-                  :class="{ 'full-width-block': section.number === 5 }"
-                >
-                  <div class="block-header">
-                    <div class="block-number">{{ section.number }}</div>
-                    <h4 class="block-title">{{ section.title }}</h4>
-                  </div>
-                  <div class="block-content">
-                    <div 
-                      v-for="(item, itemIndex) in section.items" 
-                      :key="itemIndex"
-                      class="block-item"
-                    >
-                      <div v-if="item.type === 'paragraph'" class="item-paragraph">
-                        <strong v-if="item.label">{{ item.label }}</strong>
-                        <span v-if="item.text">{{ item.text }}</span>
-                      </div>
-                      <div v-if="item.type === 'list'" class="item-list">
-                        <strong v-if="item.label" class="list-label">{{ item.label }}</strong>
-                        <ul class="analysis-list">
-                          <li v-for="(listItem, listIndex) in item.items" :key="listIndex" class="analysis-list-item">
-                            {{ listItem }}
-                          </li>
-                        </ul>
-                      </div>
+          <!-- Analysis Results -->
+          <div v-if="parsedAnalysis.length > 0" class="analysis-results">
+            <h3>Результат анализа</h3>
+            <div class="results-grid">
+              <div 
+                v-for="(section, index) in parsedAnalysis" 
+                :key="index"
+                class="result-card"
+                :class="{ 'full-width': section.number === 5 }"
+                :style="{ '--delay': index * 0.1 + 's' }"
+              >
+                <div class="result-header">
+                  <span class="result-number">{{ section.number }}</span>
+                  <h4>{{ section.title }}</h4>
+                </div>
+                <div class="result-body">
+                  <div 
+                    v-for="(item, itemIndex) in section.items" 
+                    :key="itemIndex"
+                    class="result-item"
+                  >
+                    <div v-if="item.type === 'paragraph'" class="item-text">
+                      <strong v-if="item.label">{{ item.label }}</strong>
+                      <span v-if="item.text">{{ item.text }}</span>
+                    </div>
+                    <div v-if="item.type === 'list'" class="item-list">
+                      <strong v-if="item.label">{{ item.label }}</strong>
+                      <ul>
+                        <li v-for="(listItem, listIndex) in item.items" :key="listIndex">
+                          {{ listItem }}
+                        </li>
+                      </ul>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
+          </div>
 
-            <div v-if="analysisError" class="analysis-error">
-              <p><i class="fas fa-exclamation-circle"></i> {{ analysisError }}</p>
-            </div>
+          <!-- Error -->
+          <div v-if="analysisError" class="error-message">
+            <i class="fas fa-exclamation-circle"></i>
+            <p>{{ analysisError }}</p>
           </div>
         </div>
-      </div>
+      </section>
 
-      <!-- Рекомендации по инвестициям -->
-      <div class="dashboard-card recommendations-card full-width">
-        <div class="card-header">
+      <!-- Рекомендуемые проекты -->
+      <section class="projects-section">
+        <div class="section-header">
           <h2>Рекомендуемые проекты</h2>
         </div>
-        <div class="card-content">
-          <div v-if="loading" class="loading-indicator">
-            <div class="spinner"></div>
-            <p>Загрузка рекомендаций...</p>
-          </div>
-          <div v-else-if="recommendedProjects.length === 0" class="empty-state">
-            <p>Пока нет рекомендаций</p>
-          </div>
-          <div v-else class="recommendations-grid">
-            <div 
-              v-for="project in recommendedProjects" 
-              :key="project.id" 
-              class="recommended-project"
-            >
-              <div class="project-image">
-                <img 
-                  :src="getImageSrc(project.image)" 
-                  :alt="project.title"
-                  @error="handleImageError"
-                >
+
+        <div v-if="loading" class="loading-state">
+          <div class="spinner"></div>
+          <p>Загрузка рекомендаций...</p>
+        </div>
+
+        <div v-else-if="recommendedProjects.length === 0" class="empty-state">
+          <i class="fas fa-folder-open"></i>
+          <p>Пока нет рекомендаций</p>
+        </div>
+
+        <div v-else class="projects-grid">
+          <div 
+            v-for="(project, index) in recommendedProjects" 
+            :key="project.id" 
+            class="project-card"
+            :style="{ '--delay': index * 0.08 + 's' }"
+          >
+            <div class="card-image">
+              <img 
+                :src="getImageSrc(project.image)" 
+                :alt="project.title"
+                @error="handleImageError"
+              >
+              <div class="stage-badge" :class="project.stage">
+                {{ getStageText(project.stage) }}
               </div>
-              <div class="project-info">
-                <div class="project-title">{{ project.title }}</div>
-                <div class="project-meta">
-                  <span class="project-category" v-if="project.category">{{ project.category.name }}</span>
-                  <span class="project-stage">{{ getStageText(project.stage) }}</span>
+            </div>
+            <div class="card-body">
+              <h3 class="card-title">{{ project.title }}</h3>
+              <div class="card-meta" v-if="project.category && project.category.name">
+                <span class="category">{{ project.category.name }}</span>
+              </div>
+              <div class="card-stats">
+                <div class="stat">
+                  <span class="stat-label">Инвестиции</span>
+                  <span class="stat-value">{{ formatMoney(project.investmentNeeded) }}</span>
                 </div>
-                <div class="project-metrics">
-                  <div class="metric">
-                    <div class="metric-label">Инвестиции</div>
-                    <div class="metric-value">{{ formatMoney(project.investmentNeeded) }}</div>
-                  </div>
-                  <div class="metric">
-                    <div class="metric-label">ROI</div>
-                    <div class="metric-value">{{ project.expectedRoi }}%</div>
-                  </div>
-                </div>
-                <div class="project-actions">
-                  <BaseButton 
-                    variant="primary" 
-                    size="small"
-                    @click="viewProject(project.id)"
-                  >
-                    Подробнее
-                  </BaseButton>
+                <div class="stat">
+                  <span class="stat-label">ROI</span>
+                  <span class="stat-value accent">{{ project.expectedRoi }}%</span>
                 </div>
               </div>
+              <button class="card-btn" @click="viewProject(project.id)">
+                Подробнее
+              </button>
             </div>
           </div>
         </div>
-      </div>
-
-
+      </section>
     </div>
   </div>
 </template>
@@ -273,7 +275,18 @@ export default {
         console.log('Анализ получен:', result);
       } catch (error) {
         console.error('Ошибка при анализе стартапа:', error);
-        analysisError.value = error.response?.data?.message || error.message || 'Не удалось проанализировать стартап';
+        
+        // Извлекаем сообщение об ошибке
+        let errorMessage = error.response?.data?.message || error.message || 'Не удалось проанализировать стартап';
+        
+        // Улучшаем сообщение для ошибок Yandex Cloud
+        if (errorMessage.includes('Yandex Cloud') || errorMessage.includes('токен') || errorMessage.includes('expired')) {
+          errorMessage = 'Сервис анализа временно недоступен. Токен доступа к Yandex Cloud AI истек. Пожалуйста, попробуйте позже или обратитесь к администратору.';
+        } else if (errorMessage.includes('UNAUTHENTICATED')) {
+          errorMessage = 'Ошибка аутентификации в сервисе анализа. Пожалуйста, попробуйте позже.';
+        }
+        
+        analysisError.value = errorMessage;
         parsedAnalysis.value = [];
       } finally {
         analyzing.value = false;
@@ -529,579 +542,481 @@ export default {
 </script>
 
 <style scoped>
+/* Base Layout */
 .startup-analysis {
-  padding: 20px;
+  min-height: 100vh;
+  background: #FFFFFF;
 }
 
-.startup-analysis h1 {
-  margin-bottom: 24px;
-  font-size: 32px;
+.page-header {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem 2rem 1rem;
 }
 
-.dashboard-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
-}
-
-.dashboard-card {
-  background: white;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.card-header {
-  padding: 16px 20px;
-  border-bottom: 1px solid #e9ecef;
-}
-
-.card-header h2 {
+.page-header h1 {
   margin: 0;
-  font-size: 18px;
-  color: #212529;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1C1C1E;
 }
 
-.card-content {
-  padding: 20px;
+.page-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 2rem 3rem;
 }
 
-.loading-indicator {
+/* Analysis Section */
+.analysis-section {
+  margin-bottom: 2.5rem;
+}
+
+.section-card {
+  background: #FFFFFF;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.section-header {
+  margin-bottom: 1.25rem;
+}
+
+.section-header h2 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1C1C1E;
+}
+
+.analysis-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.analysis-form label {
+  font-size: 0.875rem;
+  color: #6E6E73;
+  font-weight: 400;
+}
+
+.form-row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.startup-select {
+  flex: 1;
+  max-width: 320px;
+  padding: 0.75rem 1rem;
+  background: #F5F7FA;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  color: #1C1C1E;
+  transition: all 0.2s ease;
+}
+
+.startup-select:focus {
+  outline: none;
+  border-color: #1E6BFF;
+  background: #FFFFFF;
+  box-shadow: 0 0 0 3px rgba(30, 107, 255, 0.1);
+}
+
+.startup-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.analyze-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: #1E6BFF;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(30, 107, 255, 0.25);
+}
+
+.analyze-btn:hover:not(:disabled) {
+  background: #1557D4;
+  box-shadow: 0 4px 12px rgba(30, 107, 255, 0.35);
+  transform: translateY(-1px);
+}
+
+.analyze-btn:disabled {
+  background: #C7C7CC;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.analyze-btn i {
+  font-size: 0.8rem;
+}
+
+/* Loading & Empty States */
+.loading-state, .empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 40px 0;
+  padding: 3rem;
+  color: #6E6E73;
+}
+
+.empty-state i {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
 }
 
 .spinner {
-  width: 30px;
-  height: 30px;
-  border: 3px solid #f3f3f3;
-  border-top: 3px solid #2196F3;
+  width: 36px;
+  height: 36px;
+  border: 3px solid #F5F7FA;
+  border-top-color: #1E6BFF;
   border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 16px;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 1rem;
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  to { transform: rotate(360deg); }
 }
 
-.empty-state {
-  text-align: center;
-  padding: 30px 0;
-  color: #6c757d;
+/* Error Message */
+.error-message {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: #FFF3CD;
+  border-radius: 10px;
+  margin-top: 1rem;
 }
 
-.empty-state p {
-  margin-bottom: 16px;
+.error-message i {
+  color: #D97706;
+  font-size: 1.25rem;
 }
 
-.investments-stats {
+.error-message p {
+  margin: 0;
+  color: #92400E;
+  font-size: 0.875rem;
+}
+
+/* Analysis Results */
+.analysis-results {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #F5F7FA;
+}
+
+.analysis-results h3 {
+  margin: 0 0 1.25rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1C1C1E;
+}
+
+.results-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-  margin-bottom: 30px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
 }
 
-.stat-item {
-  background: #f8f9fa;
-  padding: 16px;
-  border-radius: 8px;
-  text-align: center;
+.result-card {
+  background: #FFFFFF;
+  border: 1px solid #F5F7FA;
+  border-radius: 12px;
+  padding: 1.25rem;
+  animation: fadeSlideIn 0.4s ease-out backwards;
+  animation-delay: var(--delay);
+  transition: all 0.3s ease;
 }
 
-.stat-value {
-  font-size: 20px;
-  font-weight: 600;
-  margin-bottom: 4px;
-  color: #2196F3;
+.result-card:hover {
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
 }
 
-.stat-label {
-  font-size: 14px;
-  color: #6c757d;
-}
-
-h3 {
-  font-size: 16px;
-  margin: 0 0 16px 0;
-  color: #343a40;
-}
-
-.investments-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.investment-item {
-  background: #f8f9fa;
-  border-radius: 8px;
-  padding: 16px;
-}
-
-.investment-details {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-.project-name {
-  font-weight: 500;
-  margin-bottom: 4px;
-}
-
-.project-stage {
-  font-size: 12px;
-  color: #6c757d;
-}
-
-.investment-amount {
-  font-weight: 600;
-  color: #2196F3;
-}
-
-.investment-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 12px;
-  color: #6c757d;
-}
-
-.view-btn {
-  background: none;
-  border: none;
-  color: #2196F3;
-  font-size: 12px;
-  cursor: pointer;
-}
-
-.recommendations-card.full-width {
+.result-card.full-width {
   grid-column: 1 / -1;
 }
 
-.recommendations-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-}
-
-@media (max-width: 1200px) {
-  .recommendations-grid {
-    grid-template-columns: repeat(2, 1fr);
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-@media (max-width: 768px) {
-  .recommendations-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.recommended-project {
+.result-header {
   display: flex;
-  gap: 16px;
-  background: #f8f9fa;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.result-number {
+  width: 28px;
+  height: 28px;
+  background: #1E6BFF;
+  color: #FFFFFF;
   border-radius: 8px;
-  padding: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 600;
 }
 
-.project-image {
-  width: 80px;
-  height: 80px;
-  border-radius: 4px;
+.result-header h4 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1C1C1E;
+}
+
+.result-body {
+  color: #6E6E73;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.result-item {
+  margin-bottom: 0.75rem;
+}
+
+.result-item:last-child {
+  margin-bottom: 0;
+}
+
+.item-text strong {
+  color: #1C1C1E;
+  font-weight: 500;
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.item-list strong {
+  color: #1C1C1E;
+  font-weight: 500;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.item-list ul {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.item-list li {
+  margin-bottom: 0.35rem;
+}
+
+/* Projects Section */
+.projects-section {
+  margin-top: 1rem;
+}
+
+.projects-section .section-header {
+  margin-bottom: 1.5rem;
+}
+
+.projects-section .section-header h2 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1C1C1E;
+}
+
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.25rem;
+}
+
+/* Project Card */
+.project-card {
+  background: #FFFFFF;
+  border-radius: 14px;
   overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  animation: fadeSlideIn 0.4s ease-out backwards;
+  animation-delay: var(--delay);
 }
 
-.project-image img {
+.project-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.card-image {
+  position: relative;
+  height: 140px;
+  background: #F5F7FA;
+}
+
+.card-image img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.project-info {
-  flex: 1;
+.stage-badge {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  padding: 0.35rem 0.65rem;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #6E6E73;
+  backdrop-filter: blur(4px);
 }
 
-.project-title {
-  font-weight: 500;
-  margin-bottom: 4px;
+.stage-badge.idea { color: #8B5CF6; }
+.stage-badge.mvp { color: #1E6BFF; }
+.stage-badge.growth { color: #10B981; }
+.stage-badge.scaling { color: #F59E0B; }
+
+.card-body {
+  padding: 1rem;
 }
 
-.project-meta {
-  display: flex;
-  gap: 8px;
-  font-size: 12px;
-  color: #6c757d;
-  margin-bottom: 8px;
-}
-
-.project-metrics {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 8px;
-}
-
-.metric-label {
-  font-size: 12px;
-  color: #6c757d;
-  margin-bottom: 2px;
-}
-
-.metric-value {
-  font-weight: 500;
-  font-size: 14px;
-}
-
-.chart-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.pie-chart-placeholder {
-  position: relative;
-  width: 160px;
-  height: 160px;
-  border-radius: 50%;
+.card-title {
+  margin: 0 0 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1C1C1E;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  background: #e9ecef;
+}
+
+.card-meta {
+  margin-bottom: 0.75rem;
+}
+
+.card-meta .category {
+  font-size: 0.75rem;
+  color: #6E6E73;
+}
+
+.card-stats {
   display: flex;
-  justify-content: center;
-  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
 }
 
-.pie-segment {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 80px;
-  height: 80px;
-  transform-origin: bottom right;
-  border-radius: 80px 0 0 0;
-}
-
-.pie-label {
-  position: absolute;
-  font-size: 12px;
-  color: #fff;
-  text-align: center;
-  z-index: 2;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-}
-
-.pie-legend {
-  flex: 1;
-  margin-left: 20px;
-}
-
-.legend-item {
-  display: flex;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.legend-color {
-  width: 16px;
-  height: 16px;
-  border-radius: 4px;
-  margin-right: 8px;
-}
-
-.legend-text {
+.stat {
   flex: 1;
 }
 
-.legend-label {
-  font-size: 14px;
+.stat-label {
+  font-size: 0.65rem;
+  color: #8E8E93;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-bottom: 0.15rem;
 }
 
-.legend-value {
-  font-size: 12px;
-  color: #6c757d;
+.stat-value {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1C1C1E;
 }
 
-.roi-table {
+.stat-value.accent {
+  color: #1E6BFF;
+}
+
+.card-btn {
   width: 100%;
-  overflow-x: auto;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-th, td {
-  padding: 12px 16px;
-  text-align: left;
-  border-bottom: 1px solid #e9ecef;
-}
-
-th {
+  padding: 0.65rem;
+  background: #1E6BFF;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.8rem;
   font-weight: 500;
-  color: #495057;
-  background-color: #f8f9fa;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-tr:hover {
-  background-color: #f1f3f5;
+.card-btn:hover {
+  background: #1557D4;
 }
 
-.analysis-card {
-  grid-column: 1 / -1;
-}
-
-.analysis-card.full-width {
-  width: 100%;
-}
-
-.analysis-section {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.analysis-selector {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.analysis-selector label {
-  font-weight: 600;
-  color: #212529;
-  font-size: 16px;
-}
-
-.analysis-controls {
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-}
-
-.startup-select {
-  flex: 1;
-  padding: 12px 16px;
-  border: 2px solid #dee2e6;
-  border-radius: 8px;
-  font-size: 16px;
-  background-color: white;
-  transition: all 0.2s;
-}
-
-.startup-select:focus {
-  border-color: #2196F3;
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
-}
-
-.startup-select:disabled {
-  background-color: #f8f9fa;
-  cursor: not-allowed;
-  opacity: 0.6;
-}
-
-.analyze-btn {
-  white-space: nowrap;
-  min-width: 180px;
-}
-
-.analysis-result-container {
-  margin-top: 24px;
-  padding: 0;
-}
-
-.analysis-title {
-  margin: 0 0 24px 0;
-  font-size: 24px;
-  font-weight: 600;
-  color: #212529;
-  padding-bottom: 16px;
-  border-bottom: 2px solid #e9ecef;
-}
-
-.analysis-content {
-  color: #495057;
-  line-height: 1.8;
-}
-
-.analysis-blocks-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-  gap: 24px;
-  margin-top: 24px;
-}
-
-.analysis-block-card.full-width-block {
-  grid-column: 1 / -1;
-}
-
-.analysis-block-card {
-  background: white;
-  border-radius: 12px;
-  padding: 24px;
-  border-left: 4px solid #2196F3;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-  display: flex;
-  flex-direction: column;
-}
-
-.analysis-block-card:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-  transform: translateY(-4px);
-}
-
-.block-header {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 20px;
-  padding-bottom: 16px;
-  border-bottom: 2px solid #e9ecef;
-}
-
-.block-number {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  background: #2196F3;
-  color: white;
-  border-radius: 50%;
-  font-size: 18px;
-  font-weight: 700;
-  flex-shrink: 0;
-}
-
-.block-title {
-  margin: 0;
-  font-size: 19px;
-  font-weight: 600;
-  color: #212529;
-  line-height: 1.4;
-}
-
-.block-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.block-item {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.item-paragraph {
-  color: #495057;
-  line-height: 1.7;
-  font-size: 15px;
-}
-
-.item-paragraph strong {
-  color: #212529;
-  font-weight: 600;
-  display: block;
-  margin-bottom: 6px;
-  font-size: 16px;
-}
-
-.item-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.list-label {
-  color: #212529;
-  font-weight: 600;
-  font-size: 16px;
-  margin-bottom: 6px;
-}
-
-.analysis-list {
-  margin: 0;
-  padding-left: 20px;
-  list-style: none;
-}
-
-.analysis-list-item {
-  position: relative;
-  padding: 8px 0 8px 20px;
-  color: #495057;
-  line-height: 1.7;
-  font-size: 15px;
-}
-
-.analysis-list-item::before {
-  content: '•';
-  position: absolute;
-  left: 0;
-  color: #2196F3;
-  font-size: 18px;
-  font-weight: bold;
-  line-height: 1;
-}
-
-.analysis-error {
-  margin-top: 16px;
-  padding: 16px;
-  background: #fff3cd;
-  border: 1px solid #ffc107;
-  border-radius: 8px;
-  color: #856404;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.analysis-error i {
-  font-size: 18px;
+/* Responsive */
+@media (max-width: 1400px) {
+  .projects-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
 @media (max-width: 1024px) {
-  .dashboard-grid {
+  .page-header,
+  .page-content {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+  
+  .projects-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .results-grid {
     grid-template-columns: 1fr;
   }
   
-  .chart-container {
+  .form-row {
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
   }
   
-  .pie-legend {
-    margin-left: 0;
-    margin-top: 20px;
-    width: 100%;
+  .startup-select {
+    max-width: 100%;
   }
-
-  .analysis-controls {
-    flex-direction: column;
-  }
-
+  
   .analyze-btn {
-    width: 100%;
+    justify-content: center;
   }
+}
 
-  .analysis-blocks-grid {
+@media (max-width: 768px) {
+  .page-header,
+  .page-content {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  .projects-grid {
     grid-template-columns: 1fr;
   }
-
-  .analysis-block-card {
-    padding: 16px;
-  }
-
-  .block-title {
-    font-size: 16px;
+  
+  .card-image {
+    height: 160px;
   }
 }
 </style> 

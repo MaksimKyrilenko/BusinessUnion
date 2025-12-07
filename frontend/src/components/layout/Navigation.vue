@@ -1,7 +1,10 @@
 <template>
   <nav class="navigation">
     <div class="nav-brand">
-      <router-link to="/dashboard">Business Union</router-link>
+      <router-link to="/dashboard" class="brand-link">
+        <img src="@/assets/icon.png" alt="Logo" class="brand-icon" />
+        <span class="brand-text">BusinessUnion</span>
+      </router-link>
     </div>
     
     <div class="nav-links" v-if="isAuthenticated">
@@ -149,11 +152,23 @@ export default defineComponent({
   border-bottom: 1px solid #eee;
 }
 
-.nav-brand a {
+.nav-brand .brand-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+}
+
+.nav-brand .brand-icon {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+}
+
+.nav-brand .brand-text {
   font-size: 1.5rem;
   font-weight: bold;
   color: #2196F3;
-  text-decoration: none;
 }
 
 .nav-links {

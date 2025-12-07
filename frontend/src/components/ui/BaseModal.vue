@@ -95,15 +95,16 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 100;
+  background-color: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
   padding: 16px;
 }
 
 .modal-container {
   background: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  border-radius: 20px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.25);
   width: 100%;
   max-width: 500px;
   max-height: 90vh;
@@ -158,14 +159,38 @@ export default {
 }
 
 /* Анимации */
-.modal-fade-enter-active,
+.modal-fade-enter-active {
+  transition: opacity 0.3s ease;
+}
+
+.modal-fade-enter-active .modal-container {
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+}
+
 .modal-fade-leave-active {
   transition: opacity 0.2s ease;
 }
 
-.modal-fade-enter-from,
+.modal-fade-leave-active .modal-container {
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.modal-fade-enter-from {
+  opacity: 0;
+}
+
+.modal-fade-enter-from .modal-container {
+  opacity: 0;
+  transform: scale(0.9) translateY(-20px);
+}
+
 .modal-fade-leave-to {
   opacity: 0;
+}
+
+.modal-fade-leave-to .modal-container {
+  opacity: 0;
+  transform: scale(0.95) translateY(10px);
 }
 
 @media (max-width: 576px) {

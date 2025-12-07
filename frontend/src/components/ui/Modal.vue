@@ -1,25 +1,29 @@
 <template>
-  <div v-if="show" class="modal-overlay" @click.self="$emit('close')">
-    <div class="modal-container" ref="modalContainer">
-      <div class="modal-close" @click="$emit('close')">
-        <i class="fas fa-times"></i>
+  <Teleport to="body">
+    <Transition name="modal">
+      <div v-if="show" class="modal-overlay" @click.self="$emit('close')">
+        <div class="modal-container" ref="modalContainer">
+          <div class="modal-close" @click="$emit('close')">
+            <i class="fas fa-times"></i>
+          </div>
+          <div class="modal-content">
+            <div class="modal-header" v-if="$slots.header">
+              <slot name="header"></slot>
+            </div>
+            <div class="modal-body" v-if="$slots.body">
+              <slot name="body"></slot>
+            </div>
+            <div class="modal-body" v-if="$slots.default">
+              <slot></slot>
+            </div>
+            <div class="modal-footer" v-if="$slots.footer">
+              <slot name="footer"></slot>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="modal-content">
-        <div class="modal-header" v-if="$slots.header">
-          <slot name="header"></slot>
-        </div>
-        <div class="modal-body" v-if="$slots.body">
-          <slot name="body"></slot>
-        </div>
-        <div class="modal-body" v-if="$slots.default">
-          <slot></slot>
-        </div>
-        <div class="modal-footer" v-if="$slots.footer">
-          <slot name="footer"></slot>
-        </div>
-      </div>
-    </div>
-  </div>
+    </Transition>
+  </Teleport>
 </template>
 
 <script>
@@ -73,24 +77,57 @@ export default {
   right: 0;
   bottom: 0;
   background-color: rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(5px);
+  backdrop-filter: blur(8px);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
-  animation: fadeIn 0.3s ease-out;
 }
 
 .modal-container {
   position: relative;
   background-color: #fff;
-  border-radius: 16px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  border-radius: 20px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.25);
   max-width: 90%;
   max-height: 90vh;
   width: auto;
   overflow: hidden;
-  animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Modal Transition */
+.modal-enter-active {
+  transition: opacity 0.3s ease;
+}
+
+.modal-enter-active .modal-container {
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+}
+
+.modal-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.modal-leave-active .modal-container {
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.modal-enter-from {
+  opacity: 0;
+}
+
+.modal-enter-from .modal-container {
+  opacity: 0;
+  transform: scale(0.9) translateY(-20px);
+}
+
+.modal-leave-to {
+  opacity: 0;
+}
+
+.modal-leave-to .modal-container {
+  opacity: 0;
+  transform: scale(0.95) translateY(10px);
 }
 
 .modal-close {

@@ -14,6 +14,9 @@ export interface RecentMessage {
   content: string;
   timestamp: Date;
   isRead: boolean;
+  chatId?: number;
+  chatName?: string;
+  chatType?: string;
 }
 
 export interface Activity {
@@ -134,4 +137,24 @@ export interface CryptoMarket {
   volume24h: number;
   marketCap: number;
   lastUpdate: Date;
+}
+
+export interface CommunityActivity {
+  id: number;
+  type: 'post' | 'like';
+  userId: number;
+  userName: string;
+  userAvatar?: string;
+  communityId: number;
+  communityName: string;
+  postId?: number;
+  postContent?: string;
+  timestamp: Date;
+}
+
+export interface CommunityStats {
+  totalMembers: number;
+  activeDiscussions: number;
+  yourContributions: number;
+  activities: CommunityActivity[];
 } 

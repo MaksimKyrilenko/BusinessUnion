@@ -539,14 +539,14 @@ export default defineComponent({
     const getAvatarWithInitials = (firstInitial, lastInitial) => {
       const initials = (firstInitial + lastInitial).trim() || 'ПУ'
       const colors = [
-        { bg: '#7C4DFF', text: '#FFFFFF' },
-        { bg: '#2196F3', text: '#FFFFFF' },
-        { bg: '#00BCD4', text: '#FFFFFF' },
-        { bg: '#4CAF50', text: '#FFFFFF' },
-        { bg: '#FF9800', text: '#FFFFFF' },
-        { bg: '#F44336', text: '#FFFFFF' },
-        { bg: '#9C27B0', text: '#FFFFFF' },
-        { bg: '#009688', text: '#FFFFFF' }
+        { bg: '#2563eb', text: '#FFFFFF' },
+        { bg: '#1d4ed8', text: '#FFFFFF' },
+        { bg: '#3b82f6', text: '#FFFFFF' },
+        { bg: '#0ea5e9', text: '#FFFFFF' },
+        { bg: '#0284c7', text: '#FFFFFF' },
+        { bg: '#0369a1', text: '#FFFFFF' },
+        { bg: '#1e40af', text: '#FFFFFF' },
+        { bg: '#1e3a8a', text: '#FFFFFF' }
       ]
       
       // Генерируем цвет на основе инициалов для консистентности
@@ -779,8 +779,8 @@ export default defineComponent({
 .loading-spinner {
   width: 40px;
   height: 40px;
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid var(--primary-color);
+  border: 3px solid #e2e8f0;
+  border-top: 3px solid #2563eb;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 1rem;
@@ -895,8 +895,8 @@ export default defineComponent({
 
 .post-textarea:focus {
   outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(124, 77, 255, 0.1);
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
   background: white;
 }
 
@@ -958,9 +958,9 @@ export default defineComponent({
 }
 
 .image-upload-btn:hover {
-  background: var(--primary-color);
+  background: #2563eb;
   color: white;
-  border-color: var(--primary-color);
+  border-color: #2563eb;
 }
 
 .posts-section {
@@ -1143,8 +1143,8 @@ export default defineComponent({
 .edit-community-form .form-group input:focus,
 .edit-community-form .form-group textarea:focus {
   outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(124, 77, 255, 0.1);
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
   background: white;
 }
 
@@ -1206,39 +1206,40 @@ export default defineComponent({
 }
 
 .image-upload-label:hover {
-  border-color: var(--primary-color);
-  background: #f8fafc;
-  color: var(--primary-color);
+  border-color: #2563eb;
+  background: #eff6ff;
+  color: #2563eb;
 }
 
 :deep(.modal-footer) {
   display: flex;
   justify-content: flex-end;
-  gap: 1rem;
-  padding-top: 1.5rem;
-  margin-top: 1.5rem;
-  border-top: 1px solid var(--border-color);
+  gap: 0.75rem;
+  padding-top: 1.25rem;
+  margin-top: 1.25rem;
+  border-top: 1px solid #f1f5f9;
 }
 
 :deep(.modal-footer .btn) {
-  padding: 0.75rem 1.5rem;
+  padding: 0.7rem 1.25rem;
   border: none;
-  border-radius: var(--radius-lg);
-  font-size: 0.95rem;
-  font-weight: 500;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
-  min-width: 120px;
+  transition: all 0.2s ease;
+  min-width: 100px;
 }
 
 :deep(.modal-footer .btn-primary) {
-  background: var(--primary-color);
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
   color: white;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
 }
 
 :deep(.modal-footer .btn-primary:hover:not(:disabled)) {
-  background: var(--primary-hover);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.35);
 }
 
 :deep(.modal-footer .btn-primary:disabled) {

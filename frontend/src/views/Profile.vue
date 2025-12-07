@@ -1,123 +1,262 @@
 <template>
-  <div class="profile">
-    <div v-if="isLoading" class="loading">
-      Загрузка профиля...
-    </div>
-    <div v-else-if="userData" class="profile-content">
-      <div class="profile-header">
-        <h1>Профиль пользователя</h1>
-        <div class="header-actions">
-          <router-link v-if="isOwnProfile" to="/profile/edit" class="btn btn-outline">
+  <div class="profile-page">
+    <!-- Header -->
+    <header class="page-header">
+      <div class="header-content">
+        <div class="header-left">
+          <div class="header-icon">
+            <i class="fas fa-user"></i>
+          </div>
+          <div>
+            <h1>Профиль пользователя</h1>
+            <p class="header-subtitle">Личная информация и настройки</p>
+          </div>
+        </div>
+        <div class="header-right">
+          <router-link v-if="isOwnProfile" to="/profile/edit" class="btn-edit">
+            <i class="fas fa-pen"></i>
             Редактировать
           </router-link>
-          <router-link v-else to="/people" class="btn btn-outline">
+          <router-link v-else to="/people" class="btn-edit">
+            <i class="fas fa-arrow-left"></i>
             Назад к поиску
           </router-link>
         </div>
       </div>
+    </header>
 
-      <div class="profile-info">
-        <div class="profile-section">
-          <h2>Личные данные</h2>
-          
-          <div class="profile-avatar">
+    <div v-if="isLoading" class="loading-state">
+      <div class="loader"></div>
+      <p>Загрузка профиля...</p>
+    </div>
+
+    <div v-else-if="userData" class="profile-grid">
+      <!-- Row 1: Avatar Card + Personal Info -->
+      <div class="row row-1">
+        <div class="profile-card avatar-card">
+          <div class="avatar-section">
             <div v-if="userData.profile && userData.profile.avatar" class="avatar-img" 
                  :style="{backgroundImage: `url(${userData.profile.avatar})`}"></div>
             <div v-else class="avatar-placeholder">
               {{ userInitials }}
             </div>
-          </div>
-          
-          <div class="profile-field">
-            <span class="field-label">Имя:</span>
-            <span class="field-value">{{ userData.firstName }}</span>
-          </div>
-
-          <div class="profile-field">
-            <span class="field-label">Фамилия:</span>
-            <span class="field-value">{{ userData.lastName }}</span>
-          </div>
-
-          <div class="profile-field">
-            <span class="field-label">Отчество:</span>
-            <span class="field-value">{{ userData.middleName || 'Не указано' }}</span>
-          </div>
-
-          <div class="profile-field">
-            <span class="field-label">Email:</span>
-            <span class="field-value">{{ userData.email }}</span>
+            <div class="user-name">
+              <h2>{{ userData.firstName }} {{ userData.lastName }}</h2>
+              <span class="user-role">{{ getUserRole }}</span>
+            </div>
+            <div v-if="!isOwnProfile" class="connect-btn-wrapper">
+              <button class="btn-connect" @click="connectWithUser">
+                <i class="fas fa-envelope"></i>
+                Связаться
+              </button>
+            </div>
           </div>
         </div>
 
-        <div v-if="userData.profile" class="profile-section">
-          <h2>О себе</h2>
-          <div v-if="userData.profile.bio" class="profile-field bio">
-            <p>{{ userData.profile.bio }}</p>
+        <div class="profile-card personal-card">
+          <div class="card-header">
+            <i class="fas fa-id-card"></i>
+            <h3>Личные данные</h3>
           </div>
-          <div v-else class="profile-field empty-field">
-            <p>Информация отсутствует</p>
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-label">Имя</span>
+              <span class="info-value">{{ userData.firstName }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Фамилия</span>
+              <span class="info-value">{{ userData.lastName }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Отчество</span>
+              <span class="info-value">{{ userData.middleName || '—' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Email</span>
+              <span class="info-value">{{ userData.email }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 2: About + Professional -->
+      <div class="row row-2">
+        <div class="profile-card">
+          <div class="card-header">
+            <i class="fas fa-user-circle"></i>
+            <h3>О себе</h3>
+          </div>
+          <div class="bio-content">
+            <p v-if="userData.profile?.bio">{{ userData.profile.bio }}</p>
+            <p v-else class="empty-text">Информация отсутствует</p>
           </div>
         </div>
 
-        <div v-if="userData.profile" class="profile-section">
-          <h2>Профессиональная информация</h2>
-          
-          <div v-if="userData.profile.company" class="profile-field">
-            <span class="field-label">Компания:</span>
-            <span class="field-value">{{ userData.profile.company }}</span>
+        <div class="profile-card">
+          <div class="card-header">
+            <i class="fas fa-briefcase"></i>
+            <h3>Профессиональная информация</h3>
           </div>
-          
-          <div v-if="userData.profile.position" class="profile-field">
-            <span class="field-label">Должность:</span>
-            <span class="field-value">{{ userData.profile.position }}</span>
+          <div class="info-grid" v-if="hasWorkInfo">
+            <div class="info-item" v-if="userData.profile?.company">
+              <span class="info-label">Компания</span>
+              <span class="info-value">{{ userData.profile.company }}</span>
+            </div>
+            <div class="info-item" v-if="userData.profile?.position">
+              <span class="info-label">Должность</span>
+              <span class="info-value">{{ userData.profile.position }}</span>
+            </div>
+            <div class="info-item full-width" v-if="userData.profile?.website">
+              <span class="info-label">Веб-сайт</span>
+              <a :href="userData.profile.website" target="_blank" class="info-link">
+                {{ userData.profile.website }}
+              </a>
+            </div>
           </div>
-          
-          <div v-if="userData.profile.website" class="profile-field">
-            <span class="field-label">Веб-сайт:</span>
-            <a :href="userData.profile.website" target="_blank" class="field-value link">{{ userData.profile.website }}</a>
-          </div>
+          <p v-else class="empty-text">Информация отсутствует</p>
+        </div>
+      </div>
 
-          <div v-if="!userData.profile.company && !userData.profile.position && !userData.profile.website" class="profile-field empty-field">
-            <p>Информация отсутствует</p>
+      <!-- Row 3: Contact + Social -->
+      <div class="row row-2">
+        <div class="profile-card">
+          <div class="card-header">
+            <i class="fas fa-address-book"></i>
+            <h3>Контактная информация</h3>
+          </div>
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-label">Email</span>
+              <span class="info-value">{{ userData.email }}</span>
+            </div>
+            <div class="info-item" v-if="userData.profile?.phoneNumber">
+              <span class="info-label">Телефон</span>
+              <span class="info-value">{{ userData.profile.phoneNumber }}</span>
+            </div>
+            <div class="info-item" v-if="userData.profile?.region">
+              <span class="info-label">Регион</span>
+              <span class="info-value">{{ userData.profile.region }}</span>
+            </div>
+            <div class="info-item" v-if="userData.profile?.address">
+              <span class="info-label">Адрес</span>
+              <span class="info-value">{{ userData.profile.address }}</span>
+            </div>
           </div>
         </div>
 
-        <div v-if="userData.profile && hasSocialLinks" class="profile-section">
-          <h2>Социальные сети</h2>
-          
-          <div v-if="userData.profile.socialLinks?.vk" class="profile-field">
-            <span class="field-label">ВКонтакте:</span>
-            <a :href="userData.profile.socialLinks.vk" target="_blank" class="field-value link">{{ userData.profile.socialLinks.vk }}</a>
+        <div class="profile-card" v-if="hasSocialLinks">
+          <div class="card-header">
+            <i class="fas fa-share-alt"></i>
+            <h3>Социальные сети</h3>
           </div>
-          
-          <div v-if="userData.profile.socialLinks?.instagram" class="profile-field">
-            <span class="field-label">Instagram:</span>
-            <a :href="userData.profile.socialLinks.instagram" target="_blank" class="field-value link">{{ userData.profile.socialLinks.instagram }}</a>
-          </div>
-          
-          <div v-if="userData.profile.socialLinks?.facebook" class="profile-field">
-            <span class="field-label">Facebook:</span>
-            <a :href="userData.profile.socialLinks.facebook" target="_blank" class="field-value link">{{ userData.profile.socialLinks.facebook }}</a>
-          </div>
-          
-          <div v-if="userData.profile.socialLinks?.linkedin" class="profile-field">
-            <span class="field-label">LinkedIn:</span>
-            <a :href="userData.profile.socialLinks.linkedin" target="_blank" class="field-value link">{{ userData.profile.socialLinks.linkedin }}</a>
-          </div>
-          
-          <div v-if="userData.profile.socialLinks?.twitter" class="profile-field">
-            <span class="field-label">Twitter:</span>
-            <a :href="userData.profile.socialLinks.twitter" target="_blank" class="field-value link">{{ userData.profile.socialLinks.twitter }}</a>
-          </div>
-          
-          <div v-if="userData.profile.socialLinks?.telegram" class="profile-field">
-            <span class="field-label">Telegram:</span>
-            <span class="field-value">{{ userData.profile.socialLinks.telegram }}</span>
+          <div class="social-grid">
+            <a v-if="userData.profile?.socialLinks?.vk" :href="userData.profile.socialLinks.vk" target="_blank" class="social-item vk">
+              <i class="fab fa-vk"></i>
+              <span>ВКонтакте</span>
+            </a>
+            <a v-if="userData.profile?.socialLinks?.telegram" :href="'https://t.me/' + userData.profile.socialLinks.telegram" target="_blank" class="social-item telegram">
+              <i class="fab fa-telegram"></i>
+              <span>Telegram</span>
+            </a>
+            <a v-if="userData.profile?.socialLinks?.instagram" :href="userData.profile.socialLinks.instagram" target="_blank" class="social-item instagram">
+              <i class="fab fa-instagram"></i>
+              <span>Instagram</span>
+            </a>
+            <a v-if="userData.profile?.socialLinks?.linkedin" :href="userData.profile.socialLinks.linkedin" target="_blank" class="social-item linkedin">
+              <i class="fab fa-linkedin"></i>
+              <span>LinkedIn</span>
+            </a>
+            <a v-if="userData.profile?.socialLinks?.twitter" :href="userData.profile.socialLinks.twitter" target="_blank" class="social-item twitter">
+              <i class="fab fa-twitter"></i>
+              <span>Twitter</span>
+            </a>
+            <a v-if="userData.profile?.socialLinks?.facebook" :href="userData.profile.socialLinks.facebook" target="_blank" class="social-item facebook">
+              <i class="fab fa-facebook"></i>
+              <span>Facebook</span>
+            </a>
           </div>
         </div>
-        
-        <div v-if="userData.profile && userData.profile.gallery && userData.profile.gallery.length > 0" class="profile-section">
-          <h2>Портфолио и галерея</h2>
+        <div class="profile-card" v-else>
+          <div class="card-header">
+            <i class="fas fa-share-alt"></i>
+            <h3>Социальные сети</h3>
+          </div>
+          <p class="empty-text">Социальные сети не указаны</p>
+        </div>
+      </div>
+
+      <!-- Row 4: Education + Skills -->
+      <div class="row row-2">
+        <div class="profile-card">
+          <div class="card-header">
+            <i class="fas fa-graduation-cap"></i>
+            <h3>Образование и квалификация</h3>
+          </div>
+          <div class="info-grid" v-if="hasEducation">
+            <div class="info-item full-width" v-if="userData.profile?.education">
+              <span class="info-label">Образование</span>
+              <span class="info-value">{{ userData.profile.education }}</span>
+            </div>
+            <div class="info-item full-width" v-if="userData.profile?.certifications?.length">
+              <span class="info-label">Сертификаты</span>
+              <div class="tags">
+                <span v-for="(cert, index) in userData.profile.certifications" :key="index" class="tag">{{ cert }}</span>
+              </div>
+            </div>
+            <div class="info-item full-width" v-if="userData.profile?.languages?.length">
+              <span class="info-label">Языки</span>
+              <div class="tags">
+                <span v-for="(lang, index) in userData.profile.languages" :key="index" class="tag">{{ lang }}</span>
+              </div>
+            </div>
+          </div>
+          <p v-else class="empty-text">Информация отсутствует</p>
+        </div>
+
+        <div class="profile-card">
+          <div class="card-header">
+            <i class="fas fa-star"></i>
+            <h3>Специализация и интересы</h3>
+          </div>
+          <div class="skills-content" v-if="hasSkills">
+            <div v-if="userData.profile?.specialization?.length" class="skill-group">
+              <span class="skill-label">Специализация</span>
+              <div class="tags">
+                <span v-for="(tag, index) in userData.profile.specialization" :key="index" class="tag primary">{{ tag }}</span>
+              </div>
+            </div>
+            <div v-if="userData.profile?.interests?.length" class="skill-group">
+              <span class="skill-label">Интересы</span>
+              <div class="tags">
+                <span v-for="(tag, index) in userData.profile.interests" :key="index" class="tag">{{ tag }}</span>
+              </div>
+            </div>
+          </div>
+          <p v-else class="empty-text">Информация отсутствует</p>
+        </div>
+      </div>
+
+      <!-- Row 5: Investment (for investors) + Gallery -->
+      <div class="row row-2" v-if="userData.userType === 'INVESTOR' || hasGallery">
+        <div class="profile-card" v-if="userData.userType === 'INVESTOR'">
+          <div class="card-header">
+            <i class="fas fa-chart-line"></i>
+            <h3>Инвестиционная деятельность</h3>
+          </div>
+          <div class="investment-content" v-if="userData.profile?.investmentSize">
+            <div class="investment-amount">
+              <span class="amount-label">Размер инвестиций</span>
+              <span class="amount-value">{{ formatCurrency(userData.profile.investmentSize) }} ₽</span>
+            </div>
+          </div>
+          <p v-else class="empty-text">Информация отсутствует</p>
+        </div>
+
+        <div class="profile-card" v-if="hasGallery">
+          <div class="card-header">
+            <i class="fas fa-images"></i>
+            <h3>Портфолио и галерея</h3>
+          </div>
           <div class="gallery-grid">
             <div v-for="(image, index) in userData.profile.gallery" :key="index" 
                  class="gallery-item" @click="openImageModal(image)">
@@ -125,96 +264,12 @@
             </div>
           </div>
         </div>
-
-        <div v-if="userData.profile && (userData.profile.specialization?.length || userData.profile.interests?.length)" class="profile-section">
-          <h2>Специализация и интересы</h2>
-          
-          <div v-if="userData.profile.specialization?.length" class="profile-field">
-            <span class="field-label">Специализация:</span>
-            <div class="tags">
-              <span v-for="(tag, index) in userData.profile.specialization" :key="index" class="tag">{{ tag }}</span>
-            </div>
-          </div>
-          
-          <div v-if="userData.profile.interests?.length" class="profile-field">
-            <span class="field-label">Интересы:</span>
-            <div class="tags">
-              <span v-for="(tag, index) in userData.profile.interests" :key="index" class="tag">{{ tag }}</span>
-            </div>
-          </div>
-        </div>
-
-        <div v-if="userData.userType === 'INVESTOR'" class="profile-section">
-          <h2>Инвестиционная деятельность</h2>
-          
-          <div v-if="userData.profile?.investmentSize" class="profile-field">
-            <span class="field-label">Размер инвестиций:</span>
-            <span class="field-value">{{ formatCurrency(userData.profile.investmentSize) }} ₽</span>
-          </div>
-          <div v-else class="profile-field empty-field">
-            <p>Информация отсутствует</p>
-          </div>
-        </div>
-
-        <div v-if="userData.profile" class="profile-section">
-          <h2>Контактная информация</h2>
-          <div class="profile-field">
-            <span class="field-label">Email:</span>
-            <span class="field-value">{{ userData.email }}</span>
-          </div>
-          
-          <div v-if="userData.profile.phoneNumber" class="profile-field">
-            <span class="field-label">Телефон:</span>
-            <span class="field-value">{{ userData.profile.phoneNumber }}</span>
-          </div>
-          
-          <div v-if="userData.profile.region" class="profile-field">
-            <span class="field-label">Регион:</span>
-            <span class="field-value">{{ userData.profile.region }}</span>
-          </div>
-          
-          <div v-if="userData.profile.address" class="profile-field">
-            <span class="field-label">Адрес:</span>
-            <span class="field-value">{{ userData.profile.address }}</span>
-          </div>
-        </div>
-        
-        <div v-if="userData.profile" class="profile-section">
-          <h2>Образование и квалификация</h2>
-          
-          <div v-if="userData.profile.education" class="profile-field">
-            <span class="field-label">Образование:</span>
-            <span class="field-value">{{ userData.profile.education }}</span>
-          </div>
-          
-          <div v-if="userData.profile.certifications && userData.profile.certifications.length > 0" class="profile-field">
-            <span class="field-label">Сертификаты:</span>
-            <div class="tags">
-              <span v-for="(cert, index) in userData.profile.certifications" :key="index" class="tag">{{ cert }}</span>
-            </div>
-          </div>
-          
-          <div v-if="userData.profile.languages && userData.profile.languages.length > 0" class="profile-field">
-            <span class="field-label">Языки:</span>
-            <div class="tags">
-              <span v-for="(lang, index) in userData.profile.languages" :key="index" class="tag">{{ lang }}</span>
-            </div>
-          </div>
-          
-          <div v-if="!userData.profile.education && (!userData.profile.certifications || userData.profile.certifications.length === 0) && (!userData.profile.languages || userData.profile.languages.length === 0)" class="profile-field empty-field">
-            <p>Информация отсутствует</p>
-          </div>
-        </div>
-      </div>
-
-      <div v-if="!isOwnProfile" class="profile-actions">
-        <button class="btn btn-primary" @click="connectWithUser">
-          <i class="fas fa-envelope"></i> Связаться
-        </button>
       </div>
     </div>
-    <div v-else class="error">
-      Не удалось загрузить профиль
+
+    <div v-else class="error-state">
+      <i class="fas fa-exclamation-circle"></i>
+      <p>Не удалось загрузить профиль</p>
     </div>
     
     <Modal v-if="showConnectModal" @close="showConnectModal = false">
@@ -273,20 +328,35 @@ export default {
       if (!this.userData) return '';
       return (this.userData.firstName?.charAt(0) || '') + (this.userData.lastName?.charAt(0) || '');
     },
+    getUserRole() {
+      const roles = {
+        'INVESTOR': 'Инвестор',
+        'BUSINESSMAN': 'Предприниматель',
+        'ADMIN': 'Администратор'
+      };
+      return roles[this.userData?.userType] || 'Пользователь';
+    },
     hasSocialLinks() {
-      if (!this.userData.profile || !this.userData.profile.socialLinks) return false;
-      return Boolean(
-        this.userData.profile.socialLinks.linkedin ||
-        this.userData.profile.socialLinks.twitter ||
-        this.userData.profile.socialLinks.telegram ||
-        this.userData.profile.socialLinks.vk ||
-        this.userData.profile.socialLinks.instagram ||
-        this.userData.profile.socialLinks.facebook
-      );
+      if (!this.userData?.profile?.socialLinks) return false;
+      const links = this.userData.profile.socialLinks;
+      return Boolean(links.linkedin || links.twitter || links.telegram || links.vk || links.instagram || links.facebook);
+    },
+    hasWorkInfo() {
+      return this.userData?.profile?.company || this.userData?.profile?.position || this.userData?.profile?.website;
+    },
+    hasEducation() {
+      return this.userData?.profile?.education || 
+             this.userData?.profile?.certifications?.length || 
+             this.userData?.profile?.languages?.length;
+    },
+    hasSkills() {
+      return this.userData?.profile?.specialization?.length || this.userData?.profile?.interests?.length;
+    },
+    hasGallery() {
+      return this.userData?.profile?.gallery?.length > 0;
     }
   },
   async created() {
-    // Определяем свой профиль или чужой
     const currentUserId = localStorage.getItem('userId');
     if (!this.id) {
       this.isOwnProfile = true;
@@ -299,63 +369,36 @@ export default {
   methods: {
     async loadOwnProfile() {
       try {
-        // Получим ID текущего пользователя из localStorage
         const userId = localStorage.getItem('userId');
-        
         if (!userId) {
-          console.error('ID пользователя не найден в localStorage');
           this.$router.push('/login');
           return;
         }
         
-        console.log('Загружаем свой профиль для пользователя ID:', userId);
-        
-        // Загружаем профиль
         const response = await api.get('/users/profile');
         
-        // Проверяем, что ID загруженного профиля совпадает с ID в localStorage
         if (response.data.id && response.data.id.toString() !== userId) {
-          console.warn('ID загруженного профиля не совпадает с ID в localStorage');
-          // Принудительно обновим localStorage
           localStorage.setItem('userId', response.data.id.toString());
         }
         
         if (response.data.profile === null) {
-          // Создаем новый профиль с валидными данными
           const profileData = {
             bio: '',
             company: '',
             position: '',
             website: '',
-            socialLinks: {
-              linkedin: '',
-              twitter: '',
-              telegram: '',
-              vk: '',
-              instagram: '',
-              facebook: ''
-            },
+            socialLinks: { linkedin: '', twitter: '', telegram: '', vk: '', instagram: '', facebook: '' },
             specialization: [],
             interests: [],
             investmentSize: 0
           };
           
           try {
-            // Используем обработку ошибок при создании профиля
-            const createResponse = await api.post('/users/profile', profileData);
-            console.log('Профиль успешно создан:', createResponse.data);
-            
-            // Получаем обновленные данные профиля
+            await api.post('/users/profile', profileData);
             const updatedResponse = await api.get('/users/profile');
             this.userData = updatedResponse.data;
           } catch (profileError) {
-            console.error('Ошибка при создании профиля:', profileError.response?.data || profileError.message);
-            // Если не удалось создать профиль, все равно показываем основные данные пользователя
             this.userData = response.data;
-            
-            if (profileError.response && profileError.response.status === 400) {
-              console.warn('Неверный формат данных при создании профиля');
-            }
           }
         } else {
           this.userData = response.data;
@@ -369,12 +412,8 @@ export default {
     
     async loadUserProfile(userId) {
       try {
-        console.log('Загружаем профиль пользователя ID:', userId);
-        
-        // Загружаем данные пользователя через API сервис
         const userData = await usersApiService.getUserById(userId);
         this.userData = userData;
-        
       } catch (error) {
         this.handleError(error);
       } finally {
@@ -383,27 +422,12 @@ export default {
     },
     
     handleError(error) {
-      console.error('Ошибка при загрузке профиля:', error.response?.data || error.message);
-      
-      // Если ошибка 401, перенаправляем на логин
-      if (error.response && error.response.status === 401) {
-        // Очищаем данные авторизации
+      if (error.response?.status === 401) {
         localStorage.removeItem('token');
         localStorage.removeItem('userId');
         localStorage.removeItem('userType');
-        
         this.$router.push('/login');
-        return;
       }
-      
-      let errorMessage = 'Не удалось загрузить профиль.';
-      if (error.response && error.response.data && error.response.data.message) {
-        errorMessage += ' ' + error.response.data.message;
-      } else {
-        errorMessage += ' Пожалуйста, попробуйте позже.';
-      }
-      
-      this.$emit('error', errorMessage);
     },
 
     formatCurrency(value) {
@@ -411,7 +435,6 @@ export default {
     },
     
     openImageModal(image) {
-      // Здесь можно добавить логику для открытия модального окна с полноразмерным изображением
       window.open(image, '_blank');
     },
     
@@ -421,15 +444,9 @@ export default {
     
     async sendMessage() {
       if (!this.messageText.trim()) return;
-
       try {
-        // Здесь будет отправка сообщения на сервер
-        console.log('Отправка сообщения пользователю:', this.userData.id, this.messageText);
-        
         this.showConnectModal = false;
         this.messageText = '';
-        
-        // Показываем уведомление об успехе
         alert('Сообщение успешно отправлено');
       } catch (error) {
         console.error('Ошибка при отправке сообщения:', error);
@@ -439,115 +456,300 @@ export default {
 }
 </script>
 
+
 <style scoped>
-.profile {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 2rem;
+.profile-page {
+  min-height: 100vh;
+  background: #f8fafc;
+  padding: 1.5rem;
 }
 
-.profile-header {
+/* Header */
+.page-header {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.header-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
 }
 
-.profile-content {
-  background: white;
-  border-radius: 1rem;
-  padding: 2rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
-.profile-info {
+.header-icon {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #1E6BFF 0%, #4F8FFF 100%);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.25rem;
+}
+
+.header-left h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0;
+}
+
+.header-subtitle {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin: 0.25rem 0 0 0;
+}
+
+.btn-edit {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  background: #1E6BFF;
+  color: white;
+  border-radius: 10px;
+  font-weight: 500;
+  font-size: 0.875rem;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.btn-edit:hover {
+  background: #1557d9;
+}
+
+/* Grid Layout */
+.profile-grid {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 0.75rem;
 }
 
-.profile-section {
-  margin-bottom: 1.5rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid #eee;
+.row {
+  display: grid;
+  gap: 0.75rem;
 }
 
-.profile-section h2 {
-  margin-bottom: 1.5rem;
-  font-size: 1.25rem;
-  color: #333;
+.row-1 {
+  grid-template-columns: 1fr 2fr;
 }
 
-.profile-avatar {
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  background-size: cover;
-  background-position: center;
-  margin-bottom: 1rem;
+.row-2 {
+  grid-template-columns: 1fr 1fr;
+}
+
+/* Cards */
+.profile-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.card-header i {
+  width: 36px;
+  height: 36px;
+  background: #f0f7ff;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1E6BFF;
+  font-size: 1rem;
+}
+
+.card-header h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin: 0;
+}
+
+/* Avatar Card */
+.avatar-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.avatar-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
 }
 
 .avatar-img {
-  width: 100%;
-  height: 100%;
+  width: 120px;
+  height: 120px;
   border-radius: 50%;
   background-size: cover;
   background-position: center;
+  border: 4px solid #f0f7ff;
 }
 
 .avatar-placeholder {
-  width: 100px;
-  height: 100px;
+  width: 120px;
+  height: 120px;
   border-radius: 50%;
-  background-color: #f0f4ff;
+  background: linear-gradient(135deg, #1E6BFF 0%, #4F8FFF 100%);
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #4361ee;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: white;
+  border: 4px solid #f0f7ff;
 }
 
-.profile-field {
-  margin-bottom: 1rem;
-  display: flex;
-  flex-wrap: wrap;
+.user-name h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0;
 }
 
-.field-label {
-  font-weight: 500;
-  width: 150px;
-  color: #666;
-}
-
-.field-value {
-  flex: 1;
-  min-width: 200px;
-}
-
-.link {
-  color: #4361ee;
-  text-decoration: none;
-}
-
-.link:hover {
-  text-decoration: underline;
-}
-
-.empty-field {
-  color: #999;
-  font-style: italic;
-}
-
-.bio {
+.user-role {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin-top: 0.25rem;
   display: block;
 }
 
-.bio p {
-  margin: 0;
+.btn-connect {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: #1E6BFF;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 0.5rem;
+}
+
+.btn-connect:hover {
+  background: #1557d9;
+}
+
+/* Info Grid */
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.info-item.full-width {
+  grid-column: 1 / -1;
+}
+
+.info-label {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+}
+
+.info-value {
+  font-size: 0.9375rem;
+  color: #1a1a2e;
+  font-weight: 500;
+}
+
+.info-link {
+  font-size: 0.9375rem;
+  color: #1E6BFF;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.info-link:hover {
+  text-decoration: underline;
+}
+
+/* Bio */
+.bio-content {
+  font-size: 0.9375rem;
+  color: #475569;
   line-height: 1.6;
 }
 
+.empty-text {
+  font-size: 0.875rem;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+/* Social Grid */
+.social-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.social-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: #f8fafc;
+  border-radius: 10px;
+  text-decoration: none;
+  color: #475569;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.social-item:hover {
+  background: #f0f7ff;
+  color: #1E6BFF;
+}
+
+.social-item i {
+  font-size: 1.125rem;
+}
+
+.social-item.vk:hover { color: #4a76a8; }
+.social-item.telegram:hover { color: #0088cc; }
+.social-item.instagram:hover { color: #e4405f; }
+.social-item.linkedin:hover { color: #0077b5; }
+.social-item.twitter:hover { color: #1da1f2; }
+.social-item.facebook:hover { color: #1877f2; }
+
+/* Tags */
 .tags {
   display: flex;
   flex-wrap: wrap;
@@ -555,87 +757,84 @@ export default {
 }
 
 .tag {
-  background-color: #f0f4ff;
-  color: #4361ee;
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.25rem;
-  font-size: 0.875rem;
-}
-
-.profile-section:last-child {
-  margin-bottom: 0;
-  border-bottom: none;
-}
-
-.loading {
-  text-align: center;
-  padding: 2rem;
-  color: #666;
-}
-
-.error {
-  text-align: center;
-  padding: 2rem;
-  color: #e53e3e;
-}
-
-.btn {
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
+  padding: 0.375rem 0.75rem;
+  background: #f0f7ff;
+  color: #1E6BFF;
+  border-radius: 6px;
+  font-size: 0.8125rem;
   font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-size: 1rem;
-  text-decoration: none;
 }
 
-.btn-primary {
-  background-color: #4361ee;
+.tag.primary {
+  background: #1E6BFF;
   color: white;
-  border: none;
 }
 
-.btn-primary:hover {
-  background-color: #3a56d4;
+/* Skills */
+.skills-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
 }
 
-.btn-outline {
-  background-color: transparent;
-  color: #4361ee;
-  border: 1px solid #4361ee;
+.skill-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
-.btn-outline:hover {
-  background-color: #f0f4ff;
+.skill-label {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 500;
 }
 
-@media (max-width: 768px) {
-  .profile {
-    padding: 1rem;
-  }
-
-  .profile-content {
-    padding: 1rem;
-  }
+/* Investment */
+.investment-content {
+  display: flex;
+  justify-content: center;
 }
 
+.investment-amount {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1.5rem 2rem;
+  background: linear-gradient(135deg, #f0f7ff 0%, #e8f4ff 100%);
+  border-radius: 12px;
+}
+
+.amount-label {
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.amount-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1E6BFF;
+}
+
+/* Gallery */
 .gallery-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 1rem;
-  margin-top: 1rem;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
 }
 
 .gallery-item {
-  height: 150px;
-  border-radius: 0.5rem;
+  aspect-ratio: 1;
+  border-radius: 10px;
   overflow: hidden;
   cursor: pointer;
   transition: transform 0.2s;
 }
 
 .gallery-item:hover {
-  transform: scale(1.05);
+  transform: scale(1.03);
 }
 
 .gallery-image {
@@ -645,42 +844,113 @@ export default {
   background-position: center;
 }
 
-.profile-actions {
+/* Loading & Error States */
+.loading-state,
+.error-state {
   display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
-  margin-top: 2rem;
+  min-height: 400px;
+  color: #64748b;
+  gap: 1rem;
 }
 
-.btn-secondary {
-  background-color: #e2e8f0;
-  color: #4a5568;
-  border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
+.loader {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #f0f7ff;
+  border-top-color: #1E6BFF;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
 }
 
-.btn-secondary:hover {
-  background-color: #cbd5e0;
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
-.form-group {
+.error-state i {
+  font-size: 3rem;
+  color: #ef4444;
+}
+
+/* Modal */
+.connect-form .form-group {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  margin-bottom: 1rem;
 }
 
-.form-group label {
+.connect-form label {
   font-weight: 500;
+  color: #1a1a2e;
 }
 
-.form-group textarea {
+.connect-form textarea {
   padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 0.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
   resize: vertical;
+  font-size: 0.9375rem;
 }
-</style> 
+
+.btn-primary {
+  background: #1E6BFF;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: #f1f5f9;
+  color: #475569;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .row-1 {
+    grid-template-columns: 1fr;
+  }
+  
+  .social-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .profile-page {
+    padding: 1rem;
+  }
+  
+  .row-2 {
+    grid-template-columns: 1fr;
+  }
+  
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .gallery-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .header-content {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+}
+</style>

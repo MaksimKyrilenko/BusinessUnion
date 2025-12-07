@@ -1,6 +1,27 @@
 <template>
   <div class="market-analytics">
-    <h1>Бизнес аналитика</h1>
+    <!-- Header -->
+    <header class="page-header">
+      <div class="header-content">
+        <div class="header-left">
+          <div class="header-icon">
+            <i class="fas fa-chart-bar"></i>
+          </div>
+          <div>
+            <h1>Бизнес аналитика</h1>
+            <p class="header-subtitle">Статистика и тренды рынка</p>
+          </div>
+        </div>
+        <div class="header-right">
+          <div class="period-selector">
+            <button :class="['period-btn', { active: timeRange === 'week' }]" @click="timeRange = 'week'">Неделя</button>
+            <button :class="['period-btn', { active: timeRange === 'month' }]" @click="timeRange = 'month'">Месяц</button>
+            <button :class="['period-btn', { active: timeRange === 'quarter' }]" @click="timeRange = 'quarter'">Квартал</button>
+            <button :class="['period-btn', { active: timeRange === 'year' }]" @click="timeRange = 'year'">Год</button>
+          </div>
+        </div>
+      </div>
+    </header>
 
     <div class="filters">
       <SearchBar 
@@ -8,23 +29,16 @@
         @search="handleSearch"
         class="market-search"
       />
-      <div class="filter-options">
-        <select v-model="selectedCategory" class="filter-select">
-          <option value="">Все категории</option>
-          <option v-for="cat in categories" :key="cat.id" :value="cat.id">
-            {{ cat.name }}
-          </option>
-        </select>
-        <select v-model="timeRange" class="filter-select">
-          <option value="week">Неделя</option>
-          <option value="month">Месяц</option>
-          <option value="quarter">Квартал</option>
-          <option value="year">Год</option>
-        </select>
-      </div>
+      <select v-model="selectedCategory" class="filter-select">
+        <option value="">Все категории</option>
+        <option v-for="cat in categories" :key="cat.id" :value="cat.id">
+          {{ cat.name }}
+        </option>
+      </select>
     </div>
 
-    <div class="analytics-grid">
+    <!-- Row 1: Stats + Investment Chart -->
+    <div class="row row-2">
       <div class="analytics-card">
         <h2>Общая статистика</h2>
         <div class="stats-grid">
@@ -47,21 +61,24 @@
         </div>
       </div>
 
-      <div class="analytics-card">
+      <div class="analytics-card card-wide">
         <h2>Тренды инвестиций</h2>
         <div class="chart-container">
           <canvas ref="investmentChart"></canvas>
         </div>
       </div>
+    </div>
 
+    <!-- Row 2: Categories + Top Startups -->
+    <div class="row row-2">
       <div class="analytics-card">
         <h2>Распределение по категориям</h2>
-        <div class="chart-container">
+        <div class="chart-container chart-small">
           <canvas ref="categoryChart"></canvas>
         </div>
       </div>
 
-      <div class="analytics-card">
+      <div class="analytics-card card-wide">
         <h2>Топ-5 стартапов</h2>
         <div class="top-startups">
           <div v-for="startup in topStartups" :key="startup.id" class="startup-item">
@@ -82,7 +99,10 @@
           </div>
         </div>
       </div>
+    </div>
 
+    <!-- Row 3: Risk + Forecast -->
+    <div class="row row-2-equal">
       <div class="analytics-card">
         <h2>Анализ рисков</h2>
         <div class="risk-analysis">
@@ -90,30 +110,21 @@
             <div class="risk-label">Высокий риск</div>
             <div class="risk-value">{{ highRiskCount }}</div>
             <div class="risk-bar">
-              <div 
-                class="risk-progress"
-                :style="{ width: `${(highRiskCount / totalStartups) * 100}%` }"
-              ></div>
+              <div class="risk-progress" :style="{ width: `${(highRiskCount / totalStartups) * 100}%` }"></div>
             </div>
           </div>
           <div class="risk-item">
             <div class="risk-label">Средний риск</div>
             <div class="risk-value">{{ mediumRiskCount }}</div>
             <div class="risk-bar">
-              <div 
-                class="risk-progress"
-                :style="{ width: `${(mediumRiskCount / totalStartups) * 100}%` }"
-              ></div>
+              <div class="risk-progress" :style="{ width: `${(mediumRiskCount / totalStartups) * 100}%` }"></div>
             </div>
           </div>
           <div class="risk-item">
             <div class="risk-label">Низкий риск</div>
             <div class="risk-value">{{ lowRiskCount }}</div>
             <div class="risk-bar">
-              <div 
-                class="risk-progress"
-                :style="{ width: `${(lowRiskCount / totalStartups) * 100}%` }"
-              ></div>
+              <div class="risk-progress" :style="{ width: `${(lowRiskCount / totalStartups) * 100}%` }"></div>
             </div>
           </div>
         </div>
@@ -130,49 +141,51 @@
           <div class="forecast-item">
             <div class="forecast-label">Тренды</div>
             <ul class="trends-list">
-              <li v-for="(trend, index) in marketTrends" :key="index">
-                {{ trend }}
-              </li>
+              <li v-for="(trend, index) in marketTrends" :key="index">{{ trend }}</li>
             </ul>
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- Новые секции для расширенной аналитики -->
+    <!-- Row 4: Economic Indicators (full width) -->
+    <div class="row row-full">
       <div class="analytics-card">
         <h2>💱 Экономические показатели</h2>
         <div class="economic-indicators" v-if="!loading.economic && economicIndicators.exchangeRates">
-          <div class="indicator-section">
-            <h4>Курсы валют (к USD)</h4>
-            <div class="currency-grid">
-              <div v-for="(rate, currency) in economicIndicators.exchangeRates?.rates || {}" :key="currency" class="currency-item">
-                <span class="currency-code">{{ currency }}</span>
-                <span class="currency-rate">{{ rate.toFixed(4) }}</span>
-              </div>
-            </div>
-          </div>
-          
-          <div class="indicator-section">
-            <h4>Криптовалюты</h4>
-            <div class="crypto-grid">
-              <div v-for="(crypto, name) in economicIndicators.cryptoData || {}" :key="name" class="crypto-item">
-                <div class="crypto-name">{{ name.charAt(0).toUpperCase() + name.slice(1) }}</div>
-                <div class="crypto-price">${{ formatNumber(crypto.price) }}</div>
-                <div class="crypto-change" :class="{ positive: crypto.change24h > 0, negative: crypto.change24h < 0 }">
-                  {{ crypto.change24h > 0 ? '+' : '' }}{{ crypto.change24h.toFixed(2) }}%
+          <div class="indicators-row">
+            <div class="indicator-section">
+              <h4>Курсы валют (к USD)</h4>
+              <div class="currency-grid">
+                <div v-for="(rate, currency) in economicIndicators.exchangeRates?.rates || {}" :key="currency" class="currency-item">
+                  <span class="currency-code">{{ currency }}</span>
+                  <span class="currency-rate">{{ rate.toFixed(4) }}</span>
                 </div>
               </div>
             </div>
-          </div>
+            
+            <div class="indicator-section">
+              <h4>Криптовалюты</h4>
+              <div class="crypto-grid">
+                <div v-for="(crypto, name) in economicIndicators.cryptoData || {}" :key="name" class="crypto-item">
+                  <div class="crypto-name">{{ name.charAt(0).toUpperCase() + name.slice(1) }}</div>
+                  <div class="crypto-price">${{ formatNumber(crypto.price) }}</div>
+                  <div class="crypto-change" :class="{ positive: crypto.change24h > 0, negative: crypto.change24h < 0 }">
+                    {{ crypto.change24h > 0 ? '+' : '' }}{{ crypto.change24h.toFixed(2) }}%
+                  </div>
+                </div>
+              </div>
+            </div>
 
-          <div class="indicator-section">
-            <h4>Фондовые индексы</h4>
-            <div class="stock-grid">
-              <div v-for="(index, name) in economicIndicators.stockIndices || {}" :key="name" class="stock-item">
-                <div class="stock-name">{{ name.toUpperCase() }}</div>
-                <div class="stock-price">${{ formatNumber(index.price) }}</div>
-                <div class="stock-change" :class="{ positive: index.change > 0, negative: index.change < 0 }">
-                  {{ index.changePercent }}
+            <div class="indicator-section">
+              <h4>Фондовые индексы</h4>
+              <div class="stock-grid">
+                <div v-for="(index, name) in economicIndicators.stockIndices || {}" :key="name" class="stock-item">
+                  <div class="stock-name">{{ name.toUpperCase() }}</div>
+                  <div class="stock-price">${{ formatNumber(index.price) }}</div>
+                  <div class="stock-change" :class="{ positive: index.change > 0, negative: index.change < 0 }">
+                    {{ index.changePercent }}
+                  </div>
                 </div>
               </div>
             </div>
@@ -180,34 +193,39 @@
         </div>
         <div v-else class="loading">Загрузка экономических показателей...</div>
       </div>
+    </div>
 
+    <!-- Row 5: Industry Trends (full width) -->
+    <div class="row row-full">
       <div class="analytics-card">
         <h2>🏭 Отраслевые тренды</h2>
         <div class="industry-trends" v-if="!loading.industry && industryTrends.categoryTrends">
-          <div class="trends-section">
-            <h4>Топ категории проектов</h4>
-            <div class="category-trends">
-              <div v-for="trend in industryTrends.categoryTrends || []" :key="trend.name" class="trend-item">
-                <div class="trend-info">
-                  <div class="trend-name">{{ trend.name }}</div>
-                  <div class="trend-stats">
-                    <span>{{ trend.projectCount }} проектов</span>
-                    <span>ROI: {{ trend.averageRoi.toFixed(1) }}%</span>
+          <div class="trends-row">
+            <div class="trends-section">
+              <h4>Топ категории проектов</h4>
+              <div class="category-trends">
+                <div v-for="trend in industryTrends.categoryTrends || []" :key="trend.name" class="trend-item">
+                  <div class="trend-info">
+                    <div class="trend-name">{{ trend.name }}</div>
+                    <div class="trend-stats">
+                      <span>{{ trend.projectCount }} проектов</span>
+                      <span>ROI: {{ trend.averageRoi.toFixed(1) }}%</span>
+                    </div>
                   </div>
+                  <div class="trend-investment">{{ formatCurrency(trend.totalInvestment) }}</div>
                 </div>
-                <div class="trend-investment">{{ formatCurrency(trend.totalInvestment) }}</div>
               </div>
             </div>
-          </div>
 
-          <div class="trends-section">
-            <h4>Новости рынка</h4>
-            <div class="news-list">
-              <div v-for="news in industryTrends.marketNews || []" :key="news.title" class="news-item">
-                <div class="news-title">{{ news.title }}</div>
-                <div class="news-summary">{{ news.summary }}</div>
-                <div class="news-sentiment" :class="{ positive: news.sentiment > 0.5, negative: news.sentiment < -0.5 }">
-                  {{ news.sentiment > 0 ? 'Позитивно' : news.sentiment < 0 ? 'Негативно' : 'Нейтрально' }}
+            <div class="trends-section">
+              <h4>Новости рынка</h4>
+              <div class="news-list">
+                <div v-for="news in industryTrends.marketNews || []" :key="news.title" class="news-item">
+                  <div class="news-title">{{ news.title }}</div>
+                  <div class="news-summary">{{ news.summary }}</div>
+                  <div class="news-sentiment" :class="{ positive: news.sentiment > 0.5, negative: news.sentiment < -0.5 }">
+                    {{ news.sentiment > 0 ? 'Позитивно' : news.sentiment < 0 ? 'Негативно' : 'Нейтрально' }}
+                  </div>
                 </div>
               </div>
             </div>
@@ -471,128 +489,277 @@ export default {
 </script>
 
 <style scoped>
+/* Base */
 .market-analytics {
-  padding: 2rem;
+  padding: 1.25rem;
+  min-height: 100vh;
+  background: #f8fafc;
 }
 
-.filters {
+/* Header */
+.page-header {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.header-left {
   display: flex;
   align-items: center;
   gap: 1rem;
-  margin-bottom: 2rem;
-  background: #fff;
-  padding: 1rem;
+}
+
+.header-icon {
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, #1E6BFF, #5B8DEF);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: white;
+  box-shadow: 0 8px 32px rgba(30, 107, 255, 0.3);
+}
+
+.page-header h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.header-subtitle {
+  color: #64748b;
+  font-size: 0.9rem;
+  margin: 0.25rem 0 0;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.period-selector {
+  display: flex;
+  background: #f1f5f9;
+  border-radius: 10px;
+  padding: 4px;
+  gap: 4px;
+}
+
+.period-btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  background: transparent;
+  color: #64748b;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.period-btn:hover {
+  color: #1e293b;
+  background: #e2e8f0;
+}
+
+.period-btn.active {
+  background: #1E6BFF;
+  color: white;
+}
+
+/* Filters */
+.filters {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  background: #FFFFFF;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
 }
 
 .market-search {
   flex: 1;
-  min-width: 300px;
-}
-
-.filter-options {
-  display: flex;
-  gap: 1rem;
+  min-width: 200px;
 }
 
 .filter-select {
-  min-width: 200px;
-  padding: 0.75rem 1rem;
-  border: 1px solid #e0e0e0;
+  min-width: 140px;
+  padding: 0.5rem 0.875rem;
+  border: 1px solid #e2e8f0;
   border-radius: 8px;
-  background: #f8f9fa;
-  color: #333;
-  font-size: 1rem;
+  background: #f8fafc;
+  color: #1e293b;
+  font-size: 0.8rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 
 .filter-select:hover {
-  border-color: #2196F3;
+  border-color: #1E6BFF;
 }
 
 .filter-select:focus {
   outline: none;
-  border-color: #2196F3;
-  box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.1);
+  border-color: #1E6BFF;
+  background: #FFFFFF;
+  box-shadow: 0 0 0 3px rgba(30, 107, 255, 0.1);
 }
 
-.analytics-grid {
+/* Row Layout */
+.row {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 2rem;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
 }
 
+.row-2 {
+  grid-template-columns: 1fr 2fr;
+}
+
+.row-2-equal {
+  grid-template-columns: 1fr 1fr;
+}
+
+.row-full {
+  grid-template-columns: 1fr;
+}
+
+/* Cards */
 .analytics-card {
-  background: white;
-  padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background: #FFFFFF;
+  padding: 1rem;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
+}
+
+.analytics-card:hover {
+  box-shadow: 0 4px 12px rgba(30, 107, 255, 0.08);
+  border-color: #1E6BFF;
 }
 
 .analytics-card h2 {
-  margin: 0 0 1.5rem;
-  font-size: 1.25rem;
+  margin: 0 0 0.75rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
+.analytics-card h2::before {
+  content: '';
+  width: 3px;
+  height: 14px;
+  background: #1E6BFF;
+  border-radius: 2px;
+}
+
+/* Stats Grid */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
+  gap: 0.5rem;
 }
 
 .stat-item {
-  background: #f8f9fa;
-  padding: 1rem;
+  background: #f8fafc;
+  padding: 0.75rem;
   border-radius: 8px;
   text-align: center;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
+}
+
+.stat-item:hover {
+  border-color: #1E6BFF;
+  background: #f0f7ff;
 }
 
 .stat-label {
-  color: #666;
-  font-size: 0.875rem;
-  margin-bottom: 0.5rem;
+  color: #64748b;
+  font-size: 0.65rem;
+  margin-bottom: 0.2rem;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
 .stat-value {
-  font-size: 1.5rem;
-  font-weight: 600;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1e293b;
 }
 
+/* Chart */
 .chart-container {
-  height: 300px;
+  height: 180px;
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 0.5rem;
 }
 
+.chart-small {
+  height: 200px;
+}
+
+/* Top Startups */
 .top-startups {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.4rem;
 }
 
 .startup-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem;
-  background: #f8f9fa;
-  border-radius: 4px;
+  padding: 0.6rem 0.75rem;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
+}
+
+.startup-item:hover {
+  border-color: #1E6BFF;
+  background: #FFFFFF;
 }
 
 .startup-info h3 {
-  margin: 0;
-  font-size: 1rem;
+  margin: 0 0 0.1rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #1e293b;
 }
 
 .category {
-  color: #666;
-  font-size: 0.875rem;
+  color: #64748b;
+  font-size: 0.65rem;
   margin: 0;
 }
 
 .startup-stats {
   display: flex;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 .stat {
@@ -601,81 +768,100 @@ export default {
 
 .stat .label {
   display: block;
-  color: #666;
-  font-size: 0.875rem;
+  color: #94a3b8;
+  font-size: 0.55rem;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-bottom: 0.05rem;
 }
 
 .stat .value {
   font-weight: 600;
+  font-size: 0.75rem;
+  color: #1E6BFF;
 }
 
+/* Risk Analysis */
 .risk-analysis {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.4rem;
 }
 
 .risk-item {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.5rem;
+  padding: 0.5rem 0.6rem;
+  background: #f8fafc;
+  border-radius: 6px;
 }
 
 .risk-label {
-  width: 100px;
-  color: #666;
+  width: 85px;
+  color: #64748b;
+  font-size: 0.7rem;
+  font-weight: 500;
 }
 
 .risk-value {
-  width: 50px;
-  font-weight: 600;
+  width: 30px;
+  font-weight: 700;
+  font-size: 0.8rem;
+  color: #1e293b;
 }
 
 .risk-bar {
   flex: 1;
-  height: 8px;
-  background: #eee;
-  border-radius: 4px;
+  height: 4px;
+  background: #e2e8f0;
+  border-radius: 2px;
   overflow: hidden;
 }
 
 .risk-progress {
   height: 100%;
-  background: #007bff;
-  transition: width 0.3s ease;
+  background: linear-gradient(90deg, #1E6BFF, #5B8DEF);
+  border-radius: 2px;
+  transition: width 0.4s ease;
 }
 
+/* Market Forecast */
 .market-forecast {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 0.5rem;
 }
 
 .forecast-item {
-  background: #f8f9fa;
-  padding: 1rem;
+  background: #f8fafc;
+  padding: 0.6rem 0.75rem;
   border-radius: 8px;
+  border: 1px solid #e2e8f0;
 }
 
 .forecast-label {
-  color: #666;
-  font-size: 0.875rem;
-  margin-bottom: 0.5rem;
+  color: #64748b;
+  font-size: 0.65rem;
+  margin-bottom: 0.15rem;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
 .forecast-value {
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 0.15rem;
+  color: #1e293b;
 }
 
 .forecast-value.positive {
-  color: #28a745;
+  color: #10b981;
 }
 
 .forecast-description {
-  color: #666;
-  font-size: 0.875rem;
+  color: #94a3b8;
+  font-size: 0.7rem;
 }
 
 .trends-list {
@@ -685,112 +871,148 @@ export default {
 }
 
 .trends-list li {
-  padding: 0.5rem 0;
-  border-bottom: 1px solid #eee;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 0.75rem;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.trends-list li::before {
+  content: '';
+  width: 4px;
+  height: 4px;
+  background: #1E6BFF;
+  border-radius: 50%;
 }
 
 .trends-list li:last-child {
   border-bottom: none;
 }
 
-/* Новые стили для экономических показателей */
+/* Economic Indicators */
 .economic-indicators {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+}
+
+.indicators-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
 }
 
 .indicator-section {
   background: #f8fafc;
-  padding: 1rem;
+  padding: 0.75rem;
   border-radius: 8px;
   border: 1px solid #e2e8f0;
 }
 
 .indicator-section h4 {
-  margin: 0 0 1rem;
+  margin: 0 0 0.5rem;
   color: #1e293b;
-  font-size: 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
 }
 
 .currency-grid, .crypto-grid, .stock-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+  gap: 0.4rem;
 }
 
 .currency-item, .crypto-item, .stock-item {
-  background: white;
-  padding: 0.75rem;
+  background: #FFFFFF;
+  padding: 0.5rem;
   border-radius: 6px;
   border: 1px solid #e2e8f0;
   text-align: center;
+  transition: all 0.2s ease;
+}
+
+.currency-item:hover, .crypto-item:hover, .stock-item:hover {
+  border-color: #1E6BFF;
 }
 
 .currency-code, .crypto-name, .stock-name {
   font-weight: 600;
   color: #1e293b;
-  font-size: 0.875rem;
-  margin-bottom: 0.25rem;
+  font-size: 0.7rem;
+  margin-bottom: 0.1rem;
 }
 
 .currency-rate, .crypto-price, .stock-price {
-  font-size: 0.875rem;
+  font-size: 0.7rem;
   color: #64748b;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.1rem;
 }
 
 .crypto-change, .stock-change {
-  font-size: 0.75rem;
+  font-size: 0.6rem;
   font-weight: 600;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
+  padding: 0.1rem 0.25rem;
+  border-radius: 3px;
+  display: inline-block;
 }
 
 .crypto-change.positive, .stock-change.positive {
-  background: rgba(34, 197, 94, 0.1);
-  color: #16a34a;
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
 }
 
 .crypto-change.negative, .stock-change.negative {
-  background: rgba(239, 68, 68, 0.1);
-  color: #dc2626;
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
 }
 
-/* Стили для отраслевых трендов */
+/* Industry Trends */
 .industry-trends {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+}
+
+.trends-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
 }
 
 .trends-section {
   background: #f8fafc;
-  padding: 1rem;
+  padding: 0.75rem;
   border-radius: 8px;
   border: 1px solid #e2e8f0;
 }
 
 .trends-section h4 {
-  margin: 0 0 1rem;
+  margin: 0 0 0.5rem;
   color: #1e293b;
-  font-size: 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
 }
 
 .category-trends {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.35rem;
 }
 
 .trend-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: white;
-  padding: 1rem;
+  background: #FFFFFF;
+  padding: 0.5rem 0.65rem;
   border-radius: 6px;
   border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
+}
+
+.trend-item:hover {
+  border-color: #1E6BFF;
 }
 
 .trend-info {
@@ -800,78 +1022,168 @@ export default {
 .trend-name {
   font-weight: 600;
   color: #1e293b;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.1rem;
+  font-size: 0.75rem;
 }
 
 .trend-stats {
   display: flex;
-  gap: 1rem;
-  font-size: 0.875rem;
+  gap: 0.5rem;
+  font-size: 0.65rem;
   color: #64748b;
 }
 
 .trend-investment {
   font-weight: 600;
-  color: #16a34a;
-  background: rgba(34, 197, 94, 0.1);
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.12);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
 }
 
+/* News */
 .news-list {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.35rem;
 }
 
 .news-item {
-  background: white;
-  padding: 1rem;
+  background: #FFFFFF;
+  padding: 0.5rem 0.65rem;
   border-radius: 6px;
   border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
+}
+
+.news-item:hover {
+  border-color: #1E6BFF;
 }
 
 .news-title {
   font-weight: 600;
   color: #1e293b;
-  margin-bottom: 0.5rem;
-  font-size: 0.875rem;
+  margin-bottom: 0.15rem;
+  font-size: 0.75rem;
 }
 
 .news-summary {
   color: #64748b;
-  font-size: 0.875rem;
-  margin-bottom: 0.5rem;
-  line-height: 1.4;
+  font-size: 0.7rem;
+  margin-bottom: 0.25rem;
+  line-height: 1.35;
 }
 
 .news-sentiment {
-  font-size: 0.75rem;
+  font-size: 0.6rem;
   font-weight: 600;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
+  padding: 0.1rem 0.3rem;
+  border-radius: 3px;
   display: inline-block;
 }
 
 .news-sentiment.positive {
-  background: rgba(34, 197, 94, 0.1);
-  color: #16a34a;
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
 }
 
 .news-sentiment.negative {
-  background: rgba(239, 68, 68, 0.1);
-  color: #dc2626;
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
 }
 
 .news-sentiment:not(.positive):not(.negative) {
-  background: rgba(107, 114, 128, 0.1);
-  color: #6b7280;
+  background: rgba(148, 163, 184, 0.12);
+  color: #94a3b8;
 }
 
+/* Loading */
 .loading {
   text-align: center;
-  padding: 2rem;
-  color: #64748b;
-  font-style: italic;
+  padding: 1rem;
+  color: #94a3b8;
+  font-size: 0.75rem;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .row-2 {
+    grid-template-columns: 1fr;
+  }
+  
+  .row-2-equal {
+    grid-template-columns: 1fr;
+  }
+  
+  .indicators-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .trends-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .header-content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .header-right {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 768px) {
+  .market-analytics {
+    padding: 0.75rem;
+  }
+  
+  .page-header {
+    padding: 1rem;
+  }
+  
+  .header-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+  }
+  
+  .page-header h1 {
+    font-size: 1.25rem;
+  }
+  
+  .period-selector {
+    flex-wrap: wrap;
+  }
+  
+  .filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .market-search {
+    min-width: auto;
+  }
+  
+  .filter-select {
+    min-width: auto;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .startup-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.4rem;
+  }
+  
+  .startup-stats {
+    width: 100%;
+    justify-content: space-between;
+  }
 }
 </style> 

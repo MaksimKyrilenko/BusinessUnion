@@ -38,17 +38,36 @@ const routes = [
     component: Home,
     meta: { guest: true }
   },
+  // Юридические страницы
+  {
+    path: '/privacy',
+    name: 'PrivacyPolicy',
+    component: () => import('@/views/legal/PrivacyPolicy.vue'),
+    meta: { guest: true }
+  },
+  {
+    path: '/terms',
+    name: 'TermsOfService',
+    component: () => import('@/views/legal/TermsOfService.vue'),
+    meta: { guest: true }
+  },
+  {
+    path: '/data-processing',
+    name: 'DataProcessing',
+    component: () => import('@/views/legal/DataProcessing.vue'),
+    meta: { guest: true }
+  },
   {
     path: '/login',
     name: 'Login',
     component: Login,
-    meta: { guest: true }
+    meta: { guest: true, transition: 'page-slide' }
   },
   {
     path: '/register',
     name: 'Register',
     component: Register,
-    meta: { guest: true }
+    meta: { guest: true, transition: 'page-slide' }
   },
   {
     path: '/dashboard',
@@ -189,7 +208,13 @@ const routes = [
 
 const router = createRouter({
   history: createWebHistory(),
-  routes
+  routes,
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) {
+      return savedPosition;
+    }
+    return { top: 0 };
+  }
 });
 
 // Защита маршрутов

@@ -1,8 +1,33 @@
 <template>
   <div class="crypto-tracker">
-    <div class="market-overview">
-      <h2>Обзор рынка</h2>
-      <div class="market-grid">
+    <!-- Header -->
+    <header class="page-header">
+      <div class="header-content">
+        <div class="header-left">
+          <div class="header-icon">
+            <i class="fas fa-coins"></i>
+          </div>
+          <div>
+            <h1>Крипто трекер</h1>
+            <p class="header-subtitle">Аналитика криптовалютного рынка</p>
+          </div>
+        </div>
+        <div class="header-right">
+          <BaseSelect
+            v-model="selectedPair"
+            :options="tradingPairs"
+            placeholder="BTC/USDT"
+            class="pair-selector"
+          />
+        </div>
+      </div>
+    </header>
+
+    <!-- Row 1: Market Overview -->
+    <div class="row row-full">
+      <div class="analytics-card">
+        <h2>Обзор рынка</h2>
+        <div class="market-grid">
         <div v-for="coin in topCoins" :key="coin.symbol" class="coin-card">
           <div class="coin-header">
             <img :src="coin.icon" :alt="coin.name" class="coin-icon">
@@ -28,148 +53,131 @@
             </div>
           </div>
         </div>
-      </div>
-
-      <div class="market-metrics">
-        <div class="metric-card">
-          <h3>Доминирование BTC</h3>
-          <div class="dominance-chart">
-            <div class="dominance-main">
-              <div class="dominance-value">{{ btcDominance.toFixed(2) }}%</div>
-              <div v-if="btcDominanceChange !== null" :class="['dominance-change', btcDominanceChange >= 0 ? 'positive' : 'negative']">
-                {{ btcDominanceChange > 0 ? '+' : '' }}{{ btcDominanceChange.toFixed(2) }}%
-                <span class="change-label">за 24ч</span>
-          </div>
         </div>
-            <div class="dominance-progress">
-              <div class="progress-bar">
-                <div 
-                  class="progress-fill" 
-                  :style="{ width: btcDominance + '%' }"
-                ></div>
-              </div>
-              <div class="progress-labels">
-                <span>0%</span>
-                <span>50%</span>
-                <span>100%</span>
-              </div>
+      </div>
+    </div>
+
+    <!-- Row 2: BTC Dominance -->
+    <div class="row row-full">
+      <div class="analytics-card">
+        <h2>Доминирование BTC</h2>
+        <div class="dominance-content">
+          <div class="dominance-main">
+            <div class="dominance-value">{{ btcDominance.toFixed(2) }}%</div>
+            <div v-if="btcDominanceChange !== null" :class="['dominance-change', btcDominanceChange >= 0 ? 'positive' : 'negative']">
+              {{ btcDominanceChange > 0 ? '+' : '' }}{{ btcDominanceChange.toFixed(2) }}%
+              <span class="change-label">за 24ч</span>
             </div>
-            <div class="dominance-info">
-              <div class="info-item">
-                <span class="info-label">Рыночная доля</span>
-                <span class="info-value">{{ btcDominance.toFixed(2) }}%</span>
-              </div>
-              <div class="info-item">
-                <span class="info-label">Остальные монеты</span>
-                <span class="info-value">{{ (100 - btcDominance).toFixed(2) }}%</span>
-              </div>
+          </div>
+          <div class="dominance-progress">
+            <div class="progress-bar">
+              <div class="progress-fill" :style="{ width: btcDominance + '%' }"></div>
+            </div>
+            <div class="progress-labels">
+              <span>0%</span>
+              <span>50%</span>
+              <span>100%</span>
+            </div>
+          </div>
+          <div class="dominance-info">
+            <div class="info-item">
+              <span class="info-label">Рыночная доля</span>
+              <span class="info-value">{{ btcDominance.toFixed(2) }}%</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Остальные монеты</span>
+              <span class="info-value">{{ (100 - btcDominance).toFixed(2) }}%</span>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="coin-selector-panel">
-      <div class="selector-text">
-        <h3>Выберите торговую пару</h3>
-        <p>Все блоки аналитики ниже будут обновлены под выбранную монету</p>
+    <!-- Row 3: On-Chain + Liquidations -->
+    <div class="row row-2-equal">
+      <div class="analytics-card">
+        <h2>On-Chain Аналитика</h2>
+        <div class="onchain-metrics" v-if="onChainMetrics.length > 0">
+          <div v-for="metric in onChainMetrics" :key="metric.name" class="onchain-metric-card">
+            <div class="metric-icon-wrapper">
+              <div class="metric-icon">{{ getOnChainIcon(metric.name) }}</div>
+            </div>
+            <div class="metric-content">
+              <div class="metric-header">
+                <div class="metric-name">{{ metric.name }}</div>
+                <div :class="['metric-change-badge', metric.trend]">
+                  <span class="change-icon">{{ metric.trend === 'positive' ? '↑' : '↓' }}</span>
+                  <span class="change-value">{{ Math.abs(metric.change) }}%</span>
+                </div>
+              </div>
+              <div class="metric-value-main">{{ metric.value }}</div>
+              <div class="metric-description">{{ getOnChainDescription(metric.name, metric.change) }}</div>
+            </div>
+          </div>
+        </div>
+        <div v-else class="empty-state">
+          <p>Данные on-chain аналитики загружаются...</p>
+        </div>
       </div>
-      <BaseSelect
-        v-model="selectedPair"
-        :options="tradingPairs"
-        placeholder="BTC/USDT"
-      />
+
+      <div class="analytics-card">
+        <h2>Ликвидации</h2>
+        <LiquidationsChart :data="liquidationData" />
+      </div>
     </div>
 
-    <div class="analysis-section">
-      <div class="grid-2">
-        <div class="analysis-card">
-          <h3>On-Chain Аналитика</h3>
-          <div class="onchain-metrics" v-if="onChainMetrics.length > 0">
-            <div v-for="metric in onChainMetrics" :key="metric.name" class="onchain-metric-card">
-              <div class="metric-icon-wrapper">
-                <div class="metric-icon">{{ getOnChainIcon(metric.name) }}</div>
-              </div>
-              <div class="metric-content">
-                <div class="metric-header">
-                  <div class="metric-name">{{ metric.name }}</div>
-                  <div :class="['metric-change-badge', metric.trend]">
-                    <span class="change-icon">{{ metric.trend === 'positive' ? '↑' : '↓' }}</span>
-                    <span class="change-value">{{ Math.abs(metric.change) }}%</span>
-                  </div>
-                </div>
-                <div class="metric-value-main">{{ metric.value }}</div>
-                <div class="metric-description">{{ getOnChainDescription(metric.name, metric.change) }}</div>
+    <!-- Row 4: Signals + Futures -->
+    <div class="row row-2-equal">
+      <div class="analytics-card">
+        <h2>Сигналы</h2>
+        <div class="signals-list" v-if="tradingSignals && tradingSignals.length > 0">
+          <div v-for="signal in tradingSignals" :key="signal.id" class="signal-item">
+            <div :class="['signal-type', signal.type]">{{ signal.type }}</div>
+            <div class="signal-info">
+              <div class="signal-pair">{{ signal.pair }}</div>
+              <div class="signal-price">{{ formatMoney(signal.price) }}</div>
+            </div>
+            <div class="signal-meta">
+              <div class="signal-time">{{ formatDate(signal.time) }}</div>
+              <div :class="['signal-strength', signal.strength]">
+                {{ signal.strength }}
               </div>
             </div>
           </div>
-          <div v-else class="empty-state">
-            <p>Данные on-chain аналитики загружаются...</p>
-          </div>
         </div>
-
-        <div class="analysis-card">
-          <h3>Ликвидации</h3>
-          <LiquidationsChart :data="liquidationData" />
+        <div v-else class="empty-state">
+          <p>Торговые сигналы загружаются...</p>
         </div>
       </div>
 
-      <div class="grid-2">
-        <div class="analysis-card">
-          <h3>Сигналы</h3>
-          <div class="signals-list" v-if="tradingSignals && tradingSignals.length > 0">
-            <div v-for="signal in tradingSignals" :key="signal.id" class="signal-item">
-              <div :class="['signal-type', signal.type]">{{ signal.type }}</div>
-              <div class="signal-info">
-                <div class="signal-pair">{{ signal.pair }}</div>
-                <div class="signal-price">{{ formatMoney(signal.price) }}</div>
-              </div>
-              <div class="signal-meta">
-                <div class="signal-time">{{ formatDate(signal.time) }}</div>
-                <div :class="['signal-strength', signal.strength]">
-                  {{ signal.strength }}
-                </div>
+      <div class="analytics-card">
+        <h2>Фьючерсы</h2>
+        <div class="futures-data">
+          <div class="funding-rates">
+            <h4>Funding Rate</h4>
+            <div class="rates-list">
+              <div v-for="rate in fundingRates" :key="rate.exchange" class="rate-item">
+                <span class="exchange">{{ rate.exchange }}</span>
+                <span :class="['rate-value', rate.value > 0 ? 'positive' : 'negative']">
+                  {{ rate.value }}%
+                </span>
               </div>
             </div>
           </div>
-          <div v-else class="empty-state">
-            <p>Торговые сигналы загружаются...</p>
-          </div>
-        </div>
-
-        <div class="analysis-card">
-          <h3>Фьючерсы</h3>
-          <div class="futures-data">
-            <div class="funding-rates">
-              <h4>Funding Rate</h4>
-              <div class="rates-list">
-                <div v-for="rate in fundingRates" :key="rate.exchange" class="rate-item">
-                  <span class="exchange">{{ rate.exchange }}</span>
-                  <span :class="['rate-value', rate.value > 0 ? 'positive' : 'negative']">
-                    {{ rate.value }}%
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div class="open-interest">
-              <h4>Открытый интерес</h4>
-              <div class="interest-value">
-                {{ formatMoney(openInterest) }}
-              </div>
+          <div class="open-interest">
+            <h4>Открытый интерес</h4>
+            <div class="interest-value">
+              {{ formatMoney(openInterest) }}
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Новые секции с дополнительными функциями -->
-    <div class="advanced-features">
-      <h2>Расширенная аналитика</h2>
-      
-      <!-- Персональный индекс доверия -->
-      <div class="feature-section">
-        <div class="analysis-card">
-          <h3>Персональный индекс доверия: {{ selectedCoinSymbol }}</h3>
+    <!-- Row 5: Trust Index (full width) -->
+    <div class="row row-full">
+      <div class="analytics-card">
+        <h2>Персональный индекс доверия: {{ selectedCoinSymbol }}</h2>
           <div v-if="trustIndex" class="trust-index">
             <div class="trust-header">
               <div class="trust-score-circle">
@@ -229,15 +237,15 @@
               </div>
             </div>
           </div>
-          <div v-else class="loading-state">
-            <p>Загрузка данных...</p>
-          </div>
+        <div v-else class="loading-state">
+          <p>Загрузка данных...</p>
         </div>
       </div>
+    </div>
 
-      <!-- Сканер аномалий и Мониторинг китов -->
-      <div class="grid-2">
-        <div class="analysis-card">
+    <!-- Row 6: Anomalies + Whales -->
+    <div class="row row-2-equal">
+      <div class="analytics-card">
           <div class="anomaly-card-header">
             <div>
               <p class="anomaly-label">Сканер аномалий рынка</p>
@@ -307,62 +315,62 @@
               </div>
             </div>
           </div>
-          <div v-else class="empty-state">
-            <p>Крупных транзакций не обнаружено</p>
-          </div>
+        <div v-else class="empty-state">
+          <p>Крупных транзакций не обнаружено</p>
         </div>
       </div>
+    </div>
 
-      <!-- Тепловая карта рынка -->
-      <div class="feature-section">
-        <div class="analysis-card">
-          <h3>Тепловая карта рынка</h3>
-          <div class="heatmap-container">
-            <div class="heatmap-grid">
-              <div 
-                v-for="coin in sortedHeatmap" 
-                :key="coin.id" 
-                class="heatmap-item"
-                :class="getHeatmapClass(coin.price_change_percentage_24h)"
-                :style="getHeatmapStyle(coin.price_change_percentage_24h)"
-              >
-                <div class="heatmap-symbol">{{ coin.symbol.toUpperCase() }}</div>
-                <div class="heatmap-change" :class="coin.price_change_percentage_24h > 0 ? 'positive' : 'negative'">
-                  {{ coin.price_change_percentage_24h > 0 ? '+' : '' }}{{ coin.price_change_percentage_24h.toFixed(2) }}%
-                </div>
-              </div>
-            </div>
-            <div class="heatmap-legend">
-              <div class="legend-item">
-                <div class="legend-color positive-strong"></div>
-                <span>Сильный рост (>5%)</span>
-              </div>
-              <div class="legend-item">
-                <div class="legend-color positive-medium"></div>
-                <span>Рост (1-5%)</span>
-              </div>
-              <div class="legend-item">
-                <div class="legend-color neutral"></div>
-                <span>Нейтрально (-1% до +1%)</span>
-              </div>
-              <div class="legend-item">
-                <div class="legend-color negative-medium"></div>
-                <span>Падение (-1% до -5%)</span>
-              </div>
-              <div class="legend-item">
-                <div class="legend-color negative-strong"></div>
-                <span>Сильное падение (<-5%)</span>
+    <!-- Row 7: Heatmap (full width) -->
+    <div class="row row-full">
+      <div class="analytics-card">
+        <h2>Тепловая карта рынка</h2>
+        <div class="heatmap-container">
+          <div class="heatmap-grid">
+            <div 
+              v-for="coin in sortedHeatmap" 
+              :key="coin.id" 
+              class="heatmap-item"
+              :class="getHeatmapClass(coin.price_change_percentage_24h)"
+              :style="getHeatmapStyle(coin.price_change_percentage_24h)"
+            >
+              <div class="heatmap-symbol">{{ coin.symbol.toUpperCase() }}</div>
+              <div class="heatmap-change" :class="coin.price_change_percentage_24h > 0 ? 'positive' : 'negative'">
+                {{ coin.price_change_percentage_24h > 0 ? '+' : '' }}{{ coin.price_change_percentage_24h.toFixed(2) }}%
               </div>
             </div>
           </div>
+          <div class="heatmap-legend">
+            <div class="legend-item">
+              <div class="legend-color positive-strong"></div>
+              <span>Сильный рост (>5%)</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-color positive-medium"></div>
+              <span>Рост (1-5%)</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-color neutral"></div>
+              <span>Нейтрально (-1% до +1%)</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-color negative-medium"></div>
+              <span>Падение (-1% до -5%)</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-color negative-strong"></div>
+              <span>Сильное падение (<-5%)</span>
+            </div>
+          </div>
         </div>
       </div>
+    </div>
 
-      <!-- Токеномика, Прогноз и Скам-проверка -->
-      <div class="grid-3">
-        <div class="analysis-card" v-if="tokenomics">
-          <h3>Анализ токеномики: {{ selectedCoinSymbol }}</h3>
-          <div class="tokenomics-data">
+    <!-- Row 8: Tokenomics + Forecast + Scam Check -->
+    <div class="row row-3">
+      <div class="analytics-card" v-if="tokenomics">
+        <h2>Токеномика: {{ selectedCoinSymbol }}</h2>
+        <div class="tokenomics-data">
             <!-- Визуализация распределения -->
             <div class="tokenomics-visualization" v-if="tokenomics.max_supply || tokenomics.total_supply">
               <div class="visualization-title">Распределение токенов</div>
@@ -466,322 +474,312 @@
                     {{ tokenomics.inflation_rate > 0 ? 'Увеличение' : 'Снижение' }} предложения
                   </span>
                 </div>
-              </div>
             </div>
           </div>
         </div>
+      </div>
 
-        <div class="analysis-card" v-if="priceForecast">
-          <div class="forecast-card" :class="priceForecast.direction">
-            <div class="forecast-header">
-              <div>
-                <p class="forecast-label">Прогноз для {{ selectedCoinSymbol }}/USDT</p>
-                <h3>Прогноз движения цены (мини-ИИ)</h3>
-                <span class="forecast-timeframe">{{ priceForecast.timeframe }}</span>
+      <div class="analytics-card" v-if="priceForecast">
+        <div class="forecast-card" :class="priceForecast.direction">
+          <div class="forecast-header">
+            <div>
+              <p class="forecast-label">Прогноз для {{ selectedCoinSymbol }}/USDT</p>
+              <h3>Прогноз движения цены (мини-ИИ)</h3>
+              <span class="forecast-timeframe">{{ priceForecast.timeframe }}</span>
+            </div>
+            <div class="forecast-direction-chip" :class="priceForecast.direction">
+              <span class="chip-icon">{{ getForecastDirectionIcon(priceForecast.direction) }}</span>
+              {{ getForecastDirectionLabel(priceForecast.direction) }}
+            </div>
+          </div>
+          <div class="forecast-grid">
+            <div class="forecast-panel trend">
+              <div class="trend-icon">
+                {{ getForecastDirectionIcon(priceForecast.direction) }}
               </div>
-              <div class="forecast-direction-chip" :class="priceForecast.direction">
-                <span class="chip-icon">{{ getForecastDirectionIcon(priceForecast.direction) }}</span>
-                {{ getForecastDirectionLabel(priceForecast.direction) }}
+              <div class="trend-info">
+                <span class="trend-label">{{ getForecastDirectionLabel(priceForecast.direction) }}</span>
+                <p class="trend-description">
+                  {{ getForecastDirectionDescription(priceForecast.direction) }}
+                </p>
               </div>
             </div>
-
-            <div class="forecast-grid">
-              <div class="forecast-panel trend">
-                <div class="trend-icon">
-                  {{ getForecastDirectionIcon(priceForecast.direction) }}
-                </div>
-                <div class="trend-info">
-                  <span class="trend-label">{{ getForecastDirectionLabel(priceForecast.direction) }}</span>
-                  <p class="trend-description">
-                    {{ getForecastDirectionDescription(priceForecast.direction) }}
-                  </p>
-                </div>
+            <div class="forecast-panel confidence">
+              <div class="confidence-ring" :style="getConfidenceStyle(priceForecast.confidence)">
+                <span>{{ priceForecast.confidence }}%</span>
               </div>
-
-              <div class="forecast-panel confidence">
-                <div class="confidence-ring" :style="getConfidenceStyle(priceForecast.confidence)">
-                  <span>{{ priceForecast.confidence }}%</span>
-                </div>
-                <div class="confidence-meta">
-                  <span class="confidence-title">Уверенность</span>
-                  <span class="confidence-status" :class="getConfidenceClass(priceForecast.confidence)">
-                    {{ getConfidenceLabel(priceForecast.confidence) }}
-                  </span>
-                </div>
-              </div>
-
-              <div class="forecast-panel target" v-if="priceForecast.target_price">
-                <div class="target-label">Целевая цена</div>
-                <div class="target-value">{{ formatMoney(priceForecast.target_price) }}</div>
-                <div class="target-hint">Расчёт для горизонта {{ priceForecast.timeframe.toLowerCase() }}</div>
-              </div>
-            </div>
-
-            <div class="forecast-factors" v-if="priceForecast.factors && priceForecast.factors.length">
-              <div class="factors-label">Основные факторы</div>
-              <div class="factor-chips">
-                <span
-                  v-for="(factor, index) in priceForecast.factors"
-                  :key="index"
-                  class="factor-chip"
-                >
-                  {{ factor }}
+              <div class="confidence-meta">
+                <span class="confidence-title">Уверенность</span>
+                <span class="confidence-status" :class="getConfidenceClass(priceForecast.confidence)">
+                  {{ getConfidenceLabel(priceForecast.confidence) }}
                 </span>
               </div>
             </div>
-          </div>
-        </div>
-
-        <div class="analysis-card" v-if="scamCheck">
-          <div class="scam-card" :class="getRiskLevelClass(scamCheck.risk_score)">
-            <div class="scam-card-header">
-              <div>
-                <p class="scam-label">Проверка на риск "скама"</p>
-                <h3>Оценка безопасности {{ selectedCoinSymbol }}</h3>
-                <span class="scam-meta">Автоматический чек-лист смарт-контракта</span>
-              </div>
-              <div class="risk-chip" :class="getRiskLevelClass(scamCheck.risk_score)">
-                {{ getRiskLevelLabel(scamCheck.risk_score) }}
-              </div>
+            <div class="forecast-panel target" v-if="priceForecast.target_price">
+              <div class="target-label">Целевая цена</div>
+              <div class="target-value">{{ formatMoney(priceForecast.target_price) }}</div>
+              <div class="target-hint">Расчёт для горизонта {{ priceForecast.timeframe.toLowerCase() }}</div>
             </div>
-
-            <div class="scam-layout">
-              <div class="risk-panel">
-                <div class="risk-gauge" :style="getRiskRingStyle(scamCheck.risk_score)">
-                  <span>
-                    {{ scamCheck.risk_score }}
-                    <small>из 100</small>
-                  </span>
-                </div>
-                <div class="risk-description">
-                  {{ getRiskLevelDescription(scamCheck.risk_score) }}
-                </div>
-              </div>
-
-              <div class="checks-panel">
-                <div class="check-grid">
-                  <div class="check-tile" v-for="(value, key) in scamCheck.checks" :key="key">
-                    <div class="check-icon" :class="value ? 'ok' : 'fail'">
-                      {{ value ? '✓' : '!' }}
-                    </div>
-                    <div class="check-info">
-                      <div class="check-title">{{ getCheckLabel(key) }}</div>
-                      <div class="check-status-text" :class="value ? 'ok' : 'fail'">
-                        {{ value ? 'Пройдено' : 'Не подтверждено' }}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div class="scam-warnings" v-if="scamCheck.warnings && scamCheck.warnings.length > 0">
-                  <div class="warnings-label">Обнаружены сигналы риска:</div>
-                  <ul class="warnings-list">
-                    <li v-for="(warning, index) in scamCheck.warnings" :key="index">{{ warning }}</li>
-                  </ul>
-                </div>
-                <div v-else class="warnings-empty">
-                  Риск-факторы не обнаружены. Монета выглядит безопасно по текущим метрикам.
-                </div>
-              </div>
+          </div>
+          <div class="forecast-factors" v-if="priceForecast.factors && priceForecast.factors.length">
+            <div class="factors-label">Основные факторы</div>
+            <div class="factor-chips">
+              <span
+                v-for="(factor, index) in priceForecast.factors"
+                :key="index"
+                class="factor-chip"
+              >
+                {{ factor }}
+              </span>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Инвесторские кейсы и Новости -->
-      <div class="grid-2">
-        <div class="analysis-card">
-          <div class="case-card-header">
+      <div class="analytics-card" v-if="scamCheck">
+        <div class="scam-card" :class="getRiskLevelClass(scamCheck.risk_score)">
+          <div class="scam-card-header">
             <div>
-              <p class="case-label">Инвесторские кейсы</p>
-              <h3>{{ selectedCoinSymbol }}: готовые сценарии</h3>
-              <span class="case-meta">Стратегии с указанием тайминга, целей и риск/прибыль</span>
+              <p class="scam-label">Проверка на риск "скама"</p>
+              <h3>Оценка безопасности {{ selectedCoinSymbol }}</h3>
+              <span class="scam-meta">Автоматический чек-лист смарт-контракта</span>
+            </div>
+            <div class="risk-chip" :class="getRiskLevelClass(scamCheck.risk_score)">
+              {{ getRiskLevelLabel(scamCheck.risk_score) }}
             </div>
           </div>
-          <div class="investor-cases-grid">
-            <div
-              v-for="(investorCase, index) in investorCases"
-              :key="index"
-              class="investor-case-card"
-              :class="investorCase.strategy"
-            >
-              <div class="case-top">
-                <div class="case-strategy-chip" :class="investorCase.strategy">
-                  <span class="chip-icon">{{ getStrategyIcon(investorCase.strategy) }}</span>
-                  {{ getStrategyLabel(investorCase.strategy) }}
-                </div>
-                <div class="case-timeframe">{{ investorCase.timeframe }}</div>
+          <div class="scam-layout">
+            <div class="risk-panel">
+              <div class="risk-gauge" :style="getRiskRingStyle(scamCheck.risk_score)">
+                <span>
+                  {{ scamCheck.risk_score }}
+                  <small>из 100</small>
+                </span>
               </div>
-
-              <div class="case-core">
-                <div class="case-price-block entry">
-                  <span class="case-price-label">Вход</span>
-                  <span class="case-price-value">{{ formatMoney(investorCase.entry_price) }}</span>
-                </div>
-                <div class="case-price-block target" v-if="investorCase.target_price">
-                  <span class="case-price-label">Цель</span>
-                  <span class="case-price-value">{{ formatMoney(investorCase.target_price) }}</span>
-                </div>
-                <div class="case-price-block stop" v-if="investorCase.stop_loss">
-                  <span class="case-price-label">Стоп</span>
-                  <span class="case-price-value">{{ formatMoney(investorCase.stop_loss) }}</span>
-                </div>
-              </div>
-
-              <div class="case-metrics">
-                <div class="case-metric-item">
-                  <span class="case-metric-label">Риск/прибыль</span>
-                  <span class="case-metric-value">{{ investorCase.risk_reward_ratio?.toFixed(2) || '—' }}</span>
-                </div>
-                <div class="case-metric-item">
-                  <span class="case-metric-label">Стратегия</span>
-                  <span class="case-metric-value">{{ getStrategyTone(investorCase.strategy) }}</span>
-                </div>
-              </div>
-
-              <div class="case-reason">
-                <span class="reason-title">Обоснование</span>
-                <p>{{ investorCase.reasoning }}</p>
+              <div class="risk-description">
+                {{ getRiskLevelDescription(scamCheck.risk_score) }}
               </div>
             </div>
-          </div>
-          <div v-if="investorCases.length === 0" class="empty-state">
-            <p>Кейсы не найдены</p>
-          </div>
-        </div>
-
-        <div class="analysis-card">
-          <div class="news-card-header">
-            <div>
-              <p class="news-label">История новостей</p>
-              <h3>{{ selectedCoinSymbol }}: ключевые события</h3>
-              <span class="news-meta">Сводка последних заголовков с оценкой настроения</span>
-            </div>
-            <div class="news-summary-chip" :class="getSentimentSummaryClass(news)">
-              {{ getSentimentSummaryLabel(news) }}
-            </div>
-          </div>
-          <div class="news-timeline" v-if="news.length > 0">
-            <div v-for="item in news" :key="item.id" class="news-timeline-item">
-              <div class="timeline-dot" :class="getSentimentClass(item.sentiment)"></div>
-              <div class="timeline-card">
-                <div class="timeline-card-header">
-                  <div class="timeline-title">{{ item.title }}</div>
-                  <div class="timeline-sentiment" :class="getSentimentClass(item.sentiment)">
-                    <span class="sentiment-icon">{{ getSentimentIcon(item.sentiment) }}</span>
-                    {{ getSentimentLabel(item.sentiment) }}
+            <div class="checks-panel">
+              <div class="check-grid">
+                <div class="check-tile" v-for="(value, key) in scamCheck.checks" :key="key">
+                  <div class="check-icon" :class="value ? 'ok' : 'fail'">
+                    {{ value ? '✓' : '!' }}
+                  </div>
+                  <div class="check-info">
+                    <div class="check-title">{{ getCheckLabel(key) }}</div>
+                    <div class="check-status-text" :class="value ? 'ok' : 'fail'">
+                      {{ value ? 'Пройдено' : 'Не подтверждено' }}
+                    </div>
                   </div>
                 </div>
-                <p class="timeline-description">{{ item.description }}</p>
-                <div class="timeline-meta">
-                  <span class="meta-source">{{ item.source }}</span>
-                  <span class="meta-dot">•</span>
-                  <span class="meta-date">{{ formatDate(item.published_at) }}</span>
-                </div>
+              </div>
+              <div class="scam-warnings" v-if="scamCheck.warnings && scamCheck.warnings.length > 0">
+                <div class="warnings-label">Обнаружены сигналы риска:</div>
+                <ul class="warnings-list">
+                  <li v-for="(warning, index) in scamCheck.warnings" :key="index">{{ warning }}</li>
+                </ul>
+              </div>
+              <div v-else class="warnings-empty">
+                Риск-факторы не обнаружены. Монета выглядит безопасно по текущим метрикам.
               </div>
             </div>
-          </div>
-          <div v-else class="empty-state">
-            <p>Новостей не найдено</p>
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- Социальный индекс хайпа -->
-      <div class="feature-section">
-        <div class="analysis-card">
-          <div class="card-header-with-badge">
-            <h3>Социальный индекс хайпа: {{ selectedCoinSymbol }}</h3>
-            <div class="data-source-badge" :class="isSocialDataReal ? 'real' : 'mock'" v-if="socialHype">
-              <span class="badge-icon">{{ isSocialDataReal ? '✅' : '⚠️' }}</span>
-              <span class="badge-text">{{ isSocialDataReal ? 'Реальные данные' : 'Тестовые данные' }}</span>
+    <!-- Row 9: Investor Cases + News -->
+    <div class="row row-2-equal">
+      <div class="analytics-card">
+        <div class="case-card-header">
+          <div>
+            <p class="case-label">Инвесторские кейсы</p>
+            <h3>{{ selectedCoinSymbol }}: готовые сценарии</h3>
+            <span class="case-meta">Стратегии с указанием тайминга, целей и риск/прибыль</span>
+          </div>
+        </div>
+        <div class="investor-cases-grid">
+          <div
+            v-for="(investorCase, index) in investorCases"
+            :key="index"
+            class="investor-case-card"
+            :class="investorCase.strategy"
+          >
+            <div class="case-top">
+              <div class="case-strategy-chip" :class="investorCase.strategy">
+                <span class="chip-icon">{{ getStrategyIcon(investorCase.strategy) }}</span>
+                {{ getStrategyLabel(investorCase.strategy) }}
+              </div>
+              <div class="case-timeframe">{{ investorCase.timeframe }}</div>
+            </div>
+            <div class="case-core">
+              <div class="case-price-block entry">
+                <span class="case-price-label">Вход</span>
+                <span class="case-price-value">{{ formatMoney(investorCase.entry_price) }}</span>
+              </div>
+              <div class="case-price-block target" v-if="investorCase.target_price">
+                <span class="case-price-label">Цель</span>
+                <span class="case-price-value">{{ formatMoney(investorCase.target_price) }}</span>
+              </div>
+              <div class="case-price-block stop" v-if="investorCase.stop_loss">
+                <span class="case-price-label">Стоп</span>
+                <span class="case-price-value">{{ formatMoney(investorCase.stop_loss) }}</span>
+              </div>
+            </div>
+            <div class="case-metrics">
+              <div class="case-metric-item">
+                <span class="case-metric-label">Риск/прибыль</span>
+                <span class="case-metric-value">{{ investorCase.risk_reward_ratio?.toFixed(2) || '—' }}</span>
+              </div>
+              <div class="case-metric-item">
+                <span class="case-metric-label">Стратегия</span>
+                <span class="case-metric-value">{{ getStrategyTone(investorCase.strategy) }}</span>
+              </div>
+            </div>
+            <div class="case-reason">
+              <span class="reason-title">Обоснование</span>
+              <p>{{ investorCase.reasoning }}</p>
             </div>
           </div>
-          <div v-if="isLoadingSocial" class="loading-state">
-            <Loader />
-            <p>Загрузка социальных метрик...</p>
+        </div>
+        <div v-if="investorCases.length === 0" class="empty-state">
+          <p>Кейсы не найдены</p>
+        </div>
+      </div>
+
+      <div class="analytics-card">
+        <div class="news-card-header">
+          <div>
+            <p class="news-label">История новостей</p>
+            <h3>{{ selectedCoinSymbol }}: ключевые события</h3>
+            <span class="news-meta">Сводка последних заголовков с оценкой настроения</span>
           </div>
-          <div v-else-if="socialHype" class="social-hype">
-            <div class="hype-header">
-              <div class="galaxy-score-circle">
-                <svg class="galaxy-ring" width="160" height="160">
-                  <circle
-                    class="galaxy-ring-bg"
-                    cx="80"
-                    cy="80"
-                    r="70"
-                    fill="none"
-                    stroke="#e9ecef"
-                    stroke-width="14"
-                  />
-                  <circle
-                    class="galaxy-ring-fill"
-                    :class="getGalaxyScoreClass(socialHype.galaxy_score || 0)"
-                    cx="80"
-                    cy="80"
-                    r="70"
-                    fill="none"
-                    :stroke="getGalaxyScoreColor(socialHype.galaxy_score || 0)"
-                    stroke-width="14"
-                    stroke-linecap="round"
-                    :stroke-dasharray="440"
-                    :stroke-dashoffset="440 - (440 * (socialHype.galaxy_score || 0) / 100)"
-                    transform="rotate(-90 80 80)"
-                  />
-                </svg>
-                <div class="galaxy-content">
-                  <div class="galaxy-score-main">{{ socialHype.galaxy_score || 0 }}</div>
-                  <div class="galaxy-score-label">Galaxy Score</div>
-                  <div class="galaxy-score-status" :class="getGalaxyScoreClass(socialHype.galaxy_score || 0)">
-                    {{ getGalaxyScoreStatus(socialHype.galaxy_score || 0) }}
-                  </div>
+          <div class="news-summary-chip" :class="getSentimentSummaryClass(news)">
+            {{ getSentimentSummaryLabel(news) }}
+          </div>
+        </div>
+        <div class="news-timeline" v-if="news.length > 0">
+          <div v-for="item in news" :key="item.id" class="news-timeline-item">
+            <div class="timeline-dot" :class="getSentimentClass(item.sentiment)"></div>
+            <div class="timeline-card">
+              <div class="timeline-card-header">
+                <div class="timeline-title">{{ item.title }}</div>
+                <div class="timeline-sentiment" :class="getSentimentClass(item.sentiment)">
+                  <span class="sentiment-icon">{{ getSentimentIcon(item.sentiment) }}</span>
+                  {{ getSentimentLabel(item.sentiment) }}
                 </div>
               </div>
-            </div>
-            <div class="hype-metrics-grid">
-              <div class="hype-metric-card">
-                <div class="metric-icon">📊</div>
-                <div class="metric-content">
-                  <div class="metric-label">Социальный объем</div>
-                  <div class="metric-value">{{ formatSocialNumber(socialHype.social_volume || 0) }}</div>
-                  <div class="metric-description">Упоминаний в соцсетях</div>
-                </div>
-              </div>
-              <div class="hype-metric-card">
-                <div class="metric-icon">⭐</div>
-                <div class="metric-content">
-                  <div class="metric-label">Социальный счет</div>
-                  <div class="metric-value">{{ socialHype.social_score || 0 }}</div>
-                  <div class="metric-description">из 100</div>
-                </div>
-              </div>
-              <div class="hype-metric-card">
-                <div class="metric-icon">👥</div>
-                <div class="metric-content">
-                  <div class="metric-label">Участники</div>
-                  <div class="metric-value">{{ formatSocialNumber(socialHype.social_contributors || 0) }}</div>
-                  <div class="metric-description">Активных пользователей</div>
-                </div>
-              </div>
-              <div class="hype-metric-card">
-                <div class="metric-icon">🔥</div>
-                <div class="metric-content">
-                  <div class="metric-label">Влияние</div>
-                  <div class="metric-value">{{ socialHype.social_influence || 0 }}</div>
-                  <div class="metric-description">из 100</div>
-                </div>
-              </div>
-            </div>
-            <div class="hype-additional" v-if="socialHype.alt_rank">
-              <div class="additional-item">
-                <span class="additional-label">Alt Rank:</span>
-                <span class="additional-value">#{{ socialHype.alt_rank }}</span>
+              <p class="timeline-description">{{ item.description }}</p>
+              <div class="timeline-meta">
+                <span class="meta-source">{{ item.source }}</span>
+                <span class="meta-dot">•</span>
+                <span class="meta-date">{{ formatDate(item.published_at) }}</span>
               </div>
             </div>
           </div>
-          <div v-else class="empty-state">
-            <p>Социальные метрики недоступны для {{ selectedCoinSymbol }}</p>
-            <p class="empty-hint">Проверьте настройки API ключа LunarCrush</p>
+        </div>
+        <div v-else class="empty-state">
+          <p>Новостей не найдено</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 10: Social Hype (full width) -->
+    <div class="row row-full">
+      <div class="analytics-card">
+        <div class="card-header-with-badge">
+          <h2>Социальный индекс хайпа: {{ selectedCoinSymbol }}</h2>
+          <div class="data-source-badge" :class="isSocialDataReal ? 'real' : 'mock'" v-if="socialHype">
+            <span class="badge-icon">{{ isSocialDataReal ? '✅' : '⚠️' }}</span>
+            <span class="badge-text">{{ isSocialDataReal ? 'Реальные данные' : 'Тестовые данные' }}</span>
           </div>
+        </div>
+        <div v-if="isLoadingSocial" class="loading-state">
+          <Loader />
+          <p>Загрузка социальных метрик...</p>
+        </div>
+        <div v-else-if="socialHype" class="social-hype">
+          <div class="hype-header">
+            <div class="galaxy-score-circle">
+              <svg class="galaxy-ring" width="160" height="160">
+                <circle
+                  class="galaxy-ring-bg"
+                  cx="80"
+                  cy="80"
+                  r="70"
+                  fill="none"
+                  stroke="#e9ecef"
+                  stroke-width="14"
+                />
+                <circle
+                  class="galaxy-ring-fill"
+                  :class="getGalaxyScoreClass(socialHype.galaxy_score || 0)"
+                  cx="80"
+                  cy="80"
+                  r="70"
+                  fill="none"
+                  :stroke="getGalaxyScoreColor(socialHype.galaxy_score || 0)"
+                  stroke-width="14"
+                  stroke-linecap="round"
+                  :stroke-dasharray="440"
+                  :stroke-dashoffset="440 - (440 * (socialHype.galaxy_score || 0) / 100)"
+                  transform="rotate(-90 80 80)"
+                />
+              </svg>
+              <div class="galaxy-content">
+                <div class="galaxy-score-main">{{ socialHype.galaxy_score || 0 }}</div>
+                <div class="galaxy-score-label">Galaxy Score</div>
+                <div class="galaxy-score-status" :class="getGalaxyScoreClass(socialHype.galaxy_score || 0)">
+                  {{ getGalaxyScoreStatus(socialHype.galaxy_score || 0) }}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="hype-metrics-grid">
+            <div class="hype-metric-card">
+              <div class="metric-icon">📊</div>
+              <div class="metric-content">
+                <div class="metric-label">Социальный объем</div>
+                <div class="metric-value">{{ formatSocialNumber(socialHype.social_volume || 0) }}</div>
+                <div class="metric-description">Упоминаний в соцсетях</div>
+              </div>
+            </div>
+            <div class="hype-metric-card">
+              <div class="metric-icon">⭐</div>
+              <div class="metric-content">
+                <div class="metric-label">Социальный счет</div>
+                <div class="metric-value">{{ socialHype.social_score || 0 }}</div>
+                <div class="metric-description">из 100</div>
+              </div>
+            </div>
+            <div class="hype-metric-card">
+              <div class="metric-icon">👥</div>
+              <div class="metric-content">
+                <div class="metric-label">Участники</div>
+                <div class="metric-value">{{ formatSocialNumber(socialHype.social_contributors || 0) }}</div>
+                <div class="metric-description">Активных пользователей</div>
+              </div>
+            </div>
+            <div class="hype-metric-card">
+              <div class="metric-icon">🔥</div>
+              <div class="metric-content">
+                <div class="metric-label">Влияние</div>
+                <div class="metric-value">{{ socialHype.social_influence || 0 }}</div>
+                <div class="metric-description">из 100</div>
+              </div>
+            </div>
+          </div>
+          <div class="hype-additional" v-if="socialHype.alt_rank">
+            <div class="additional-item">
+              <span class="additional-label">Alt Rank:</span>
+              <span class="additional-value">#{{ socialHype.alt_rank }}</span>
+            </div>
+          </div>
+        </div>
+        <div v-else class="empty-state">
+          <p>Социальные метрики недоступны для {{ selectedCoinSymbol }}</p>
+          <p class="empty-hint">Проверьте настройки API ключа LunarCrush</p>
         </div>
       </div>
     </div>
@@ -1780,34 +1778,154 @@ function getStrategyLabel(strategy) {
 </script>
 
 <style scoped>
+/* Base */
 .crypto-tracker {
-  padding: 2rem;
+  padding: 1.25rem;
+  min-height: 100vh;
+  background: #f8fafc;
 }
 
+/* Header */
+.page-header {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.header-icon {
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, #f7931a, #ffa726);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: white;
+  box-shadow: 0 8px 32px rgba(247, 147, 26, 0.3);
+}
+
+.page-header h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.header-subtitle {
+  color: #64748b;
+  font-size: 0.9rem;
+  margin: 0.25rem 0 0;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.pair-selector {
+  min-width: 160px;
+}
+
+/* Row Layout */
+.row {
+  display: grid;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.row-2-equal {
+  grid-template-columns: 1fr 1fr;
+}
+
+.row-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.row-full {
+  grid-template-columns: 1fr;
+}
+
+/* Cards */
+.analytics-card {
+  background: #FFFFFF;
+  padding: 1rem;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
+}
+
+.analytics-card:hover {
+  box-shadow: 0 4px 12px rgba(247, 147, 26, 0.08);
+  border-color: #f7931a;
+}
+
+.analytics-card h2 {
+  margin: 0 0 0.75rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.analytics-card h2::before {
+  content: '';
+  width: 3px;
+  height: 14px;
+  background: #f7931a;
+  border-radius: 2px;
+}
+
+/* Market Grid */
 .market-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 0.75rem;
 }
 
 .coin-card {
-  background: white;
-  border-radius: 12px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  background: #f8fafc;
+  border-radius: 10px;
+  padding: 1rem;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
+}
+
+.coin-card:hover {
+  border-color: #f7931a;
 }
 
 .coin-header {
   display: flex;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
 }
 
 .coin-icon {
-  width: 32px;
-  height: 32px;
-  margin-right: 1rem;
+  width: 28px;
+  height: 28px;
+  margin-right: 0.75rem;
 }
 
 .coin-info {
@@ -1816,12 +1934,13 @@ function getStrategyLabel(strategy) {
 
 .coin-info h3 {
   margin: 0;
-  font-size: 1.1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
 }
 
 .symbol {
-  color: var(--text-secondary);
-  font-size: 0.9rem;
+  color: #64748b;
+  font-size: 0.75rem;
 }
 
 .coin-price {
@@ -1829,24 +1948,24 @@ function getStrategyLabel(strategy) {
 }
 
 .current-price {
-  font-weight: bold;
-  font-size: 1.2rem;
+  font-weight: 700;
+  font-size: 1rem;
 }
 
 .price-change {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
 }
 
-.positive { color: #28a745; }
-.negative { color: #dc3545; }
+.positive { color: #10b981; }
+.negative { color: #ef4444; }
 
 .coin-stats {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--border-color);
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #e2e8f0;
 }
 
 .stat {
@@ -1855,38 +1974,27 @@ function getStrategyLabel(strategy) {
 }
 
 .label {
-  color: var(--text-secondary);
-  font-size: 0.85rem;
-  margin-bottom: 0.25rem;
+  color: #64748b;
+  font-size: 0.65rem;
+  margin-bottom: 0.15rem;
 }
 
-.market-metrics {
+/* Dominance */
+.dominance-content {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: auto 1fr auto;
   gap: 1.5rem;
-  margin-bottom: 2rem;
-}
-
-.metric-card {
-  background: white;
-  border-radius: 12px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.dominance-chart {
-  padding: 1rem 0;
+  align-items: center;
 }
 
 .dominance-main {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 1.5rem;
 }
 
 .dominance-value {
-  font-size: 2.5rem;
+  font-size: 2rem;
   font-weight: 700;
   color: #f7931a;
   line-height: 1;
@@ -1895,125 +2003,78 @@ function getStrategyLabel(strategy) {
 .dominance-change {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
-  font-size: 1.1rem;
+  align-items: center;
+  font-size: 0.9rem;
   font-weight: 600;
-}
-
-.dominance-change.positive {
-  color: #28a745;
-}
-
-.dominance-change.negative {
-  color: #dc3545;
-}
-
-.change-label {
-  font-size: 0.75rem;
-  font-weight: 400;
-  opacity: 0.7;
   margin-top: 0.25rem;
 }
 
+.dominance-change.positive { color: #10b981; }
+.dominance-change.negative { color: #ef4444; }
+
+.change-label {
+  font-size: 0.65rem;
+  font-weight: 400;
+  opacity: 0.7;
+}
+
 .dominance-progress {
-  margin-bottom: 1.5rem;
+  flex: 1;
 }
 
 .progress-bar {
   width: 100%;
-  height: 24px;
-  background: #f0f0f0;
-  border-radius: 12px;
+  height: 16px;
+  background: #e2e8f0;
+  border-radius: 8px;
   overflow: hidden;
-  margin-bottom: 0.5rem;
-  position: relative;
+  margin-bottom: 0.35rem;
 }
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #f7931a 0%, #ffa726 100%);
-  border-radius: 12px;
+  background: linear-gradient(90deg, #f7931a, #ffa726);
+  border-radius: 8px;
   transition: width 0.5s ease;
-  box-shadow: 0 2px 4px rgba(247, 147, 26, 0.3);
 }
 
 .progress-labels {
   display: flex;
   justify-content: space-between;
-  font-size: 0.75rem;
-  color: var(--text-secondary);
+  font-size: 0.65rem;
+  color: #64748b;
 }
 
 .dominance-info {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .info-item {
   display: flex;
   flex-direction: column;
+  text-align: right;
 }
 
 .info-label {
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-  margin-bottom: 0.25rem;
+  font-size: 0.7rem;
+  color: #64748b;
 }
 
 .info-value {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.coin-selector-panel {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  background: white;
-  border-radius: 12px;
-  padding: 1.5rem;
-  margin-bottom: 2rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.selector-text h3 {
-  margin: 0;
-  font-size: 1.2rem;
-}
-
-.selector-text p {
-  margin: 0.25rem 0 0;
-  color: var(--text-secondary);
   font-size: 0.9rem;
-}
-
-.grid-2 {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.analysis-card {
-  background: white;
-  border-radius: 12px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  font-weight: 600;
+  color: #1e293b;
 }
 
 .forecast-card {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1rem;
   background: linear-gradient(135deg, rgba(248,249,252,1) 0%, #fff 80%);
-  border-radius: 16px;
-  padding: 1.5rem;
+  border-radius: 12px;
+  padding: 1rem;
   border: 1px solid rgba(0,0,0,0.05);
   position: relative;
   overflow: hidden;
@@ -2223,9 +2284,9 @@ function getStrategyLabel(strategy) {
 .scam-card {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  border-radius: 16px;
-  padding: 1.5rem;
+  gap: 1rem;
+  border-radius: 12px;
+  padding: 1rem;
   border: 1px solid rgba(0,0,0,0.05);
   background: #fff;
   position: relative;
@@ -3537,18 +3598,58 @@ function getStrategyLabel(strategy) {
   color: var(--text-secondary);
 }
 
-@media (max-width: 768px) {
-  .crypto-tracker {
-    padding: 1rem;
-  }
-
-  .grid-2 {
+/* Responsive */
+@media (max-width: 1200px) {
+  .row-2-equal {
     grid-template-columns: 1fr;
   }
-
-  .chart-controls {
+  
+  .row-3 {
+    grid-template-columns: 1fr;
+  }
+  
+  .dominance-content {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+  
+  .dominance-info {
+    flex-direction: row;
+    justify-content: center;
+    gap: 2rem;
+  }
+  
+  .info-item {
+    text-align: center;
+  }
+  
+  .header-content {
     flex-direction: column;
-    gap: 1rem;
+    align-items: flex-start;
+  }
+  
+  .header-right {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .crypto-tracker {
+    padding: 0.75rem;
+  }
+  
+  .page-header {
+    padding: 1rem;
+  }
+  
+  .header-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+  }
+  
+  .page-header h1 {
+    font-size: 1.25rem;
   }
 
   .trust-factors {
@@ -3574,7 +3675,7 @@ function getStrategyLabel(strategy) {
   .whale-flow-item {
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.75rem;
+    gap: 0.5rem;
   }
 
   .whale-flow-meta {
@@ -3590,7 +3691,10 @@ function getStrategyLabel(strategy) {
   .anomaly-time {
     justify-self: flex-start;
   }
-
+  
+  .market-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Социальный индекс хайпа */

@@ -38,7 +38,7 @@
         <div class="hero-content">
           <div class="hero-meta">
             <div class="badge stage-badge">{{ getStageText(startup.stage) }}</div>
-            <div class="badge category-badge" v-if="startup.category">{{ startup.category.name }}</div>
+            <div class="badge category-badge" v-if="startup.category && startup.category.name">{{ startup.category.name }}</div>
           </div>
           <h1>{{ startup.title }}</h1>
           <div class="hero-location" v-if="startup.location">
@@ -46,7 +46,11 @@
           </div>
           <div class="hero-author" v-if="startup.author">
             <div class="author-avatar">
-              <img :src="startup.author.avatar || '/assets/images/default-avatar.png'" :alt="getAuthorName">
+              <img 
+                :src="getAvatarSrc(startup.author.avatar)" 
+                :alt="getAuthorName"
+                @error="handleAvatarError"
+              >
             </div>
             <div class="author-info">
               <div class="author-name">{{ getAuthorName }}</div>
@@ -287,6 +291,26 @@ export default {
     const handleImageError = (event) => {
       event.target.src = getPlaceholderImage()
     }
+
+    const getDefaultAvatar = () => {
+      const svg = `<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
+        <rect width="100" height="100" fill="#e2e8f0"/>
+        <circle cx="50" cy="35" r="20" fill="#94a3b8"/>
+        <ellipse cx="50" cy="85" rx="30" ry="25" fill="#94a3b8"/>
+      </svg>`;
+      return 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg)));
+    }
+
+    const getAvatarSrc = (avatar) => {
+      if (!avatar) return getDefaultAvatar()
+      if (avatar.startsWith('data:image')) return avatar
+      if (avatar.startsWith('http')) return avatar
+      return avatar.startsWith('/') ? avatar : `/${avatar}`
+    }
+
+    const handleAvatarError = (event) => {
+      event.target.src = getDefaultAvatar()
+    }
     
     // Форматирование даты
     const formatDate = (dateString) => {
@@ -330,6 +354,9 @@ export default {
       getImageSrc,
       handleImageError,
       getPlaceholderImage,
+      getAvatarSrc,
+      handleAvatarError,
+      getDefaultAvatar,
       formatDate,
       goBack,
       editStartup

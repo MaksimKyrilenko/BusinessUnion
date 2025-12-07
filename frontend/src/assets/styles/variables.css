@@ -1,8 +1,8 @@
 :root {
   /* Цвета */
-  --primary-color: #28a745;
-  --primary-rgb: 40, 167, 69;
-  --secondary-color: #6c757d;
+  --primary-color: #2563eb;
+  --primary-rgb: 37, 99, 235;
+  --secondary-color: #64748b;
   --success-color: #28a745;
   --error-color: #dc3545;
   --warning-color: #ffc107;

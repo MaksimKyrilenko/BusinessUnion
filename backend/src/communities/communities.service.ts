@@ -336,4 +336,97 @@ export class CommunitiesService implements OnModuleInit {
 
     return members.map(member => member.community);
   }
+
+  async getCommunityNotifications(userId: number, limit: number = 10): Promise<any[]> {
+    const notifications: any[] = [];
+
+    // Получаем сообщества, где пользователь является участником
+    const userCommunities = await this.getUserCommunities(userId);
+    const communityIds = userCommunities.map(c => c.id);
+
+    if (communityIds.length === 0) {
+      return [];
+    }
+
+    // Получаем недавние посты из сообществ пользователя (за последние 7 дней)
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    const recentPosts = await this.communityPostRepository
+      .createQueryBuilder('post')
+      .leftJoinAndSelect('post.author', 'author')
+      .leftJoinAndSelect('author.profile', 'profile')
+      .leftJoinAndSelect('post.community', 'community')
+      .where('post.communityId IN (:...communityIds)', { communityIds })
+      .andWhere('post.createdAt >= :sevenDaysAgo', { sevenDaysAgo })
+      .orderBy('post.createdAt', 'DESC')
+      .take(limit * 2)
+      .getMany();
+
+    // Фильтруем посты - исключаем свои посты
+    const filteredPosts = recentPosts
+      .filter(post => post.authorId !== userId) // Не показываем свои посты как уведомления
+      .slice(0, limit);
+
+    // Преобразуем посты в уведомления
+    for (const post of filteredPosts) {
+      const community = userCommunities.find(c => c.id === post.communityId);
+      notifications.push({
+        id: `post-${post.id}`,
+        type: 'new_post',
+        title: 'Новый пост в сообществе',
+        message: `${post.author?.firstName || ''} ${post.author?.lastName || 'Пользователь'} опубликовал пост в "${community?.name || 'сообществе'}"`,
+        content: post.content?.substring(0, 100) || '',
+        authorName: `${post.author?.firstName || ''} ${post.author?.lastName || 'Пользователь'}`.trim(),
+        communityId: post.communityId,
+        communityName: community?.name || '',
+        postId: post.id,
+        timestamp: post.createdAt,
+        icon: '💬',
+      });
+    }
+
+    // Получаем реакции на посты пользователя
+    const userPosts = await this.communityPostRepository.find({
+      where: { authorId: userId },
+      relations: ['reactions', 'reactions.user', 'community'],
+      order: { createdAt: 'DESC' },
+      take: 20,
+    });
+
+    for (const post of userPosts) {
+      const recentReactions = await this.communityPostReactionRepository.find({
+        where: { postId: post.id },
+        relations: ['user'],
+        order: { createdAt: 'DESC' },
+        take: 5,
+      });
+
+      // Берем только реакции за последние 7 дней
+      const filteredReactions = recentReactions.filter(
+        reaction => new Date(reaction.createdAt) >= sevenDaysAgo && reaction.userId !== userId
+      );
+
+      for (const reaction of filteredReactions.slice(0, 3)) {
+        notifications.push({
+          id: `reaction-${reaction.id}`,
+          type: 'reaction',
+          title: 'Реакция на ваш пост',
+          message: `${reaction.user?.firstName || ''} ${reaction.user?.lastName || 'Пользователь'} оценил ваш пост`,
+          content: post.content?.substring(0, 100) || '',
+          authorName: `${reaction.user?.firstName || ''} ${reaction.user?.lastName || 'Пользователь'}`.trim(),
+          communityId: post.communityId,
+          communityName: post.community?.name || '',
+          postId: post.id,
+          timestamp: reaction.createdAt,
+          icon: '👍',
+        });
+      }
+    }
+
+    // Сортируем по дате (новые первыми) и ограничиваем количество
+    notifications.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    
+    return notifications.slice(0, limit);
+  }
 }

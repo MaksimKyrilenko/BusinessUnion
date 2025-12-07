@@ -3034,7 +3034,35 @@ export default {
 .messenger {
   display: flex;
   height: 100vh;
-  background: #f8fafc;
+  background: #ffffff;
+  position: relative;
+}
+
+.messenger::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(circle at 1px 1px, rgba(37, 99, 235, 0.02) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.messenger::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: 
+    radial-gradient(ellipse 500px 500px at 95% 5%, rgba(219, 234, 254, 0.4) 0%, transparent 70%),
+    radial-gradient(ellipse 400px 400px at 5% 95%, rgba(224, 231, 255, 0.3) 0%, transparent 70%);
+}
+
+.messenger-sidebar,
+.chat-area {
+  position: relative;
+  z-index: 1;
 }
 
 .messenger-sidebar {

@@ -523,7 +523,37 @@ export default defineComponent({
   max-width: 1400px;
   margin: 0 auto;
   margin-top: 60px;
-  background: linear-gradient(to bottom, #f8fafc, #ffffff);
+  min-height: 100vh;
+  background: #ffffff;
+  position: relative;
+}
+
+.financial-analytics::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(circle at 1px 1px, rgba(37, 99, 235, 0.03) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.financial-analytics::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: 
+    radial-gradient(ellipse 600px 600px at 90% 0%, rgba(219, 234, 254, 0.5) 0%, transparent 70%),
+    radial-gradient(ellipse 500px 500px at 10% 100%, rgba(224, 231, 255, 0.4) 0%, transparent 70%);
+}
+
+.analytics-header,
+.analytics-grid,
+.analytics-card {
+  position: relative;
+  z-index: 1;
 }
 
 .analytics-header {

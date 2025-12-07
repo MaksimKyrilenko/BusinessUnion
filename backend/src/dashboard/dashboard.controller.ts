@@ -16,7 +16,12 @@ export class DashboardController {
 
   @Get('recent-messages')
   async getRecentMessages(@User('id') userId: number) {
-    return this.dashboardService.getRecentMessages(userId);
+    return this.dashboardService.getRecentMessages(userId, 10);
+  }
+
+  @Get('message-stats')
+  async getMessageStats(@User('id') userId: number) {
+    return this.dashboardService.getMessageStats(userId);
   }
 
   @Get('activities')
@@ -89,16 +94,31 @@ export class DashboardController {
 
   @Get('news')
   async getNews() {
-    return this.dashboardService.getNews();
+    return this.dashboardService.getNews(5);
   }
 
   @Get('events')
   async getEvents() {
-    return this.dashboardService.getEvents();
+    return this.dashboardService.getEvents(5);
   }
 
   @Get('exchange-rates')
   async getExchangeRates() {
     return this.dashboardService.getExchangeRates();
+  }
+
+  @Get('recommended-courses')
+  async getRecommendedCourses() {
+    return this.dashboardService.getRecommendedCourses(6);
+  }
+
+  @Get('market-trends')
+  async getMarketTrends() {
+    return this.dashboardService.getMarketTrends(5);
+  }
+
+  @Get('community-stats')
+  async getCommunityStats(@User('id') userId: number) {
+    return this.dashboardService.getCommunityStats(userId);
   }
 } 

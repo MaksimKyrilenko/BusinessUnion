@@ -2,7 +2,11 @@
   <div id="app">
     <Navigation v-if="isAuthenticated" />
     <main class="main-content" :class="{ 'with-nav': isAuthenticated }">
-      <router-view />
+      <router-view v-slot="{ Component, route }">
+        <transition :name="route.meta.transition || 'page-fade'" mode="out-in">
+          <component :is="Component" :key="route.path" />
+        </transition>
+      </router-view>
     </main>
     
     <!-- Уведомления -->
@@ -143,5 +147,37 @@ body {
   top: 20px;
   right: 20px;
   z-index: 1100;
+}
+
+/* Page Transitions */
+.page-fade-enter-active,
+.page-fade-leave-active {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.page-fade-enter-from {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.page-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+/* Slide transition for auth pages */
+.page-slide-enter-active,
+.page-slide-leave-active {
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.page-slide-enter-from {
+  opacity: 0;
+  transform: translateX(30px);
+}
+
+.page-slide-leave-to {
+  opacity: 0;
+  transform: translateX(-30px);
 }
 </style>

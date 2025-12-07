@@ -24,6 +24,7 @@ import { MarketAnalyticsModule } from './market-analytics/market-analytics.modul
 import { EducationModule } from './education/education.module';
 import { CommunitiesModule } from './communities/communities.module';
 import { CryptoTrackerModule } from './crypto-tracker/crypto-tracker.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -58,6 +59,7 @@ import { CryptoTrackerModule } from './crypto-tracker/crypto-tracker.module';
     EducationModule,
     CommunitiesModule,
     CryptoTrackerModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [AppService],

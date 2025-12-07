@@ -957,7 +957,9 @@ export class ProjectsService {
     const agentId = process.env.YANDEX_CLOUD_AGENT_ID;
 
     if (!apiKey || !agentId) {
-      throw new BadRequestException('Yandex Cloud API credentials not configured');
+      throw new BadRequestException(
+        'Сервис анализа стартапов не настроен. Пожалуйста, обратитесь к администратору для настройки Yandex Cloud AI.'
+      );
     }
 
     // Формируем промпт для анализа стартапа
@@ -1039,11 +1041,30 @@ ${project.additionalInfo ? JSON.stringify(project.additionalInfo) : 'Не пре
         },
       });
       
-      const errorMessage = error.response?.data?.message || 
-                           error.response?.data?.error?.message ||
-                           error.response?.data?.error ||
+      // Проверяем, является ли ошибка связанной с истекшим токеном Yandex Cloud
+      const errorData = error.response?.data;
+      const errorMessage = errorData?.message || 
+                           errorData?.error?.message ||
+                           errorData?.error ||
                            error.message || 
                            'Неизвестная ошибка';
+      
+      // Проверяем на ошибку истекшего токена
+      if (error.response?.status === 401 || 
+          (typeof errorMessage === 'string' && errorMessage.includes('UNAUTHENTICATED') && errorMessage.includes('expired'))) {
+        throw new BadRequestException(
+          'Токен доступа к Yandex Cloud AI истек. Пожалуйста, обратитесь к администратору для обновления токена.'
+        );
+      }
+      
+      // Проверяем на ошибку отсутствия токена
+      if (error.response?.status === 401 || 
+          (typeof errorMessage === 'string' && errorMessage.includes('UNAUTHENTICATED'))) {
+        throw new BadRequestException(
+          'Ошибка аутентификации в Yandex Cloud AI. Пожалуйста, обратитесь к администратору.'
+        );
+      }
+      
       throw new BadRequestException(`Ошибка при анализе стартапа: ${errorMessage}`);
     }
   }
@@ -1096,6 +1117,22 @@ ${project.additionalInfo ? JSON.stringify(project.additionalInfo) : 'Не пре
       return result;
     } catch (error) {
       console.error('[analyzeStartupWithAxios] Ошибка:', error);
+      
+      // Проверяем на ошибку истекшего токена Yandex Cloud
+      const errorData = error.response?.data;
+      const errorMessage = errorData?.message || 
+                           errorData?.error?.message ||
+                           errorData?.error ||
+                           error.message || 
+                           'Неизвестная ошибка';
+      
+      if (error.response?.status === 401 || 
+          (typeof errorMessage === 'string' && errorMessage.includes('UNAUTHENTICATED') && errorMessage.includes('expired'))) {
+        throw new BadRequestException(
+          'Токен доступа к Yandex Cloud AI истек. Пожалуйста, обратитесь к администратору для обновления токена.'
+        );
+      }
+      
       throw error;
     }
   }
