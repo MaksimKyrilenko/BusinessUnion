@@ -1,0 +1,136 @@
+version: '3.8'
+
+services:
+  # MySQL база данных
+  mysql:
+    image: mysql:8.0
+    container_name: businessunion-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${DB_NAME:-businessunion}
+      MYSQL_USER: ${DB_USER:-businessuser}
+      MYSQL_PASSWORD: ${DB_PASS:-businesspass}
+    ports:
+      - "${DB_PORT:-3306}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./backend/src/database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - businessunion-network
+    command: 
+      - --default-authentication-plugin=mysql_native_password
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --max_connections=1000
+      - --innodb_buffer_pool_size=1G
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD:-rootpassword}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Backend NestJS приложение
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: businessunion-backend
+    restart: always
+    environment:
+      NODE_ENV: production
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: ${DB_USER:-businessuser}
+      DB_PASS: ${DB_PASS:-businesspass}
+      DB_NAME: ${DB_NAME:-businessunion}
+      DB_LOGGING: ${DB_LOGGING:-false}
+      JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-this}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./backend/uploads:/app/uploads
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - businessunion-network
+    command: >
+      sh -c "
+        echo 'Waiting for database to be ready...' &&
+        sleep 10 &&
+        echo 'Running migrations...' &&
+        npm run migration:run || true &&
+        echo 'Starting application...' &&
+        npm run start:prod
+      "
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/api"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Frontend Vue.js приложение
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VUE_APP_API_URL: ${VUE_APP_API_URL:-http://localhost:3001}
+    container_name: businessunion-frontend
+    restart: always
+    ports:
+      - "${FRONTEND_PORT:-80}:80"
+    depends_on:
+      - backend
+    networks:
+      - businessunion-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  businessunion-network:
+    driver: bridge

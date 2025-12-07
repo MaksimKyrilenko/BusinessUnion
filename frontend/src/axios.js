@@ -1,10 +1,13 @@
 import axios from 'axios';
 import router from '@/router';
 
+// Используем переменную окружения или fallback на localhost
+const apiBaseURL = process.env.VUE_APP_API_URL || 'http://localhost:3001';
+
 const api = axios.create({
-  baseURL: 'http://localhost:3001/api',  // Исправляем порт на 3001
+  baseURL: `${apiBaseURL}/api`,
   headers: {
-    'Content-Type': 'application/json',  // Стандартный тип содержимого для REST API
+    'Content-Type': 'application/json',
   },
 });
 
