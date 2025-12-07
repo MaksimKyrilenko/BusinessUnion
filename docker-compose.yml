@@ -54,6 +54,16 @@ services:
       JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-this}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      # Yandex Cloud AI для анализа стартапов
+      YANDEX_CLOUD_API_KEY: ${YANDEX_CLOUD_API_KEY:-}
+      YANDEX_CLOUD_PROJECT_ID: ${YANDEX_CLOUD_PROJECT_ID:-}
+      YANDEX_CLOUD_AGENT_ID: ${YANDEX_CLOUD_AGENT_ID:-}
+      YANDEX_CLOUD_API_URL: ${YANDEX_CLOUD_API_URL:-https://rest-assistant.api.cloud.yandex.net/v1}
+      # Market Data API Keys
+      COINGECKO_API_KEY: ${COINGECKO_API_KEY:-}
+      ALPHA_VANTAGE_API_KEY: ${ALPHA_VANTAGE_API_KEY:-}
+      FMP_API_KEY: ${FMP_API_KEY:-}
+      EXCHANGE_RATES_API_KEY: ${EXCHANGE_RATES_API_KEY:-}
     ports:
       - "3001:3001"
     volumes:
