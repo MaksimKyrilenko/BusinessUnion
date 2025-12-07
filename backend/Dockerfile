@@ -8,7 +8,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Устанавливаем ВСЕ зависимости (включая dev для сборки)
-RUN npm ci && \
+RUN npm ci --legacy-peer-deps && \
     npm cache clean --force
 
 # Копируем исходный код
@@ -27,7 +27,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Устанавливаем только production зависимости
-RUN npm ci --only=production && \
+RUN npm ci --omit=dev --legacy-peer-deps && \
     npm cache clean --force
 
 # Копируем собранное приложение из builder
