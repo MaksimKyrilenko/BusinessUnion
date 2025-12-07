@@ -40,8 +40,8 @@ COPY --from=builder /app/tsconfig.build.json ./tsconfig.build.json
 # Проверяем что dist/src/main.js существует
 RUN test -f dist/src/main.js || (echo "ERROR: dist/src/main.js not found!" && ls -la dist/ && ls -la dist/src/ 2>/dev/null || echo "src directory not found" && exit 1)
 
-# Устанавливаем su-exec для переключения пользователя
-RUN apk add --no-cache su-exec
+# Устанавливаем su-exec и curl для health check
+RUN apk add --no-cache su-exec curl
 
 # Копируем entrypoint скрипт
 COPY docker-entrypoint.sh /usr/local/bin/
