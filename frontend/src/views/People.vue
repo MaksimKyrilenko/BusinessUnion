@@ -824,7 +824,7 @@ export default {
 
 .info-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.75rem;
 }
 
@@ -836,6 +836,8 @@ export default {
   background: #f8fafc;
   border-radius: 8px;
   transition: background 0.2s ease;
+  overflow: hidden;
+  min-width: 0;
 }
 
 .info-item:hover {
@@ -877,14 +879,15 @@ export default {
 }
 
 .info-value {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: #1e293b;
   font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 100%;
+  width: 100%;
   display: block;
+  max-width: calc(100% - 2px);
 }
 
 .card-empty {

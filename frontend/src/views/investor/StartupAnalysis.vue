@@ -627,7 +627,7 @@ export default {
 }
 .page-header-blue .stat-content { display: flex; flex-direction: column; }
 .page-header-blue .stat-number { font-size: 1.25rem; font-weight: 700; line-height: 1; color: #fff !important; }
-.page-header-blue .stat-label { font-size: 0.75rem; opacity: 0.85; margin-top: 0.15rem; color: #fff !important; }
+.page-header-blue .stat-label { font-size: 0.75rem; opacity: 0.85; margin-top: 0.15rem; color: #fff !important; text-transform: none !important; letter-spacing: normal !important; }
 
 @media (max-width: 900px) {
   .page-header-blue { flex-direction: column; gap: 1.25rem; }
