@@ -1194,11 +1194,10 @@ export default defineComponent({
 .news-page {
   padding: 1rem;
   min-height: 100vh;
-  max-height: 100vh;
-  overflow-y: auto;
   background: #f1f5f9;
   position: relative;
   box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .news-page::before {
@@ -1352,9 +1351,8 @@ export default defineComponent({
 
 .content-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr minmax(320px, 400px);
   gap: 1rem;
-  min-height: 0; /* Позволяет grid-элементам сжиматься */
 }
 
 .news-section {
@@ -1368,6 +1366,11 @@ export default defineComponent({
   border-radius: 14px;
   padding: 1.25rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+}
+
+.events-section {
+  min-width: 0; /* Позволяет сжиматься в grid */
 }
 
 .news-section h2,
@@ -1572,8 +1575,6 @@ export default defineComponent({
   display: grid;
   grid-template-columns: 1fr;
   gap: 1rem;
-  max-height: calc(100vh - 350px);
-  overflow-y: auto;
 }
 
 .calendar-view {
@@ -1666,7 +1667,7 @@ export default defineComponent({
 
 .calendar-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 1px;
   background: #e2e8f0;
   border-radius: 10px;
@@ -1674,8 +1675,7 @@ export default defineComponent({
 }
 
 .calendar-day {
-  aspect-ratio: 1;
-  min-height: 70px;
+  min-height: 65px;
   padding: 0.25rem;
   position: relative;
   overflow: hidden;
@@ -1769,11 +1769,14 @@ export default defineComponent({
 
 .upcoming-events-section {
   margin-top: 0;
+  min-width: 0; /* Позволяет сжиматься в grid */
 }
 
 .upcoming-events-list {
   overflow-x: auto;
   padding-bottom: 0.5rem;
+  margin: 0 -0.5rem;
+  padding: 0.5rem;
 }
 
 .upcoming-events-grid {
@@ -1783,9 +1786,10 @@ export default defineComponent({
 }
 
 .event-card {
-  flex: 0 0 280px;
+  flex: 0 0 260px;
+  min-width: 220px;
   display: flex;
-  gap: 1rem;
+  gap: 0.75rem;
   padding: 1rem;
   border: 1px solid #f1f5f9;
   border-radius: 12px;
@@ -2390,7 +2394,25 @@ export default defineComponent({
   box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
 }
 
-/* Responsive для узких экранов по ширине */
+/* Responsive для широких экранов */
+@media (min-width: 1400px) {
+  .content-grid {
+    grid-template-columns: 1fr minmax(350px, 450px);
+  }
+}
+
+/* Responsive для средних экранов */
+@media (max-width: 1400px) {
+  .content-grid {
+    grid-template-columns: 1fr minmax(300px, 380px);
+  }
+  
+  .event-card {
+    flex: 0 0 250px;
+  }
+}
+
+/* Responsive для экранов до 1200px */
 @media (max-width: 1200px) {
   .content-grid {
     grid-template-columns: 1fr;
@@ -2399,130 +2421,36 @@ export default defineComponent({
   .news-section {
     grid-column: span 1;
   }
+  
+  .upcoming-events-section {
+    order: 1;
+  }
+  
+  .events-section {
+    order: 2;
+  }
 }
 
-/* Responsive для экранов с малой высотой (16:10, 16:9 и т.д.) */
-@media (max-height: 800px) {
+/* Responsive для планшетов */
+@media (max-width: 1024px) {
   .news-page {
     padding: 0.75rem;
   }
   
   .news-header {
     padding: 1rem;
-    margin-bottom: 0.75rem;
-  }
-  
-  .news-header h1 {
-    font-size: 1.1rem;
-    margin-bottom: 0.75rem;
   }
   
   .news-filters {
     padding: 0.75rem;
-    gap: 0.75rem;
-  }
-  
-  .content-grid {
-    gap: 0.75rem;
-  }
-  
-  .news-section,
-  .events-section,
-  .upcoming-events-section {
-    padding: 1rem;
-  }
-  
-  .news-section h2,
-  .events-section h2,
-  .upcoming-events-section h2 {
-    font-size: 1rem;
-    margin-bottom: 0.75rem;
-  }
-  
-  .news-cards-grid {
-    gap: 0.75rem;
   }
   
   .calendar-day {
-    aspect-ratio: unset;
-    min-height: 60px;
+    min-height: 55px;
   }
   
   .event-card {
-    flex: 0 0 240px;
-    padding: 0.75rem;
-  }
-  
-  .event-day {
-    font-size: 1.25rem;
-  }
-  
-  .event-date {
-    padding: 0.5rem;
-    min-width: 50px;
-  }
-}
-
-/* Для очень малой высоты (ноутбуки 768px и меньше) */
-@media (max-height: 700px) {
-  .news-page {
-    padding: 0.5rem;
-  }
-  
-  .news-header {
-    padding: 0.75rem;
-    margin-bottom: 0.5rem;
-  }
-  
-  .news-header h1 {
-    font-size: 1rem;
-    margin-bottom: 0.5rem;
-  }
-  
-  .news-filters {
-    padding: 0.5rem;
-    gap: 0.5rem;
-  }
-  
-  .filter-group select,
-  .search-input-container input {
-    padding: 0.5rem 0.75rem;
-    font-size: 0.85rem;
-  }
-  
-  .content-grid {
-    gap: 0.5rem;
-  }
-  
-  .news-section,
-  .events-section,
-  .upcoming-events-section {
-    padding: 0.75rem;
-  }
-  
-  .calendar-day {
-    min-height: 50px;
-    padding: 0.15rem;
-  }
-  
-  .day-number {
-    font-size: 0.7rem;
-    width: 18px;
-    height: 18px;
-  }
-  
-  .event-indicator {
-    font-size: 0.55rem;
-    padding: 0.05rem 0.15rem;
-  }
-  
-  .upcoming-events-grid {
-    gap: 0.5rem;
-  }
-  
-  .event-card {
-    flex: 0 0 200px;
-    gap: 0.5rem;
+    flex: 0 0 260px;
   }
 }
 
