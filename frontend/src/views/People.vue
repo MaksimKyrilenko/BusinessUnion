@@ -136,7 +136,7 @@
                 </div>
                 <div class="info-content">
                   <span class="info-label">Локация</span>
-                  <span class="info-value">{{ user.region }}</span>
+                  <span class="info-value" :title="user.region">{{ user.region }}</span>
                 </div>
               </div>
               <div class="info-item" v-if="user.telegram">
@@ -145,7 +145,7 @@
                 </div>
                 <div class="info-content">
                   <span class="info-label">Telegram</span>
-                  <span class="info-value">{{ user.telegram }}</span>
+                  <span class="info-value" :title="user.telegram">{{ user.telegram }}</span>
                 </div>
               </div>
               <div class="info-item" v-if="user.phoneNumber">
@@ -154,7 +154,7 @@
                 </div>
                 <div class="info-content">
                   <span class="info-label">Телефон</span>
-                  <span class="info-value">{{ user.phoneNumber }}</span>
+                  <span class="info-value" :title="user.phoneNumber">{{ user.phoneNumber }}</span>
                 </div>
               </div>
               <div class="info-item" v-if="user.email">
@@ -163,7 +163,7 @@
                 </div>
                 <div class="info-content">
                   <span class="info-label">Email</span>
-                  <span class="info-value">{{ user.email }}</span>
+                  <span class="info-value" :title="user.email">{{ user.email }}</span>
                 </div>
               </div>
             </div>
@@ -864,6 +864,8 @@ export default {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  flex: 1;
+  overflow: hidden;
 }
 
 .info-label {
@@ -875,12 +877,14 @@ export default {
 }
 
 .info-value {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: #1e293b;
   font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  max-width: 100%;
+  display: block;
 }
 
 .card-empty {
