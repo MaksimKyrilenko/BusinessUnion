@@ -1810,7 +1810,7 @@ function getStrategyLabel(strategy) {
   color: #fff;
   box-shadow: 0 8px 30px rgba(37,99,235,0.2);
 }
-.page-header-blue .header-left { flex: 1; }
+.page-header-blue .header-left { flex: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 0.5rem; }
 .page-header-blue .header-badge {
   display: inline-flex;
   align-items: center;
