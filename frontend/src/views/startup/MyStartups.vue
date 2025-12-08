@@ -1,7 +1,41 @@
 <template>
   <div class="my-startups">
-    <div class="header-container">
-      <h1>Мои стартапы</h1>
+    <!-- Blue Header -->
+    <div class="page-header-blue">
+      <div class="header-left">
+        <div class="header-badge">
+          <i class="fas fa-rocket"></i>
+          <span>Стартаперу</span>
+        </div>
+        <h1 class="header-title">Мои стартапы</h1>
+        <p class="header-subtitle">Управляйте своими проектами и отслеживайте прогресс</p>
+      </div>
+      <div class="header-stats">
+        <div class="stat-card">
+          <div class="stat-icon"><i class="fas fa-folder-open"></i></div>
+          <div class="stat-content">
+            <span class="stat-number">{{ createdByMe.length }}</span>
+            <span class="stat-label">Созданных</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon"><i class="fas fa-users"></i></div>
+          <div class="stat-content">
+            <span class="stat-number">{{ memberOf.length }}</span>
+            <span class="stat-label">Участие</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon"><i class="fas fa-chart-line"></i></div>
+          <div class="stat-content">
+            <span class="stat-number">{{ createdByMe.length + memberOf.length }}</span>
+            <span class="stat-label">Всего</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="header-actions">
       <button v-if="!selectedProjectId" @click="showCreateModal = true" class="create-btn">
         <i class="fas fa-plus"></i>
         Создать стартап
@@ -304,14 +338,71 @@ export default {
 
 <style scoped>
 .my-startups {
-  padding: 2rem;
+  padding: 1rem;
+  min-height: 100vh;
+  background: #f1f5f9;
 }
 
-.header-container {
+/* Blue Header */
+.page-header-blue {
   display: flex;
   justify-content: space-between;
+  align-items: flex-start;
+  gap: 2rem;
+  padding: 1.5rem 2rem;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  border-radius: 16px;
+  margin-bottom: 1rem;
+  color: #fff;
+  box-shadow: 0 8px 30px rgba(37,99,235,0.2);
+}
+.page-header-blue .header-left { flex: 1; }
+.page-header-blue .header-badge {
+  display: inline-flex;
   align-items: center;
-  margin-bottom: 2rem;
+  gap: 0.5rem;
+  padding: 0.4rem 0.8rem;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  margin-bottom: 0.75rem;
+}
+.page-header-blue .header-title { font-size: 1.75rem; font-weight: 700; margin: 0 0 0.5rem; }
+.page-header-blue .header-subtitle { font-size: 0.95rem; opacity: 0.85; margin: 0; max-width: 400px; }
+.page-header-blue .header-stats { display: flex; gap: 0.875rem; flex-shrink: 0; }
+.page-header-blue .stat-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+}
+.page-header-blue .stat-icon {
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.page-header-blue .stat-content { display: flex; flex-direction: column; }
+.page-header-blue .stat-number { font-size: 1.25rem; font-weight: 700; line-height: 1; color: #fff; }
+.page-header-blue .stat-label { font-size: 0.75rem; opacity: 0.85; margin-top: 0.15rem; color: #fff; }
+
+@media (max-width: 900px) {
+  .page-header-blue { flex-direction: column; gap: 1.25rem; }
+  .page-header-blue .header-stats { width: 100%; }
+  .page-header-blue .stat-card { flex: 1; min-width: 90px; }
+}
+
+.header-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1rem;
 }
 
 .tabs-container {
