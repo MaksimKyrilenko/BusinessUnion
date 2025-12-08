@@ -1,31 +1,39 @@
 <template>
   <div class="analytics-page">
-    <!-- Header -->
-    <header class="page-header">
-      <div class="header-content">
-        <div class="header-left">
-          <div class="header-icon">
-            <i class="fas fa-chart-line"></i>
-          </div>
-          <div>
-            <h1>Аналитика рынка</h1>
-            <p class="header-subtitle">Глобальные рынки и макроэкономика</p>
+    <!-- Blue Header -->
+    <div class="page-header-blue">
+      <div class="header-left">
+        <div class="header-badge">
+          <i class="fas fa-chart-line"></i>
+          <span>Аналитика</span>
+        </div>
+        <h1 class="header-title">Аналитика рынка</h1>
+        <p class="header-subtitle">Глобальные рынки и макроэкономика</p>
+      </div>
+      <div class="header-stats">
+        <div class="stat-card">
+          <div class="stat-icon"><i class="fas fa-globe"></i></div>
+          <div class="stat-content">
+            <span class="stat-number">5</span>
+            <span class="stat-label">Регионов</span>
           </div>
         </div>
-        <div class="header-right">
-          <div class="period-selector">
-            <button class="period-btn active">24ч</button>
-            <button class="period-btn">7д</button>
-            <button class="period-btn">1м</button>
-            <button class="period-btn">1г</button>
+        <div class="stat-card">
+          <div class="stat-icon"><i class="fas fa-chart-bar"></i></div>
+          <div class="stat-content">
+            <span class="stat-number">12</span>
+            <span class="stat-label">Индикаторов</span>
           </div>
-          <div class="last-update">
-            <i class="fas fa-sync-alt"></i>
-            <span>{{ store.macroData.timestamp ? new Date(store.macroData.timestamp).toLocaleString('ru-RU') : 'Загрузка...' }}</span>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon"><i class="fas fa-sync-alt"></i></div>
+          <div class="stat-content">
+            <span class="stat-number">24ч</span>
+            <span class="stat-label">Обновление</span>
           </div>
         </div>
       </div>
-    </header>
+    </div>
 
     <!-- Loading -->
     <div v-if="store.loading" class="loading-state">
@@ -496,34 +504,48 @@ onMounted(async () => {
 }
 
 /* Header */
-.page-header {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  padding: 1.5rem 2rem;
-  margin-bottom: 2rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-.header-content {
+/* Blue Header */
+.page-header-blue {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 1rem;
+  align-items: flex-start;
+  gap: 2rem;
+  padding: 1.5rem 2rem;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  border-radius: 16px;
+  margin-bottom: 1rem;
+  color: #fff;
+  box-shadow: 0 8px 30px rgba(37,99,235,0.2);
 }
-
-.header-left {
+.page-header-blue .header-left { flex: 1; }
+.page-header-blue .header-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.8rem;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  margin-bottom: 0.75rem;
+}
+.page-header-blue .header-title { font-size: 1.75rem; font-weight: 700; margin: 0 0 0.5rem; }
+.page-header-blue .header-subtitle { font-size: 0.95rem; opacity: 0.85; margin: 0; }
+.page-header-blue .header-stats { display: flex; gap: 0.875rem; flex-shrink: 0; }
+.page-header-blue .stat-card {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
 }
-
-.header-icon {
-  width: 56px;
-  height: 56px;
-  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-  border-radius: 16px;
+.page-header-blue .stat-icon {
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -532,24 +554,9 @@ onMounted(async () => {
   box-shadow: 0 8px 32px rgba(59, 130, 246, 0.3);
 }
 
-.page-header h1 {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #1e293b;
-  margin: 0;
-}
-
-.header-subtitle {
-  color: #64748b;
-  font-size: 0.9rem;
-  margin: 0.25rem 0 0;
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-}
+.page-header-blue .stat-content { display: flex; flex-direction: column; }
+.page-header-blue .stat-number { font-size: 1.25rem; font-weight: 700; line-height: 1; }
+.page-header-blue .stat-label { font-size: 0.75rem; opacity: 0.85; margin-top: 0.15rem; }
 
 .period-selector {
   display: flex;
@@ -1117,8 +1124,10 @@ onMounted(async () => {
 
 @media (max-width: 768px) {
   .analytics-page { padding: 1rem; }
-  .page-header { padding: 1rem; }
-  .header-content { flex-direction: column; align-items: flex-start; }
+  .page-header-blue { flex-direction: column; gap: 1.25rem; padding: 1.25rem; }
+  .page-header-blue .header-title { font-size: 1.35rem; }
+  .page-header-blue .header-stats { width: 100%; }
+  .page-header-blue .stat-card { flex: 1; min-width: 90px; }
   .macro-grid { grid-template-columns: 1fr; }
   .vc-grid { grid-template-columns: 1fr; }
   .indices-grid { grid-template-columns: 1fr; }

@@ -189,9 +189,42 @@
       </div>
     </div>
     
-    <div class="news-header">
-      <h1>Новости и события</h1>
-      <div class="news-filters">
+    <!-- Blue Header -->
+    <div class="page-header-blue">
+      <div class="header-left">
+        <div class="header-badge">
+          <i class="fas fa-newspaper"></i>
+          <span>Новости</span>
+        </div>
+        <h1 class="header-title">Новости и события</h1>
+        <p class="header-subtitle">Будьте в курсе последних событий в мире бизнеса и технологий</p>
+      </div>
+      <div class="header-stats">
+        <div class="stat-card">
+          <div class="stat-icon"><i class="fas fa-rss"></i></div>
+          <div class="stat-content">
+            <span class="stat-number">{{ news.length }}</span>
+            <span class="stat-label">Новостей</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon"><i class="fas fa-calendar-check"></i></div>
+          <div class="stat-content">
+            <span class="stat-number">{{ events.length }}</span>
+            <span class="stat-label">Событий</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon"><i class="fas fa-tags"></i></div>
+          <div class="stat-content">
+            <span class="stat-number">5</span>
+            <span class="stat-label">Категорий</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="news-filters">
         <div class="filter-group">
           <label>Категории</label>
           <select v-model="selectedCategory">
@@ -1200,6 +1233,98 @@ export default defineComponent({
   overflow-x: hidden;
 }
 
+/* Blue Header */
+.page-header-blue {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 2rem;
+  padding: 1.5rem 2rem;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  border-radius: 16px;
+  margin-bottom: 1rem;
+  color: #fff;
+  box-shadow: 0 8px 30px rgba(37,99,235,0.2);
+  position: relative;
+  z-index: 1;
+}
+
+.page-header-blue .header-left {
+  flex: 1;
+}
+
+.page-header-blue .header-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.8rem;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  margin-bottom: 0.75rem;
+}
+
+.page-header-blue .header-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem;
+  line-height: 1.2;
+}
+
+.page-header-blue .header-subtitle {
+  font-size: 0.95rem;
+  opacity: 0.85;
+  margin: 0;
+  max-width: 400px;
+  line-height: 1.5;
+}
+
+.page-header-blue .header-stats {
+  display: flex;
+  gap: 0.875rem;
+  flex-shrink: 0;
+}
+
+.page-header-blue .stat-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.page-header-blue .stat-icon {
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+}
+
+.page-header-blue .stat-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.page-header-blue .stat-number {
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.page-header-blue .stat-label {
+  font-size: 0.75rem;
+  opacity: 0.85;
+  margin-top: 0.15rem;
+}
+
 .news-page::before {
   content: '';
   position: fixed;
@@ -1223,30 +1348,33 @@ export default defineComponent({
   z-index: 1;
 }
 
-.news-header {
-  background: #fff;
-  border-radius: 14px;
-  padding: 1.25rem 1.5rem;
-  margin-bottom: 1rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+/* Responsive for blue header */
+@media (max-width: 900px) {
+  .page-header-blue {
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+  .page-header-blue .header-stats {
+    width: 100%;
+    justify-content: flex-start;
+  }
 }
 
-.news-header h1 {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #1e293b;
-  margin: 0 0 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.news-header h1::before {
-  content: '';
-  width: 4px;
-  height: 24px;
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
-  border-radius: 2px;
+@media (max-width: 600px) {
+  .page-header-blue {
+    padding: 1rem 1.25rem;
+  }
+  .page-header-blue .header-title {
+    font-size: 1.35rem;
+  }
+  .page-header-blue .header-stats {
+    flex-wrap: wrap;
+  }
+  .page-header-blue .stat-card {
+    flex: 1;
+    min-width: 90px;
+    padding: 0.6rem 0.75rem;
+  }
 }
 
 .news-filters {

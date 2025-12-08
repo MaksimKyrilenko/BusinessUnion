@@ -1,6 +1,39 @@
 <template>
   <div class="startup-catalog">
-    <h1>Каталог стартапов</h1>
+    <!-- Blue Header -->
+    <div class="page-header-blue">
+      <div class="header-left">
+        <div class="header-badge">
+          <i class="fas fa-rocket"></i>
+          <span>Стартапы</span>
+        </div>
+        <h1 class="header-title">Каталог стартапов</h1>
+        <p class="header-subtitle">Найдите перспективные проекты для инвестирования</p>
+      </div>
+      <div class="header-stats">
+        <div class="stat-card">
+          <div class="stat-icon"><i class="fas fa-lightbulb"></i></div>
+          <div class="stat-content">
+            <span class="stat-number">{{ startups.length }}</span>
+            <span class="stat-label">Стартапов</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon"><i class="fas fa-industry"></i></div>
+          <div class="stat-content">
+            <span class="stat-number">{{ sectors.length }}</span>
+            <span class="stat-label">Секторов</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon"><i class="fas fa-map-marker-alt"></i></div>
+          <div class="stat-content">
+            <span class="stat-number">{{ uniqueLocations.length }}</span>
+            <span class="stat-label">Городов</span>
+          </div>
+        </div>
+      </div>
+    </div>
     
     <!-- Поиск и фильтры (горизонтально) -->
     <div class="filters-horizontal">
@@ -619,12 +652,65 @@ export default {
 
 <style scoped>
 .startup-catalog {
-  padding: 20px;
+  padding: 1rem;
+  background: #f1f5f9;
+  min-height: 100vh;
 }
 
-.startup-catalog h1 {
-  margin-bottom: 24px;
-  font-size: 32px;
+/* Blue Header */
+.page-header-blue {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 2rem;
+  padding: 1.5rem 2rem;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  border-radius: 16px;
+  margin-bottom: 1rem;
+  color: #fff;
+  box-shadow: 0 8px 30px rgba(37,99,235,0.2);
+}
+.page-header-blue .header-left { flex: 1; }
+.page-header-blue .header-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.8rem;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  margin-bottom: 0.75rem;
+}
+.page-header-blue .header-title { font-size: 1.75rem; font-weight: 700; margin: 0 0 0.5rem; }
+.page-header-blue .header-subtitle { font-size: 0.95rem; opacity: 0.85; margin: 0; max-width: 400px; }
+.page-header-blue .header-stats { display: flex; gap: 0.875rem; flex-shrink: 0; }
+.page-header-blue .stat-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+}
+.page-header-blue .stat-icon {
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.page-header-blue .stat-content { display: flex; flex-direction: column; }
+.page-header-blue .stat-number { font-size: 1.25rem; font-weight: 700; line-height: 1; }
+.page-header-blue .stat-label { font-size: 0.75rem; opacity: 0.85; margin-top: 0.15rem; }
+
+@media (max-width: 900px) {
+  .page-header-blue { flex-direction: column; gap: 1.25rem; }
+  .page-header-blue .header-stats { width: 100%; }
+  .page-header-blue .stat-card { flex: 1; min-width: 90px; }
 }
 
 /* Стили для горизонтальных фильтров */

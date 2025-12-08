@@ -1,6 +1,42 @@
 <template>
-  <div class="messenger">
-    <div class="messenger-sidebar">
+  <div class="messenger-page">
+    <!-- Blue Header -->
+    <div class="page-header-blue">
+      <div class="header-left">
+        <div class="header-badge">
+          <i class="fas fa-comments"></i>
+          <span>Мессенджер</span>
+        </div>
+        <h1 class="header-title">Сообщения</h1>
+        <p class="header-subtitle">Общайтесь с партнёрами и командой</p>
+      </div>
+      <div class="header-stats">
+        <div class="stat-card">
+          <div class="stat-icon"><i class="fas fa-user"></i></div>
+          <div class="stat-content">
+            <span class="stat-number">{{ personalChatsCount }}</span>
+            <span class="stat-label">Личных</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon"><i class="fas fa-users"></i></div>
+          <div class="stat-content">
+            <span class="stat-number">{{ groupChatsCount }}</span>
+            <span class="stat-label">Групповых</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon"><i class="fas fa-bell"></i></div>
+          <div class="stat-content">
+            <span class="stat-number">{{ unreadCount }}</span>
+            <span class="stat-label">Непрочит.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="messenger">
+      <div class="messenger-sidebar">
       <div class="search-bar">
           <input
             type="text"
@@ -1002,6 +1038,7 @@
         </div>
       </div>
     </Modal>
+    </div>
   </div>
 </template>
 
@@ -1187,6 +1224,11 @@ export default {
         }
       }
     });
+
+    // Stats for header
+    const personalChatsCount = computed(() => chats.value.filter(c => c.type === 'personal').length)
+    const groupChatsCount = computed(() => chats.value.filter(c => c.type === 'group').length)
+    const unreadCount = computed(() => chats.value.reduce((sum, c) => sum + (c.unreadCount || 0), 0))
 
     const filteredChats = computed(() => {
       return chats.value
@@ -2914,6 +2956,9 @@ export default {
       showEmojiPicker,
       messagesContainer,
       messageInput,
+      personalChatsCount,
+      groupChatsCount,
+      unreadCount,
       newGroup,
       userSearch,
       searchResults,
@@ -3031,16 +3076,78 @@ export default {
 </script>
 
 <style scoped>
+.messenger-page {
+  padding: 1rem;
+  min-height: 100vh;
+  background: #f1f5f9;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Blue Header */
+.page-header-blue {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 2rem;
+  padding: 1.5rem 2rem;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  border-radius: 16px;
+  margin-bottom: 1rem;
+  color: #fff;
+  box-shadow: 0 8px 30px rgba(37,99,235,0.2);
+  flex-shrink: 0;
+}
+.page-header-blue .header-left { flex: 1; }
+.page-header-blue .header-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.8rem;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  margin-bottom: 0.75rem;
+}
+.page-header-blue .header-title { font-size: 1.75rem; font-weight: 700; margin: 0 0 0.5rem; }
+.page-header-blue .header-subtitle { font-size: 0.95rem; opacity: 0.85; margin: 0; }
+.page-header-blue .header-stats { display: flex; gap: 0.875rem; flex-shrink: 0; }
+.page-header-blue .stat-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+}
+.page-header-blue .stat-icon {
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.page-header-blue .stat-content { display: flex; flex-direction: column; }
+.page-header-blue .stat-number { font-size: 1.25rem; font-weight: 700; line-height: 1; }
+.page-header-blue .stat-label { font-size: 0.75rem; opacity: 0.85; margin-top: 0.15rem; }
+
 .messenger {
   display: flex;
-  height: 100vh;
+  flex: 1;
   background: #ffffff;
   position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
 .messenger::before {
   content: '';
-  position: fixed;
+  position: absolute;
   inset: 0;
   pointer-events: none;
   z-index: 0;
@@ -4195,6 +4302,15 @@ export default {
 }
 
 @media (max-width: 768px) {
+  .page-header-blue {
+    flex-direction: column;
+    gap: 1.25rem;
+    padding: 1.25rem;
+  }
+  .page-header-blue .header-title { font-size: 1.35rem; }
+  .page-header-blue .header-stats { width: 100%; }
+  .page-header-blue .stat-card { flex: 1; min-width: 80px; padding: 0.6rem 0.75rem; }
+
   .messenger {
     flex-direction: column;
   }
