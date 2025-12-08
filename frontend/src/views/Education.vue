@@ -500,6 +500,7 @@ export default {
   margin: 0;
   max-width: 400px;
   line-height: 1.5;
+  color: #fff !important;
 }
 
 .page-header-blue .header-stats {

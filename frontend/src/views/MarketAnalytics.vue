@@ -530,7 +530,7 @@ onMounted(async () => {
   margin-bottom: 0.75rem;
 }
 .page-header-blue .header-title { font-size: 1.75rem; font-weight: 700; margin: 0 0 0.5rem; }
-.page-header-blue .header-subtitle { font-size: 0.95rem; opacity: 0.85; margin: 0; }
+.page-header-blue .header-subtitle { font-size: 0.95rem; opacity: 0.85; margin: 0; color: #fff !important; }
 .page-header-blue .header-stats { display: flex; gap: 0.875rem; flex-shrink: 0; }
 .page-header-blue .stat-card {
   display: flex;
