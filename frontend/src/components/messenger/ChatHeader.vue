@@ -8,11 +8,14 @@
       <img :src="avatarUrl" :alt="chatName">
       <div>
         <h2>{{ chatName }}</h2>
-        <span v-if="chat.type === 'personal'" class="status">
-          {{ chat.status === 'online' ? 'В сети' : 'Не в сети' }}
+        <span v-if="isTyping" class="typing-status">
+          <span class="typing-dots">
+            <span></span><span></span><span></span>
+          </span>
+          печатает...
         </span>
-        <span v-else class="members-count">
-          {{ membersCount }} участников
+        <span v-else :class="['status', { 'status-online': isOnline }]">
+          {{ statusText }}
         </span>
       </div>
     </div>
@@ -33,18 +36,27 @@ export default {
   props: {
     chat: { type: Object, default: null },
     currentUserId: { type: [String, Number], default: null },
-    membersCount: { type: Number, default: 0 }
+    membersCount: { type: Number, default: 0 },
+    isTyping: { type: Boolean, default: false },
+    onlineUsers: { type: Array, default: () => [] }
   },
   emits: ['showGroupInfo', 'showSettings'],
   setup(props) {
+    // Получаем другого участника для личных чатов
+    const otherParticipant = computed(() => {
+      if (props.chat?.type !== 'personal' || !props.chat.participants?.length) {
+        return null
+      }
+      return props.chat.participants.find(
+        p => String(p.id) !== String(props.currentUserId)
+      )
+    })
+
     const avatarUrl = computed(() => {
       if (!props.chat) return '/assets/images/default-avatar.svg'
       
-      if (props.chat.type === 'personal' && props.chat.participants?.length) {
-        const otherUser = props.chat.participants.find(
-          p => String(p.id) !== String(props.currentUserId)
-        )
-        return getUserAvatar(otherUser)
+      if (otherParticipant.value) {
+        return getUserAvatar(otherParticipant.value)
       }
       
       return props.chat.avatar || '/assets/images/default-avatar.svg'
@@ -53,19 +65,64 @@ export default {
     const chatName = computed(() => {
       if (!props.chat) return 'Чат'
       
-      if (props.chat.type === 'personal' && props.chat.participants?.length) {
-        const otherUser = props.chat.participants.find(
-          p => String(p.id) !== String(props.currentUserId)
-        )
-        return getUserFullName(otherUser)
+      if (otherParticipant.value) {
+        return getUserFullName(otherParticipant.value)
       }
       
       return props.chat.name || 'Чат'
     })
 
+    // Проверка онлайн статуса собеседника
+    const isOnline = computed(() => {
+      if (!otherParticipant.value) return false
+      const oderId = otherParticipant.value.id
+      return props.onlineUsers.includes(oderId) || 
+             props.onlineUsers.includes(String(oderId))
+    })
+
+    // Форматирование статуса
+    const statusText = computed(() => {
+      if (props.chat?.type === 'group') {
+        return `${props.membersCount} участников`
+      }
+      
+      if (isOnline.value) {
+        return 'В сети'
+      }
+      
+      // Показываем "был в сети" если есть lastSeen
+      if (otherParticipant.value?.lastSeen) {
+        return formatLastSeen(otherParticipant.value.lastSeen)
+      }
+      
+      return 'Не в сети'
+    })
+
+    // Форматирование времени последнего визита
+    const formatLastSeen = (lastSeen) => {
+      if (!lastSeen) return 'Не в сети'
+      
+      const date = new Date(lastSeen)
+      const now = new Date()
+      const diffMs = now - date
+      const diffMins = Math.floor(diffMs / 60000)
+      const diffHours = Math.floor(diffMs / 3600000)
+      const diffDays = Math.floor(diffMs / 86400000)
+      
+      if (diffMins < 1) return 'был(а) только что'
+      if (diffMins < 60) return `был(а) ${diffMins} мин. назад`
+      if (diffHours < 24) return `был(а) ${diffHours} ч. назад`
+      if (diffDays === 1) return 'был(а) вчера'
+      if (diffDays < 7) return `был(а) ${diffDays} дн. назад`
+      
+      return `был(а) ${date.toLocaleDateString('ru-RU')}`
+    }
+
     return {
       avatarUrl,
-      chatName
+      chatName,
+      isOnline,
+      statusText
     }
   }
 }
@@ -111,12 +168,49 @@ export default {
 
 .chat-info .status {
   font-size: 13px;
+  color: #64748b;
+}
+
+.chat-info .status-online {
   color: #22c55e;
 }
 
-.chat-info .members-count {
+.chat-info .typing-status {
   font-size: 13px;
-  color: #64748b;
+  color: #2196F3;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.typing-dots {
+  display: flex;
+  gap: 2px;
+}
+
+.typing-dots span {
+  width: 4px;
+  height: 4px;
+  background: #2196F3;
+  border-radius: 50%;
+  animation: typingBounce 1.4s infinite ease-in-out both;
+}
+
+.typing-dots span:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.typing-dots span:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+@keyframes typingBounce {
+  0%, 80%, 100% {
+    transform: scale(0);
+  }
+  40% {
+    transform: scale(1);
+  }
 }
 
 .chat-actions button {

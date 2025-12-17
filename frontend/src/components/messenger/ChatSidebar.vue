@@ -45,6 +45,7 @@
           :chat="chat"
           :selected="selectedChat?.id === chat.id"
           :currentUserId="currentUserId"
+          :onlineUsers="onlineUsers"
           @select="$emit('selectChat', chat.id)"
           @toggleMenu="$emit('toggleChatMenu', chat)"
           @pin="$emit('pinChat', chat)"
@@ -76,7 +77,8 @@ export default {
     activeTab: { type: String, default: 'personal' },
     searchQuery: { type: String, default: '' },
     loading: { type: Boolean, default: false },
-    currentUserId: { type: [String, Number], default: null }
+    currentUserId: { type: [String, Number], default: null },
+    onlineUsers: { type: Array, default: () => [] }
   },
   emits: [
     'update:activeTab',

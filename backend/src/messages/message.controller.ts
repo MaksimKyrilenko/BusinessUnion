@@ -81,4 +81,42 @@ export class MessageController {
       throw new InternalServerErrorException('Ошибка при пересылке сообщения');
     }
   }
+
+  @Post(':id/reaction')
+  @UseGuards(JwtAuthGuard)
+  async addReaction(
+    @Param('id') id: string,
+    @Body() body: { reaction: string },
+    @Request() req,
+  ) {
+    if (!body.reaction) {
+      throw new BadRequestException('Необходимо указать реакцию');
+    }
+    
+    try {
+      return await this.messageService.addReaction(+id, req.user.sub, body.reaction);
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Ошибка при добавлении реакции');
+    }
+  }
+
+  @Delete(':id/reaction/:reaction')
+  @UseGuards(JwtAuthGuard)
+  async removeReaction(
+    @Param('id') id: string,
+    @Param('reaction') reaction: string,
+    @Request() req,
+  ) {
+    try {
+      return await this.messageService.removeReaction(+id, req.user.sub, decodeURIComponent(reaction));
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Ошибка при удалении реакции');
+    }
+  }
 } 

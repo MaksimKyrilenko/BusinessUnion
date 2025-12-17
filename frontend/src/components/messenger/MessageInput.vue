@@ -3,11 +3,14 @@
     <!-- Reply bar -->
     <div v-if="replyingTo" class="reply-bar">
       <div class="reply-preview">
+        <div class="reply-line"></div>
         <div class="reply-content">
-          <span class="reply-author">{{ replyingTo.sender?.name || 'Пользователь' }}</span>
-          <p>{{ replyingTo.text || '' }}</p>
+          <span class="reply-author">{{ getReplyAuthorName(replyingTo) }}</span>
+          <p>{{ replyingTo.text || 'Сообщение' }}</p>
         </div>
-        <button class="close-reply" @click="$emit('cancelReply')">×</button>
+        <button class="close-reply" @click="$emit('cancelReply')">
+          <i class="fas fa-times"></i>
+        </button>
       </div>
     </div>
 
@@ -133,10 +136,31 @@ export default {
       inputRef.value?.focus()
     }
 
+    // Получение имени автора для превью ответа
+    const getReplyAuthorName = (message) => {
+      if (!message) return 'Пользователь'
+      
+      const sender = message.sender
+      if (!sender) return 'Пользователь'
+      
+      // Пробуем разные варианты получения имени
+      if (sender.firstName || sender.lastName) {
+        return [sender.firstName, sender.lastName].filter(Boolean).join(' ')
+      }
+      if (sender.name) return sender.name
+      if (sender.profile) {
+        const profileName = [sender.profile.firstName, sender.profile.lastName].filter(Boolean).join(' ')
+        if (profileName) return profileName
+      }
+      
+      return 'Пользователь'
+    }
+
     return {
       inputRef,
       handleInput,
-      focus
+      focus,
+      getReplyAuthorName
     }
   }
 }
@@ -155,23 +179,29 @@ export default {
 
 .reply-preview {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  align-items: stretch;
   background: #fff;
-  padding: 8px 12px;
   border-radius: 8px;
-  border-left: 3px solid #2196F3;
+  overflow: hidden;
+}
+
+.reply-line {
+  width: 3px;
+  background: #2196F3;
+  flex-shrink: 0;
 }
 
 .reply-content {
   flex: 1;
   min-width: 0;
+  padding: 8px 12px;
 }
 
 .reply-author {
   font-size: 12px;
   font-weight: 600;
   color: #2196F3;
+  display: block;
 }
 
 .reply-content p {
@@ -186,15 +216,18 @@ export default {
 .close-reply {
   background: none;
   border: none;
-  font-size: 20px;
   color: #94a3b8;
   cursor: pointer;
-  padding: 4px 8px;
-  line-height: 1;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
 }
 
 .close-reply:hover {
-  color: #64748b;
+  color: #ef4444;
+  background: #fef2f2;
 }
 
 .message-input {

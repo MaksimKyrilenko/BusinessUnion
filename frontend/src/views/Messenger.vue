@@ -45,6 +45,7 @@
         :searchQuery="searchQuery"
         :loading="loading"
         :currentUserId="currentUserId"
+        :onlineUsers="onlineUsers"
         @update:activeTab="activeTab = $event"
         @update:searchQuery="searchQuery = $event"
         @selectChat="handleSelectChat"
@@ -62,6 +63,8 @@
           :chat="selectedChat"
           :currentUserId="currentUserId"
           :membersCount="groupMembers.length"
+          :isTyping="typingInCurrentChat"
+          :onlineUsers="onlineUsers"
           @showGroupInfo="showGroupInfoModal = true"
           @showSettings="showChatSettings = true"
         />
@@ -71,8 +74,9 @@
           :groupedMessages="groupedMessages"
           :isOwnMessage="isOwnMessage"
           @reply="replyToMessage"
-          @edit="editMessage"
-          @showReactions="showReactions"
+          @edit="startEditMessage"
+          @delete="deleteMessage"
+          @addReaction="addReaction"
           @toggleReaction="toggleReaction"
           @scrollToMessage="scrollToMessage"
           @downloadFile="downloadFile"
@@ -228,6 +232,7 @@ export default {
     const router = useRouter()
     const currentUserId = ref(userStore.userId)
     const wsUnsubscribers = []
+    const onlineUsers = ref([]) // Список онлайн пользователей
     
     // Chats composable
     const {
@@ -337,6 +342,14 @@ export default {
     const messageListRef = ref(null)
     const isTyping = ref(false)
     const currentEmojiCategory = ref('smileys')
+    const typingUsers = ref({}) // { chatId: [userId1, userId2] }
+    
+    // Computed для проверки печатает ли кто-то в текущем чате
+    const typingInCurrentChat = computed(() => {
+      if (!selectedChat.value) return false
+      const users = typingUsers.value[selectedChat.value.id]
+      return users && users.length > 0
+    })
 
     // Emoji categories
     const emojiCategories = ref([
@@ -400,34 +413,63 @@ export default {
           messageData.replyToId = replyingTo.value.id
         }
 
+        // Генерируем уникальный временный ID
+        const tempId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+        
         const tempMessage = {
-          id: `temp-${Date.now()}`,
+          id: tempId,
           text: newMessage.value.trim(),
           senderId: Number(userId),
           chatId: Number(selectedChat.value.id),
           status: 'sending',
           createdAt: new Date().toISOString(),
-          sender: { id: Number(userId), firstName: 'Вы', lastName: '' }
+          sender: { id: Number(userId), firstName: 'Вы', lastName: '' },
+          _isTemp: true // Маркер временного сообщения
         }
 
+        // Сохраняем текст и очищаем поле ввода ДО отправки
+        const messageText = newMessage.value.trim()
+        newMessage.value = ''
+        replyingTo.value = null
+
+        // Добавляем временное сообщение
+        if (!selectedChat.value.messages) {
+          selectedChat.value.messages = []
+        }
         selectedChat.value.messages.push(tempMessage)
+        scrollToBottom()
 
         const messengerService = (await import('@/services/messenger.service')).default
         const response = await messengerService.sendMessage(messageData)
 
         if (response?.data) {
-          const index = selectedChat.value.messages.findIndex(msg => msg.id === tempMessage.id)
+          // ВАЖНО: Добавляем ID в обработанные СРАЗУ после получения ответа
+          // чтобы WebSocket не добавил дубликат
+          addProcessedMessageId(response.data.id)
+          
+          // Заменяем временное сообщение на реальное
+          const index = selectedChat.value.messages.findIndex(msg => msg.id === tempId)
           if (index !== -1) {
             selectedChat.value.messages[index] = response.data
+          } else {
+            // Если временное сообщение не найдено (маловероятно), проверяем нет ли уже реального
+            const existsReal = selectedChat.value.messages.some(msg => msg.id === response.data.id)
+            if (!existsReal) {
+              selectedChat.value.messages.push(response.data)
+            }
           }
-          addProcessedMessageId(response.data.id)
         }
 
-        newMessage.value = ''
-        replyingTo.value = null
         scrollToBottom()
       } catch (error) {
         console.error('Ошибка при отправке сообщения:', error)
+        // Помечаем временное сообщение как ошибочное
+        if (selectedChat.value?.messages) {
+          const tempMsg = selectedChat.value.messages.find(msg => msg._isTemp && msg.status === 'sending')
+          if (tempMsg) {
+            tempMsg.status = 'error'
+          }
+        }
       }
     }
 
@@ -439,6 +481,84 @@ export default {
           isTyping.value = false
           websocketService.sendTyping(selectedChat.value.id, false)
         }, 2000)
+      }
+    }
+
+    // Редактирование сообщения
+    const editingMessageId = ref(null)
+    const editingMessageText = ref('')
+
+    const startEditMessage = (message) => {
+      editingMessageId.value = message.id
+      editingMessageText.value = message.text
+      // Показываем prompt для редактирования (простой вариант)
+      const newText = prompt('Редактировать сообщение:', message.text)
+      if (newText !== null && newText.trim() !== '' && newText !== message.text) {
+        saveEditedMessage(message.id, newText.trim())
+      }
+      editingMessageId.value = null
+    }
+
+    const saveEditedMessage = async (messageId, newText) => {
+      try {
+        const messengerService = (await import('@/services/messenger.service')).default
+        await messengerService.editMessage(messageId, newText)
+        
+        // Обновляем сообщение локально
+        if (selectedChat.value?.messages) {
+          const msgIndex = selectedChat.value.messages.findIndex(m => m.id === messageId)
+          if (msgIndex !== -1) {
+            selectedChat.value.messages[msgIndex].text = newText
+            selectedChat.value.messages[msgIndex].isEdited = true
+          }
+        }
+      } catch (error) {
+        console.error('Ошибка при редактировании сообщения:', error)
+        alert('Не удалось отредактировать сообщение')
+      }
+    }
+
+    // Удаление сообщения
+    const deleteMessage = async (message) => {
+      if (!confirm('Удалить это сообщение?')) return
+      
+      try {
+        const messengerService = (await import('@/services/messenger.service')).default
+        await messengerService.deleteMessage(message.id)
+        
+        // Удаляем сообщение локально
+        if (selectedChat.value?.messages) {
+          const msgIndex = selectedChat.value.messages.findIndex(m => m.id === message.id)
+          if (msgIndex !== -1) {
+            selectedChat.value.messages.splice(msgIndex, 1)
+          }
+        }
+      } catch (error) {
+        console.error('Ошибка при удалении сообщения:', error)
+        alert('Не удалось удалить сообщение')
+      }
+    }
+
+    // Добавление реакции
+    const addReaction = async (message, emoji) => {
+      try {
+        const messengerService = (await import('@/services/messenger.service')).default
+        // Проверяем есть ли метод addReaction в сервисе
+        if (typeof messengerService.addReaction === 'function') {
+          await messengerService.addReaction(message.id, emoji)
+        }
+        
+        // Обновляем локально
+        if (selectedChat.value?.messages) {
+          const msgIndex = selectedChat.value.messages.findIndex(m => m.id === message.id)
+          if (msgIndex !== -1) {
+            const msg = selectedChat.value.messages[msgIndex]
+            if (!msg.reactions) msg.reactions = {}
+            msg.reactions[emoji] = (msg.reactions[emoji] || 0) + 1
+          }
+        }
+      } catch (error) {
+        console.error('Ошибка при добавлении реакции:', error)
       }
     }
 
@@ -462,27 +582,85 @@ export default {
 
     // WebSocket handlers
     const setupWebSocketHandlers = () => {
+      // Обработчик онлайн пользователей
+      const unsubUserOnline = websocketService.on('user:online', (data) => {
+        if (data.userId && !onlineUsers.value.includes(data.userId)) {
+          onlineUsers.value.push(data.userId)
+        }
+      })
+      wsUnsubscribers.push(unsubUserOnline)
+
+      const unsubUserOffline = websocketService.on('user:offline', (data) => {
+        onlineUsers.value = onlineUsers.value.filter(id => id !== data.userId)
+      })
+      wsUnsubscribers.push(unsubUserOffline)
+
       const unsubNewMessage = websocketService.on('chat:newMessage', (message) => {
-        if (isMessageProcessed(message.id)) return
+        console.log('[WS Handler] Получено сообщение:', message.id, 'chatId:', message.chatId)
+        
+        // Проверка на дубликат по ID
+        if (isMessageProcessed(message.id)) {
+          console.log('[WS Handler] Сообщение уже обработано, пропускаем:', message.id)
+          return
+        }
+        
+        // Проверяем, не является ли это наше собственное сообщение
+        const myUserId = localStorage.getItem('userId')
+        const senderId = message.senderId || message.sender?.id
+        const isOwnMsg = String(senderId) === String(myUserId)
+        
+        // Добавляем в обработанные
         addProcessedMessageId(message.id)
 
         if (selectedChat.value && message.chatId === selectedChat.value.id) {
-          const exists = selectedChat.value.messages?.some(m => m.id === message.id)
-          if (!exists) {
-            if (!selectedChat.value.messages) selectedChat.value.messages = []
-            selectedChat.value.messages.push(message)
-            nextTick(() => scrollToBottom())
+          if (!selectedChat.value.messages) selectedChat.value.messages = []
+          
+          // Проверяем существование по ID
+          const existsById = selectedChat.value.messages.some(m => m.id === message.id)
+          
+          // Проверяем, нет ли временного сообщения с таким же текстом от того же отправителя
+          // (на случай если ответ API пришёл раньше WebSocket)
+          const existsTemp = isOwnMsg && selectedChat.value.messages.some(m => 
+            m._isTemp && 
+            m.text === message.text && 
+            String(m.senderId) === String(senderId)
+          )
+          
+          if (existsById) {
+            console.log('[WS Handler] Сообщение уже существует в чате:', message.id)
+            return
           }
+          
+          if (existsTemp) {
+            // Заменяем временное сообщение на реальное
+            const tempIndex = selectedChat.value.messages.findIndex(m => 
+              m._isTemp && 
+              m.text === message.text && 
+              String(m.senderId) === String(senderId)
+            )
+            if (tempIndex !== -1) {
+              console.log('[WS Handler] Заменяем временное сообщение на реальное')
+              selectedChat.value.messages[tempIndex] = message
+              return
+            }
+          }
+          
+          // Добавляем новое сообщение
+          console.log('[WS Handler] Добавляем новое сообщение в чат')
+          selectedChat.value.messages.push(message)
+          nextTick(() => scrollToBottom())
         }
 
+        // Обновляем список чатов
         const chatIndex = chats.value.findIndex(c => c.id === message.chatId)
         if (chatIndex !== -1) {
           const chat = chats.value[chatIndex]
-          if (!chat.messages) chat.messages = []
-          if (!chat.messages.some(m => m.id === message.id)) {
-            chat.messages.push(message)
-          }
-          if (!selectedChat.value || selectedChat.value.id !== message.chatId) {
+          
+          // Обновляем lastMessage для отображения в списке
+          chat.lastMessage = message
+          
+          // Увеличиваем счётчик непрочитанных только если это не текущий чат и не наше сообщение
+          if ((!selectedChat.value || selectedChat.value.id !== message.chatId) && !isOwnMsg) {
             chat.unreadCount = (chat.unreadCount || 0) + 1
           }
         }
@@ -490,11 +668,57 @@ export default {
       wsUnsubscribers.push(unsubNewMessage)
 
       const unsubTyping = websocketService.on('chat:typing', (data) => {
-        if (selectedChat.value && data.chatId === selectedChat.value.id) {
-          console.log(`Пользователь ${data.userId} ${data.isTyping ? 'печатает' : 'перестал печатать'}`)
+        const chatId = data.chatId
+        const userId = data.userId
+        const myUserId = localStorage.getItem('userId')
+        
+        // Игнорируем свои собственные события печати
+        if (String(userId) === String(myUserId)) return
+        
+        if (!typingUsers.value[chatId]) {
+          typingUsers.value[chatId] = []
+        }
+        
+        if (data.isTyping) {
+          // Добавляем пользователя в список печатающих
+          if (!typingUsers.value[chatId].includes(userId)) {
+            typingUsers.value[chatId].push(userId)
+          }
+          
+          // Автоматически убираем через 3 секунды (на случай если событие "перестал печатать" не пришло)
+          setTimeout(() => {
+            if (typingUsers.value[chatId]) {
+              typingUsers.value[chatId] = typingUsers.value[chatId].filter(id => id !== userId)
+            }
+          }, 3000)
+        } else {
+          // Убираем пользователя из списка печатающих
+          typingUsers.value[chatId] = typingUsers.value[chatId].filter(id => id !== userId)
         }
       })
       wsUnsubscribers.push(unsubTyping)
+      
+      // Обработчик редактирования сообщений
+      const unsubMessageEdited = websocketService.on('chat:messageEdited', (message) => {
+        if (selectedChat.value && message.chatId === selectedChat.value.id) {
+          const msgIndex = selectedChat.value.messages?.findIndex(m => m.id === message.id)
+          if (msgIndex !== -1) {
+            selectedChat.value.messages[msgIndex] = message
+          }
+        }
+      })
+      wsUnsubscribers.push(unsubMessageEdited)
+      
+      // Обработчик удаления сообщений
+      const unsubMessageDeleted = websocketService.on('chat:messageDeleted', (data) => {
+        if (selectedChat.value && data.chatId === selectedChat.value.id) {
+          const msgIndex = selectedChat.value.messages?.findIndex(m => m.id === data.messageId)
+          if (msgIndex !== -1) {
+            selectedChat.value.messages.splice(msgIndex, 1)
+          }
+        }
+      })
+      wsUnsubscribers.push(unsubMessageDeleted)
     }
 
     onMounted(async () => {
@@ -502,8 +726,11 @@ export default {
 
       if (!websocketService.isAuthenticated.value) {
         websocketService.connect()
-        websocketService.waitForConnection(10000)
+        await websocketService.waitForConnection(10000)
       }
+      
+      // Получаем начальный список онлайн пользователей
+      onlineUsers.value = websocketService.onlineUsers.value || []
 
       const chatId = await loadChats(currentUserId)
       if (chatId) handleSelectChat(chatId)
@@ -533,6 +760,7 @@ export default {
       showImagePreviewModal,
       previewMessage,
       messageListRef,
+      onlineUsers,
       
       // Computed
       personalChatsCount,
@@ -542,6 +770,7 @@ export default {
       groupedMessages,
       canSendMessage,
       currentCategoryEmojis,
+      typingInCurrentChat,
       
       // Messages
       replyingTo,
@@ -549,8 +778,9 @@ export default {
       scrollToMessage,
       replyToMessage,
       cancelReply,
-      editMessage,
-      showReactions,
+      startEditMessage,
+      deleteMessage,
+      addReaction,
       toggleReaction,
       downloadFile,
       downloadImage,

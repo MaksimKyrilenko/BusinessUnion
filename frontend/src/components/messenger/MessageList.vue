@@ -11,9 +11,10 @@
         :isOwn="isOwnMessage(message)"
         @reply="$emit('reply', message)"
         @edit="$emit('edit', message)"
-        @showReactions="$emit('showReactions', message)"
+        @delete="$emit('delete', message)"
+        @addReaction="(emoji) => $emit('addReaction', message, emoji)"
         @toggleReaction="(reaction) => $emit('toggleReaction', message, reaction)"
-        @scrollToReply="$emit('scrollToMessage', message.replyTo?.id)"
+        @scrollToReply="(id) => $emit('scrollToMessage', id || message.replyTo?.id)"
         @downloadFile="$emit('downloadFile', message)"
         @downloadImage="$emit('downloadImage', message)"
         @showImagePreview="$emit('showImagePreview', message)"
@@ -37,7 +38,8 @@ export default {
   emits: [
     'reply',
     'edit',
-    'showReactions',
+    'delete',
+    'addReaction',
     'toggleReaction',
     'scrollToMessage',
     'downloadFile',

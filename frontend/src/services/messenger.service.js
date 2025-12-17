@@ -583,6 +583,51 @@ class MessengerService {
       })
   }
 
+  // Метод для добавления реакции на сообщение
+  addReaction(messageId, reaction) {
+    if (!messageId || !reaction) {
+      console.error('Ошибка: отсутствует messageId или reaction')
+      return Promise.reject(new Error('Отсутствует ID сообщения или реакция'))
+    }
+
+    console.log(`Добавление реакции ${reaction} к сообщению ${messageId}`)
+    
+    return axios.post(`${API_URL}/messages/${messageId}/reaction`, 
+      { reaction }, 
+      { headers: authHeader() }
+    )
+      .then(response => {
+        console.log('Реакция успешно добавлена:', response.data)
+        return response
+      })
+      .catch(error => {
+        console.error('Ошибка при добавлении реакции:', error)
+        throw error
+      })
+  }
+
+  // Метод для удаления реакции с сообщения
+  removeReaction(messageId, reaction) {
+    if (!messageId || !reaction) {
+      console.error('Ошибка: отсутствует messageId или reaction')
+      return Promise.reject(new Error('Отсутствует ID сообщения или реакция'))
+    }
+
+    console.log(`Удаление реакции ${reaction} с сообщения ${messageId}`)
+    
+    return axios.delete(`${API_URL}/messages/${messageId}/reaction/${encodeURIComponent(reaction)}`, 
+      { headers: authHeader() }
+    )
+      .then(response => {
+        console.log('Реакция успешно удалена:', response.data)
+        return response
+      })
+      .catch(error => {
+        console.error('Ошибка при удалении реакции:', error)
+        throw error
+      })
+  }
+
   // Метод для получения профиля пользователя
   getUserProfile(userId) {
     if (!userId) {

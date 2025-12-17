@@ -1,31 +1,29 @@
 <template>
   <div
-    :class="['chat-item', { active: selected }]"
+    :class="['chat-item', { active: selected, 'has-unread': chat.unreadCount > 0 }]"
     @click="$emit('select')"
   >
     <div class="chat-avatar">
-      <img :src="avatarUrl" :alt="chat.name || 'Чат'">
-      <span class="status-indicator" :class="chat.status || 'offline'"></span>
+      <img :src="avatarUrl" :alt="chatDisplayName">
+      <span class="status-indicator" :class="onlineStatus"></span>
     </div>
     <div class="chat-info">
       <div class="chat-header">
         <div class="chat-title">
-          <h3>{{ chat.name || 'Без названия' }}</h3>
+          <h3>{{ chatDisplayName }}</h3>
           <span v-if="chat.isPinned" class="pin-indicator" title="Закреплённый чат">📌</span>
+          <span v-if="chat.isMuted" class="mute-indicator" title="Уведомления отключены">🔕</span>
         </div>
-        <span class="chat-time">{{ formatTime(chat.lastMessage?.timestamp) }}</span>
+        <span class="chat-time">{{ formatTime(lastMessageTime) }}</span>
       </div>
-      <p class="chat-preview">
+      <p :class="['chat-preview', { 'chat-preview-unread': chat.unreadCount > 0 }]">
         <span v-if="chat.lastMessage?.type === 'image'" class="message-type-indicator">📷 Фото</span>
         <span v-else-if="chat.lastMessage?.type === 'file'" class="message-type-indicator">📎 Файл</span>
-        <span v-else-if="chat.messages && chat.messages.length > 0">
-          {{ chat.messages[chat.messages.length - 1].text || 'Сообщение' }}
-        </span>
-        <span v-else>{{ chat.lastMessage?.text || 'Нет сообщений' }}</span>
+        <span v-else>{{ lastMessageText }}</span>
       </p>
       <div class="chat-meta">
         <span v-if="chat.typing" class="typing-indicator">печатает...</span>
-        <span v-if="chat.unreadCount" class="unread-badge">{{ chat.unreadCount }}</span>
+        <span v-if="chat.unreadCount > 0" class="unread-badge">{{ chat.unreadCount > 99 ? '99+' : chat.unreadCount }}</span>
       </div>
     </div>
     <div class="chat-actions-menu">
@@ -50,34 +48,119 @@
 
 <script>
 import { computed } from 'vue'
-import { formatTime, getUserAvatar } from '@/utils/messageFormatters'
+import { formatTime, getUserAvatar, getUserFullName } from '@/utils/messageFormatters'
 
 export default {
   name: 'ChatItem',
   props: {
     chat: { type: Object, required: true },
     selected: { type: Boolean, default: false },
-    currentUserId: { type: [String, Number], default: null }
+    currentUserId: { type: [String, Number], default: null },
+    onlineUsers: { type: Array, default: () => [] }
   },
   emits: ['select', 'toggleMenu', 'pin', 'markUnread', 'mute', 'leave'],
   setup(props) {
+    // Получаем другого участника для личных чатов
+    const otherParticipant = computed(() => {
+      if (props.chat.type !== 'personal' || !props.chat.participants?.length) {
+        return null
+      }
+      return props.chat.participants.find(
+        p => String(p.id) !== String(props.currentUserId)
+      )
+    })
+
+    // Имя чата - для личных показываем имя собеседника
+    const chatDisplayName = computed(() => {
+      if (props.chat.type === 'group') {
+        return props.chat.name || 'Группа'
+      }
+      
+      // Для личных чатов показываем имя собеседника
+      if (otherParticipant.value) {
+        return getUserFullName(otherParticipant.value)
+      }
+      
+      return props.chat.name || 'Чат'
+    })
+
+    // Аватар
     const avatarUrl = computed(() => {
       if (props.chat.type === 'group') {
         return props.chat.avatar || '/assets/images/default-avatar.svg'
       }
       
-      if (props.chat.participants && props.chat.participants.length) {
-        const otherUser = props.chat.participants.find(
-          p => String(p.id) !== String(props.currentUserId)
-        )
-        return getUserAvatar(otherUser)
+      if (otherParticipant.value) {
+        return getUserAvatar(otherParticipant.value)
       }
       
       return '/assets/images/default-avatar.svg'
     })
 
+    // Статус онлайн
+    const onlineStatus = computed(() => {
+      if (props.chat.type === 'group') {
+        return 'group' // Для групп не показываем статус
+      }
+      
+      if (otherParticipant.value) {
+        const isOnline = props.onlineUsers.includes(otherParticipant.value.id) ||
+                         props.onlineUsers.includes(String(otherParticipant.value.id))
+        return isOnline ? 'online' : 'offline'
+      }
+      
+      return 'offline'
+    })
+
+    // Время последнего сообщения
+    const lastMessageTime = computed(() => {
+      if (props.chat.lastMessage?.createdAt) {
+        return props.chat.lastMessage.createdAt
+      }
+      if (props.chat.lastMessage?.timestamp) {
+        return props.chat.lastMessage.timestamp
+      }
+      if (props.chat.messages?.length > 0) {
+        const lastMsg = props.chat.messages[props.chat.messages.length - 1]
+        return lastMsg.createdAt || lastMsg.timestamp
+      }
+      return props.chat.updatedAt || props.chat.createdAt
+    })
+
+    // Текст последнего сообщения
+    const lastMessageText = computed(() => {
+      let text = ''
+      let senderName = ''
+      
+      if (props.chat.lastMessage?.text) {
+        text = props.chat.lastMessage.text
+        if (props.chat.type === 'group' && props.chat.lastMessage.sender) {
+          senderName = props.chat.lastMessage.sender.firstName || ''
+        }
+      } else if (props.chat.messages?.length > 0) {
+        const lastMsg = props.chat.messages[props.chat.messages.length - 1]
+        text = lastMsg.text || 'Сообщение'
+        if (props.chat.type === 'group' && lastMsg.sender) {
+          senderName = lastMsg.sender.firstName || ''
+        }
+      } else {
+        return 'Нет сообщений'
+      }
+      
+      // Для групп показываем имя отправителя
+      if (senderName && props.chat.type === 'group') {
+        return `${senderName}: ${text}`
+      }
+      
+      return text
+    })
+
     return {
       avatarUrl,
+      chatDisplayName,
+      onlineStatus,
+      lastMessageTime,
+      lastMessageText,
       formatTime
     }
   }
@@ -129,10 +212,15 @@ export default {
 
 .status-indicator.online {
   background: #22c55e;
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.3);
 }
 
 .status-indicator.offline {
   background: #94a3b8;
+}
+
+.status-indicator.group {
+  display: none; /* Скрываем индикатор для групп */
 }
 
 .chat-info {
@@ -163,7 +251,8 @@ export default {
   text-overflow: ellipsis;
 }
 
-.pin-indicator {
+.pin-indicator,
+.mute-indicator {
   font-size: 12px;
 }
 
@@ -180,6 +269,20 @@ export default {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.chat-preview-unread {
+  color: #1e293b;
+  font-weight: 500;
+}
+
+/* Маркировка непрочитанных чатов */
+.chat-item.has-unread {
+  background: #f0f9ff;
+}
+
+.chat-item.has-unread .chat-title h3 {
+  font-weight: 700;
 }
 
 .message-type-indicator {

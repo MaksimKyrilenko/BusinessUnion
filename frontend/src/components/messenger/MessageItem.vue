@@ -10,17 +10,19 @@
       <img :src="getUserAvatar(message.sender)" :alt="getUserFullName(message.sender)">
     </div>
     <div class="message-content">
-      <div v-if="message.replyTo" class="message-reply-preview" @click="$emit('scrollToReply')">
+      <!-- Превью ответа на сообщение -->
+      <div v-if="message.replyTo" class="message-reply-preview" @click="$emit('scrollToReply', message.replyTo.id)">
+        <div class="reply-line"></div>
         <div class="reply-content">
           <span class="reply-author">{{ getUserFullName(message.replyTo.sender) }}</span>
-          <p>{{ message.replyTo.text || '' }}</p>
+          <p class="reply-text">{{ truncateText(message.replyTo.text, 100) || 'Сообщение' }}</p>
         </div>
       </div>
       <div class="message-bubble">
         <div v-if="!isOwn" class="message-author">
           {{ getUserFullName(message.sender) }}
         </div>
-        <div v-if="message.type === 'text'" class="message-text" v-html="formatMessageText(message.text)"></div>
+        <div v-if="message.type === 'text' || !message.type" class="message-text" v-html="formatMessageText(message.text)"></div>
         <div v-else-if="message.type === 'image'" class="message-image">
           <img :src="message.fileUrl || message.url" @click="$emit('showImagePreview')">
           <div class="image-overlay">
@@ -44,23 +46,44 @@
             <i class="fas fa-download"></i>
           </button>
         </div>
+        <!-- Метка редактирования -->
+        <span v-if="message.isEdited" class="edited-label">изменено</span>
       </div>
       <div class="message-meta">
         <span class="message-time" :title="formatFullDateTime(message.createdAt || message.timestamp)">
           {{ formatTime(message.createdAt || message.timestamp) }}
         </span>
         <div class="message-actions">
-          <button class="action-btn" @click="$emit('showReactions')">
-            <i class="far fa-smile"></i>
-          </button>
-          <button class="action-btn" @click="$emit('reply')">
+          <!-- Реакции -->
+          <div class="reaction-picker-wrapper">
+            <button class="action-btn" @click="toggleReactionPicker">
+              <i class="far fa-smile"></i>
+            </button>
+            <div v-if="showReactionPicker" class="reaction-picker">
+              <button 
+                v-for="emoji in quickReactions" 
+                :key="emoji" 
+                class="reaction-emoji"
+                @click="addReaction(emoji)"
+              >
+                {{ emoji }}
+              </button>
+            </div>
+          </div>
+          <button class="action-btn" @click="$emit('reply')" title="Ответить">
             <i class="fas fa-reply"></i>
           </button>
-          <button v-if="isOwn" class="action-btn" @click="$emit('edit')">
+          <button v-if="isOwn" class="action-btn" @click="$emit('edit')" title="Редактировать">
             <i class="fas fa-edit"></i>
           </button>
+          <button v-if="isOwn" class="action-btn action-btn-danger" @click="$emit('delete')" title="Удалить">
+            <i class="fas fa-trash"></i>
+          </button>
+          <button class="action-btn" @click="copyMessage" title="Копировать">
+            <i class="fas fa-copy"></i>
+          </button>
         </div>
-        <div v-if="message.reactions" class="message-reactions">
+        <div v-if="message.reactions && Object.keys(message.reactions).length > 0" class="message-reactions">
           <div 
             v-for="(count, reaction) in message.reactions" 
             :key="reaction"
@@ -79,6 +102,7 @@
 </template>
 
 <script>
+import { ref } from 'vue'
 import { 
   formatTime, 
   formatFullDateTime, 
@@ -99,14 +123,44 @@ export default {
   emits: [
     'reply',
     'edit',
-    'showReactions',
+    'delete',
+    'addReaction',
     'toggleReaction',
     'scrollToReply',
     'downloadFile',
     'downloadImage',
     'showImagePreview'
   ],
-  setup() {
+  setup(props, { emit }) {
+    const showReactionPicker = ref(false)
+    const quickReactions = ['👍', '❤️', '😂', '😮', '😢', '🔥', '👏', '🎉']
+
+    const toggleReactionPicker = () => {
+      showReactionPicker.value = !showReactionPicker.value
+    }
+
+    const addReaction = (emoji) => {
+      emit('addReaction', emoji)
+      showReactionPicker.value = false
+    }
+
+    const copyMessage = () => {
+      if (props.message.text) {
+        navigator.clipboard.writeText(props.message.text)
+          .then(() => {
+            // Можно добавить toast уведомление
+            console.log('Сообщение скопировано')
+          })
+          .catch(err => console.error('Ошибка копирования:', err))
+      }
+    }
+
+    const truncateText = (text, maxLength) => {
+      if (!text) return ''
+      if (text.length <= maxLength) return text
+      return text.substring(0, maxLength) + '...'
+    }
+
     return {
       formatTime,
       formatFullDateTime,
@@ -115,7 +169,13 @@ export default {
       getFileIcon,
       getStatusIcon,
       getUserFullName,
-      getUserAvatar
+      getUserAvatar,
+      showReactionPicker,
+      quickReactions,
+      toggleReactionPicker,
+      addReaction,
+      copyMessage,
+      truncateText
     }
   }
 }
@@ -388,6 +448,104 @@ export default {
 
 .message-status .text-primary {
   color: #2196F3;
+}
+
+/* Метка редактирования */
+.edited-label {
+  font-size: 11px;
+  color: #94a3b8;
+  font-style: italic;
+  margin-left: 8px;
+}
+
+.message-own .edited-label {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Улучшенный превью ответа */
+.message-reply-preview {
+  display: flex;
+  align-items: stretch;
+  background: rgba(33, 150, 243, 0.08);
+  border-radius: 8px;
+  margin-bottom: 4px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  overflow: hidden;
+}
+
+.message-reply-preview:hover {
+  background: rgba(33, 150, 243, 0.15);
+}
+
+.reply-line {
+  width: 3px;
+  background: #2196F3;
+  flex-shrink: 0;
+}
+
+.reply-content {
+  padding: 8px 12px;
+  min-width: 0;
+  flex: 1;
+}
+
+.reply-content .reply-author {
+  font-size: 12px;
+  font-weight: 600;
+  color: #2196F3;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.reply-content .reply-text {
+  margin: 0;
+  font-size: 13px;
+  color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Пикер реакций */
+.reaction-picker-wrapper {
+  position: relative;
+}
+
+.reaction-picker {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #fff;
+  border-radius: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  padding: 6px 8px;
+  display: flex;
+  gap: 4px;
+  z-index: 100;
+  margin-bottom: 8px;
+}
+
+.reaction-emoji {
+  background: none;
+  border: none;
+  font-size: 20px;
+  padding: 4px 6px;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.reaction-emoji:hover {
+  background: #f1f5f9;
+  transform: scale(1.2);
+}
+
+/* Кнопка удаления */
+.action-btn-danger:hover {
+  color: #ef4444 !important;
+  background: #fef2f2 !important;
 }
 
 /* Highlighted message animation */

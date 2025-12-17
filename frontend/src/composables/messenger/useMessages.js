@@ -15,8 +15,9 @@ export function useMessages(selectedChat, currentUserId) {
   const selectedForwardChatId = ref(null)
   const showForwardMessageModal = ref(false)
   
-  // Set для отслеживания уже обработанных сообщений
-  const processedMessageIds = new Set()
+  // Map для отслеживания уже обработанных сообщений с временными метками
+  // Используем Map вместо Set для автоматической очистки старых записей
+  const processedMessageIds = new Map()
 
   /**
    * Группировка сообщений по датам
@@ -252,20 +253,40 @@ export function useMessages(selectedChat, currentUserId) {
 
   /**
    * Добавление ID в обработанные (защита от дубликатов WebSocket)
+   * Используем Map с временными метками для автоматической очистки
    */
   const addProcessedMessageId = (id) => {
-    processedMessageIds.add(id)
+    const now = Date.now()
+    processedMessageIds.set(id, now)
     
-    // Очищаем старые ID (храним только последние 100)
-    if (processedMessageIds.size > 100) {
-      const idsArray = Array.from(processedMessageIds)
-      for (let i = 0; i < 50; i++) {
-        processedMessageIds.delete(idsArray[i])
+    // Очищаем записи старше 5 минут
+    const fiveMinutesAgo = now - 5 * 60 * 1000
+    for (const [msgId, timestamp] of processedMessageIds.entries()) {
+      if (timestamp < fiveMinutesAgo) {
+        processedMessageIds.delete(msgId)
+      }
+    }
+    
+    // Дополнительная защита: если больше 200 записей, удаляем самые старые
+    if (processedMessageIds.size > 200) {
+      const entries = Array.from(processedMessageIds.entries())
+        .sort((a, b) => a[1] - b[1])
+      
+      // Удаляем первую половину (самые старые)
+      for (let i = 0; i < entries.length / 2; i++) {
+        processedMessageIds.delete(entries[i][0])
       }
     }
   }
 
   const isMessageProcessed = (id) => processedMessageIds.has(id)
+  
+  /**
+   * Очистка всех обработанных ID (при смене чата)
+   */
+  const clearProcessedMessageIds = () => {
+    processedMessageIds.clear()
+  }
 
   return {
     messagesContainer,
@@ -295,6 +316,7 @@ export function useMessages(selectedChat, currentUserId) {
     downloadFile,
     downloadImage,
     addProcessedMessageId,
-    isMessageProcessed
+    isMessageProcessed,
+    clearProcessedMessageIds
   }
 }
