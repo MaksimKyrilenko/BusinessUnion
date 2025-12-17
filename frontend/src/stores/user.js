@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import api from '@/axios'
 import router from '@/router'
+import websocketService from '@/services/websocket.service'
 
 export const useUserStore = defineStore('user', {
   state: () => ({
@@ -119,6 +120,10 @@ export const useUserStore = defineStore('user', {
             tokenExists: !!token
           });
           
+          // Подключаем WebSocket сразу после успешного логина
+          console.log('Инициализация WebSocket после логина...');
+          websocketService.connect();
+          
           router.push('/dashboard');
           return { success: true };
         } else {
@@ -155,6 +160,10 @@ export const useUserStore = defineStore('user', {
         
         this.user = user;
         this.isAuthenticated = true;
+        
+        // Подключаем WebSocket после успешной регистрации
+        console.log('Инициализация WebSocket после регистрации...');
+        websocketService.connect();
 
         return true;
       } catch (error) {
@@ -199,6 +208,9 @@ export const useUserStore = defineStore('user', {
     async logout() {
       try {
         console.log('Выполняем выход из системы...');
+        
+        // Отключаем WebSocket при выходе
+        websocketService.disconnect();
         
         // Запоминаем состояние до выхода
         const wasAuthenticated = this.isAuthenticated;

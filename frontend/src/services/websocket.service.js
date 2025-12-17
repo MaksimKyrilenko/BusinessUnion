@@ -34,18 +34,22 @@ class WebSocketService {
     console.log('WebSocket: Token found (length:', token.length, ')');
 
     // Проверяем, есть ли уже активное соединение
-    if (this.socket?.connected) {
-      console.log('WebSocket: Already connected, socket id:', this.socket.id);
+    if (this.socket?.connected && this.isAuthenticated.value) {
+      console.log('WebSocket: Already connected and authenticated, socket id:', this.socket.id);
       return;
     }
 
-    // Если есть сокет но он не подключен - закрываем его
+    // Если есть сокет но он не подключен или не аутентифицирован - закрываем его
     if (this.socket) {
-      console.log('WebSocket: Closing existing disconnected socket');
+      console.log('WebSocket: Closing existing socket (connected:', this.socket.connected, ', authenticated:', this.isAuthenticated.value, ')');
       this.socket.removeAllListeners();
       this.socket.disconnect();
       this.socket = null;
     }
+
+    // Сбрасываем состояние
+    this.isConnected.value = false;
+    this.isAuthenticated.value = false;
 
     // Определяем URL для подключения
     const wsUrl = this.getWebSocketUrl();
@@ -55,6 +59,11 @@ class WebSocketService {
     console.log('Hostname:', window.location.hostname);
     console.log('Port:', window.location.port);
     console.log('Origin:', window.location.origin);
+
+    // Создаём Promise для ожидания подключения ПЕРЕД созданием сокета
+    this.connectionPromise = new Promise((resolve) => {
+      this.connectionResolve = resolve;
+    });
 
     this.socket = io(wsUrl, {
       auth: { token },
@@ -68,26 +77,35 @@ class WebSocketService {
       multiplex: false,
     });
 
-    console.log('WebSocket: Socket instance created');
-    
-    // Создаём Promise для ожидания подключения
-    this.connectionPromise = new Promise((resolve) => {
-      this.connectionResolve = resolve;
-    });
+    console.log('WebSocket: Socket instance created, setting up listeners...');
     
     this.setupEventListeners();
+    console.log('WebSocket: Event listeners set up');
   }
 
   /**
    * Ожидание подключения и аутентификации
    */
-  async waitForConnection(timeout = 5000) {
+  async waitForConnection(timeout = 10000) {
+    console.log('[WS] waitForConnection called, isAuthenticated:', this.isAuthenticated.value);
+    
     if (this.isAuthenticated.value) {
+      console.log('[WS] Already authenticated, returning true');
       return true;
     }
     
+    // Если нет Promise подключения - инициируем подключение
     if (!this.connectionPromise) {
+      console.log('[WS] No connection promise, calling connect()');
       this.connect();
+    }
+    
+    // Если всё ещё нет Promise (connect не создал его) - создаём новый
+    if (!this.connectionPromise) {
+      console.log('[WS] Creating new connection promise');
+      this.connectionPromise = new Promise((resolve) => {
+        this.connectionResolve = resolve;
+      });
     }
     
     // Ждём подключения с таймаутом
@@ -96,10 +114,12 @@ class WebSocketService {
     });
     
     try {
+      console.log('[WS] Waiting for connection promise...');
       await Promise.race([this.connectionPromise, timeoutPromise]);
-      return true;
+      console.log('[WS] Connection promise resolved, isAuthenticated:', this.isAuthenticated.value);
+      return this.isAuthenticated.value;
     } catch (e) {
-      console.warn('WebSocket: Connection timeout');
+      console.warn('[WS] Connection timeout after', timeout, 'ms');
       return false;
     }
   }

@@ -1757,8 +1757,9 @@ export default {
         console.log(`Выбор чата: ${chatId}`);
         selectedChat.value = chats.value.find(chat => chat.id === chatId);
         
-        // Присоединяемся к новому чату через WebSocket
-        websocketService.joinChat(chatId)
+        // Присоединяемся к новому чату через WebSocket (await для гарантии подключения)
+        await websocketService.joinChat(chatId)
+        console.log(`Присоединились к чату ${chatId} через WebSocket`)
         
         // Загружаем актуальные данные чата
         const response = await messengerService.getChat(chatId);
@@ -2749,14 +2750,29 @@ export default {
       wsUnsubscribers.push(unsubOffline)
     }
 
-    onMounted(() => {
+    onMounted(async () => {
       console.log('=== Messenger onMounted ===')
-      loadChats()
       
-      // Подключаем WebSocket обработчики
+      // Подключаем WebSocket обработчики ПЕРЕД загрузкой чатов
       console.log('Calling setupWebSocketHandlers...')
       setupWebSocketHandlers()
       console.log('setupWebSocketHandlers completed')
+      
+      // Проверяем, подключён ли WebSocket, если нет - подключаем
+      if (!websocketService.isAuthenticated.value) {
+        console.log('WebSocket not authenticated, initiating connection...')
+        websocketService.connect()
+        
+        // Ждём подключения (не блокируем загрузку чатов)
+        websocketService.waitForConnection(10000).then(connected => {
+          console.log('WebSocket connection result:', connected)
+        })
+      } else {
+        console.log('WebSocket already authenticated')
+      }
+      
+      // Загружаем чаты (это также установит currentUserId)
+      loadChats()
     })
     
     // Отключаем WebSocket обработчики при размонтировании
