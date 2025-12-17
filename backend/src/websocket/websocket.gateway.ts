@@ -9,17 +9,20 @@ import {
   ConnectedSocket,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { Logger, UseGuards, Inject, forwardRef } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { WebsocketService } from './websocket.service';
 
 @WebSocketGateway({
   cors: {
-    origin: '*',
+    origin: process.env.WS_CORS_ORIGIN || '*',
     credentials: true,
+    methods: ['GET', 'POST'],
   },
   namespace: '/',
   transports: ['websocket', 'polling'],
+  pingTimeout: 60000,
+  pingInterval: 25000,
 })
 export class WebsocketGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
