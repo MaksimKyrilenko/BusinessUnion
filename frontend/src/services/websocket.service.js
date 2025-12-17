@@ -29,9 +29,18 @@ class WebSocketService {
     
     console.log('WebSocket: Token found (length:', token.length, ')');
 
+    // Проверяем, есть ли уже активное соединение
     if (this.socket?.connected) {
       console.log('WebSocket: Already connected, socket id:', this.socket.id);
       return;
+    }
+
+    // Если есть сокет но он не подключен - закрываем его
+    if (this.socket) {
+      console.log('WebSocket: Closing existing disconnected socket');
+      this.socket.removeAllListeners();
+      this.socket.disconnect();
+      this.socket = null;
     }
 
     // Определяем URL для подключения
@@ -51,6 +60,8 @@ class WebSocketService {
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
       timeout: 20000,
+      // Важно: не создавать множественные соединения
+      multiplex: false,
     });
 
     console.log('WebSocket: Socket instance created');

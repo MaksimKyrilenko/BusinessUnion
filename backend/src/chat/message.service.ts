@@ -54,10 +54,15 @@ export class MessageService {
 
     console.log(`Создано новое сообщение ID: ${result.id} отправитель: ${result.sender?.firstName || ''} ${result.sender?.lastName || ''}`);
 
-    // Отправляем сообщение через Redis -> WebSocket сервер
+    // Получаем всех участников чата для отправки уведомлений
     try {
-      console.log(`[REDIS] Отправка сообщения ${result.id} в чат ${createMessageDto.chatId}`);
-      await this.redisPublisher.sendChatMessage(createMessageDto.chatId, result);
+      const chatUsers = await this.chatUserRepository.find({
+        where: { chatId: createMessageDto.chatId },
+      });
+      const participantIds = chatUsers.map(cu => cu.userId);
+      
+      console.log(`[REDIS] Отправка сообщения ${result.id} в чат ${createMessageDto.chatId}, участники: ${participantIds.join(', ')}`);
+      await this.redisPublisher.sendChatMessage(createMessageDto.chatId, result, participantIds);
     } catch (error) {
       console.error('Ошибка при отправке сообщения через Redis:', error);
     }

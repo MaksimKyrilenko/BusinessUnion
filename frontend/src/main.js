@@ -77,15 +77,4 @@ router.isReady().then(() => {
   }
 });
 
-// Переподключаем WebSocket при логине
-router.afterEach((to, from) => {
-  console.log(`[Router] Navigation: ${from.path} -> ${to.path}`);
-  // Если пользователь только что залогинился
-  if (to.path !== '/login' && to.path !== '/register') {
-    const token = localStorage.getItem('token');
-    if (token && !websocketService.connected) {
-      console.log('[Router] Token found, WebSocket not connected - connecting...');
-      websocketService.connect();
-    }
-  }
-});
+// Убрали router.afterEach - подключение происходит только в router.isReady() и auth.service.js

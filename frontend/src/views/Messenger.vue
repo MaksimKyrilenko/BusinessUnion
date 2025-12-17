@@ -2657,10 +2657,28 @@ export default {
     })
     
     // Настройка WebSocket обработчиков
+    // Set для отслеживания уже обработанных сообщений (защита от дубликатов)
+    const processedMessageIds = new Set()
+    
     const setupWebSocketHandlers = () => {
       // Обработчик новых сообщений
       const unsubNewMessage = websocketService.on('chat:newMessage', (message) => {
-        console.log('WebSocket: Получено новое сообщение', message)
+        // Защита от дубликатов - сообщение может прийти из комнаты чата и из user комнаты
+        if (processedMessageIds.has(message.id)) {
+          console.log('WebSocket: Пропуск дубликата сообщения', message.id)
+          return
+        }
+        processedMessageIds.add(message.id)
+        
+        // Очищаем старые ID (храним только последние 100)
+        if (processedMessageIds.size > 100) {
+          const idsArray = Array.from(processedMessageIds)
+          for (let i = 0; i < 50; i++) {
+            processedMessageIds.delete(idsArray[i])
+          }
+        }
+        
+        console.log('WebSocket: Получено новое сообщение', message.id, 'chatId:', message.chatId)
         
         // Добавляем сообщение в текущий чат если он открыт
         if (selectedChat.value && message.chatId === selectedChat.value.id) {

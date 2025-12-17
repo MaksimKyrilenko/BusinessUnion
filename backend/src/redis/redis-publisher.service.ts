@@ -64,8 +64,8 @@ export class RedisPublisherService implements OnModuleInit, OnModuleDestroy {
 
   // Удобные методы для отправки событий
 
-  async sendChatMessage(chatId: number, message: any): Promise<void> {
-    await this.publish('chat:newMessage', { chatId, message });
+  async sendChatMessage(chatId: number, message: any, participantIds?: number[]): Promise<void> {
+    await this.publish('chat:newMessage', { chatId, message, participantIds });
   }
 
   async sendMessageEdited(chatId: number, message: any): Promise<void> {

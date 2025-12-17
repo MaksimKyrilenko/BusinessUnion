@@ -52,8 +52,8 @@ export class WebsocketGateway
 
     // Новое сообщение в чат
     this.redisService.onMessage('chat:newMessage', (data) => {
-      this.logger.log(`[REDIS->WS] chat:newMessage for chat ${data.chatId}`);
-      this.sendNewMessage(data.chatId, data.message);
+      this.logger.log(`[REDIS->WS] chat:newMessage for chat ${data.chatId}, participants: ${data.participantIds?.join(', ') || 'none'}`);
+      this.sendNewMessage(data.chatId, data.message, data.participantIds);
     });
 
     // Сообщение отредактировано
@@ -311,24 +311,33 @@ export class WebsocketGateway
 
   // ==================== SEND METHODS ====================
 
-  sendNewMessage(chatId: number, message: any) {
+  sendNewMessage(chatId: number, message: any, participantIds?: number[]) {
     const room = `chat:${chatId}`;
     
     this.logger.log(`=== SENDING NEW MESSAGE ===`);
     this.logger.log(`Room: ${room}`);
     this.logger.log(`Message ID: ${message?.id}`);
     this.logger.log(`Sender ID: ${message?.senderId}`);
+    this.logger.log(`Participants: ${participantIds?.join(', ') || 'none'}`);
     
     if (!this.server) {
       this.logger.error(`Server not initialized, cannot send message`);
       return;
     }
     
-    const clientsCount = this.websocketService.getRoomClients(room);
-    this.logger.log(`Clients in room: ${clientsCount}`);
-
+    // Отправляем в комнату чата (для тех кто открыл этот чат)
     this.server.to(room).emit('chat:newMessage', message);
     this.logger.log(`Event 'chat:newMessage' emitted to room ${room}`);
+    
+    // Также отправляем всем участникам чата персонально (в их user:X комнаты)
+    // Это гарантирует что они получат сообщение даже если не в этом чате
+    if (participantIds && participantIds.length > 0) {
+      for (const odId of participantIds) {
+        const userRoom = `user:${odId}`;
+        this.server.to(userRoom).emit('chat:newMessage', message);
+        this.logger.log(`Event 'chat:newMessage' also sent to ${userRoom}`);
+      }
+    }
   }
 
   sendMessageEdited(chatId: number, message: any) {
