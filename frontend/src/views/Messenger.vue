@@ -1043,10 +1043,11 @@
 </template>
 
 <script>
-import { ref, computed, onMounted, nextTick, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { useUserStore } from '@/stores/user'
 import Modal from '@/components/ui/Modal.vue'
 import messengerService from '@/services/messenger.service'
+import websocketService from '@/services/websocket.service'
 import { useRouter } from 'vue-router'
 
 export default {
@@ -1058,6 +1059,9 @@ export default {
     const userStore = useUserStore()
     const router = useRouter()
     const currentUserId = ref(userStore.userId)
+    
+    // WebSocket отписки
+    const wsUnsubscribers = []
     
     const activeTab = ref('personal')
     const searchQuery = ref('')
@@ -1744,9 +1748,17 @@ export default {
     const selectChat = async (chatId) => {
       if (selectedChat.value?.id === chatId) return;
       
+      // Покидаем предыдущий чат через WebSocket
+      if (selectedChat.value) {
+        websocketService.leaveChat(selectedChat.value.id)
+      }
+      
       try {
         console.log(`Выбор чата: ${chatId}`);
         selectedChat.value = chats.value.find(chat => chat.id === chatId);
+        
+        // Присоединяемся к новому чату через WebSocket
+        websocketService.joinChat(chatId)
         
         // Загружаем актуальные данные чата
         const response = await messengerService.getChat(chatId);
@@ -2433,14 +2445,11 @@ export default {
       }
     }
 
-    const sendTypingStatus = async (isTyping) => {
+    const sendTypingStatus = (typing) => {
       if (!selectedChat.value) return
       
-      try {
-        await messengerService.sendTypingStatus(selectedChat.value.id, isTyping)
-      } catch (error) {
-        console.error('Ошибка при отправке статуса печатания:', error)
-      }
+      // Отправляем через WebSocket
+      websocketService.sendTyping(selectedChat.value.id, typing)
     }
 
     const formatText = (type) => {
@@ -2629,7 +2638,111 @@ export default {
 
     onMounted(() => {
       loadChats()
+      
+      // Подключаем WebSocket обработчики
+      setupWebSocketHandlers()
     })
+    
+    // Отключаем WebSocket обработчики при размонтировании
+    onUnmounted(() => {
+      // Покидаем текущий чат
+      if (selectedChat.value) {
+        websocketService.leaveChat(selectedChat.value.id)
+      }
+      
+      // Отписываемся от всех событий
+      wsUnsubscribers.forEach(unsub => {
+        if (typeof unsub === 'function') unsub()
+      })
+    })
+    
+    // Настройка WebSocket обработчиков
+    const setupWebSocketHandlers = () => {
+      // Обработчик новых сообщений
+      const unsubNewMessage = websocketService.on('chat:newMessage', (message) => {
+        console.log('WebSocket: Получено новое сообщение', message)
+        
+        // Добавляем сообщение в текущий чат если он открыт
+        if (selectedChat.value && message.chatId === selectedChat.value.id) {
+          // Проверяем, нет ли уже такого сообщения
+          const exists = selectedChat.value.messages?.some(m => m.id === message.id)
+          if (!exists) {
+            if (!selectedChat.value.messages) {
+              selectedChat.value.messages = []
+            }
+            selectedChat.value.messages.push(message)
+            
+            // Прокручиваем к новому сообщению
+            nextTick(() => scrollToBottom())
+          }
+        }
+        
+        // Обновляем список чатов (последнее сообщение)
+        const chatIndex = chats.value.findIndex(c => c.id === message.chatId)
+        if (chatIndex !== -1) {
+          const chat = chats.value[chatIndex]
+          if (!chat.messages) chat.messages = []
+          
+          // Обновляем последнее сообщение
+          const msgExists = chat.messages.some(m => m.id === message.id)
+          if (!msgExists) {
+            chat.messages.push(message)
+          }
+          
+          // Увеличиваем счетчик непрочитанных если это не текущий чат
+          if (!selectedChat.value || selectedChat.value.id !== message.chatId) {
+            chat.unreadCount = (chat.unreadCount || 0) + 1
+          }
+        }
+      })
+      wsUnsubscribers.push(unsubNewMessage)
+      
+      // Обработчик редактирования сообщений
+      const unsubMessageEdited = websocketService.on('chat:messageEdited', (message) => {
+        console.log('WebSocket: Сообщение отредактировано', message)
+        
+        if (selectedChat.value && message.chatId === selectedChat.value.id) {
+          const msgIndex = selectedChat.value.messages?.findIndex(m => m.id === message.id)
+          if (msgIndex !== -1) {
+            selectedChat.value.messages[msgIndex] = message
+          }
+        }
+      })
+      wsUnsubscribers.push(unsubMessageEdited)
+      
+      // Обработчик удаления сообщений
+      const unsubMessageDeleted = websocketService.on('chat:messageDeleted', (data) => {
+        console.log('WebSocket: Сообщение удалено', data)
+        
+        if (selectedChat.value && data.chatId === selectedChat.value.id) {
+          const msgIndex = selectedChat.value.messages?.findIndex(m => m.id === data.messageId)
+          if (msgIndex !== -1) {
+            selectedChat.value.messages.splice(msgIndex, 1)
+          }
+        }
+      })
+      wsUnsubscribers.push(unsubMessageDeleted)
+      
+      // Обработчик статуса "печатает"
+      const unsubTyping = websocketService.on('chat:typing', (data) => {
+        if (selectedChat.value && data.chatId === selectedChat.value.id) {
+          // Можно добавить отображение индикатора печати
+          console.log(`Пользователь ${data.userId} ${data.isTyping ? 'печатает' : 'перестал печатать'}`)
+        }
+      })
+      wsUnsubscribers.push(unsubTyping)
+      
+      // Обработчик онлайн статуса
+      const unsubOnline = websocketService.on('user:online', (data) => {
+        console.log('WebSocket: Пользователь онлайн', data.userId)
+      })
+      wsUnsubscribers.push(unsubOnline)
+      
+      const unsubOffline = websocketService.on('user:offline', (data) => {
+        console.log('WebSocket: Пользователь оффлайн', data.userId)
+      })
+      wsUnsubscribers.push(unsubOffline)
+    }
 
     // Функция для полного форматирования даты и времени для всплывающей подсказки
     const formatFullDateTime = (timestamp) => {

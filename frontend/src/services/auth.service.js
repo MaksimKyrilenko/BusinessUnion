@@ -1,4 +1,5 @@
 import axios from 'axios';
+import websocketService from './websocket.service';
 
 const API_URL = '/api';
 
@@ -26,6 +27,9 @@ export default {
         localStorage.setItem('userType', response.data.user.userType);
         
         // Преобразуем формат ответа для сохранения совместимости
+        // Подключаем WebSocket после успешного входа
+        websocketService.connect();
+        
         return {
           token: token,
           user: response.data.user
@@ -63,6 +67,9 @@ export default {
         localStorage.setItem('userType', response.data.user.userType);
         
         // Преобразуем ответ сервера в единый формат для клиента
+        // Подключаем WebSocket после успешной регистрации
+        websocketService.connect();
+        
         return {
           token: token, // Клиент ожидает поле token
           user: response.data.user
@@ -98,6 +105,9 @@ export default {
   },
 
   logout() {
+    // Отключаем WebSocket при выходе
+    websocketService.disconnect();
+    
     localStorage.removeItem('token');
     localStorage.removeItem('userId');
     localStorage.removeItem('userType');

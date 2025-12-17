@@ -36,7 +36,7 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  # Backend NestJS приложение
+  # Backend NestJS приложение (включая WebSocket/Socket.IO)
   backend:
     build:
       context: ./backend
@@ -64,6 +64,8 @@ services:
       ALPHA_VANTAGE_API_KEY: ${ALPHA_VANTAGE_API_KEY:-}
       FMP_API_KEY: ${FMP_API_KEY:-}
       EXCHANGE_RATES_API_KEY: ${EXCHANGE_RATES_API_KEY:-}
+      # WebSocket настройки
+      WS_CORS_ORIGIN: ${WS_CORS_ORIGIN:-*}
     ports:
       - "3001:3001"
     volumes:
@@ -92,6 +94,11 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
+    # Важно для WebSocket - увеличиваем лимиты соединений
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
 
   # Frontend Vue.js приложение
   frontend:

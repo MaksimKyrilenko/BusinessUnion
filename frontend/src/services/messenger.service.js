@@ -1,10 +1,55 @@
 import axios from 'axios'
 import authHeader from './auth-header'
+import websocketService from './websocket.service'
 
 // Используем относительный путь - nginx проксирует /api на backend
 const API_URL = '/api'
 
 class MessengerService {
+  // Присоединиться к чату через WebSocket
+  joinChat(chatId) {
+    websocketService.joinChat(chatId)
+  }
+
+  // Покинуть чат через WebSocket
+  leaveChat(chatId) {
+    websocketService.leaveChat(chatId)
+  }
+
+  // Отправить статус "печатает"
+  sendTyping(chatId, isTyping) {
+    websocketService.sendTyping(chatId, isTyping)
+  }
+
+  // Подписаться на новые сообщения
+  onNewMessage(callback) {
+    return websocketService.on('chat:newMessage', callback)
+  }
+
+  // Подписаться на редактирование сообщений
+  onMessageEdited(callback) {
+    return websocketService.on('chat:messageEdited', callback)
+  }
+
+  // Подписаться на удаление сообщений
+  onMessageDeleted(callback) {
+    return websocketService.on('chat:messageDeleted', callback)
+  }
+
+  // Подписаться на статус "печатает"
+  onTyping(callback) {
+    return websocketService.on('chat:typing', callback)
+  }
+
+  // Подписаться на прочтение сообщений
+  onMessageRead(callback) {
+    return websocketService.on('chat:read', callback)
+  }
+
+  // Получить пользователей, которые печатают
+  getTypingUsers(chatId) {
+    return websocketService.getTypingUsers(chatId)
+  }
   // Методы для работы с чатами
   getChats() {
     return axios.get(`${API_URL}/chats`, { headers: authHeader() })
