@@ -48,19 +48,27 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
 
     this.subscriber.on('message', (channel, message) => {
       if (channel === 'websocket:events') {
+        let data: any;
         try {
-          const data = JSON.parse(message);
-          this.logger.log(`[REDIS] Received event: ${data.event}`);
-          this.logger.log(`[REDIS] Data: ${JSON.stringify(data).substring(0, 200)}...`);
-          
-          const handler = this.messageHandlers.get(data.event);
-          if (handler) {
+          data = JSON.parse(message);
+        } catch (parseError) {
+          this.logger.error('Error parsing Redis message JSON:', parseError.message);
+          return;
+        }
+        
+        this.logger.log(`[REDIS] Received event: ${data.event}`);
+        this.logger.log(`[REDIS] Data: ${JSON.stringify(data).substring(0, 200)}...`);
+        
+        const handler = this.messageHandlers.get(data.event);
+        if (handler) {
+          try {
             handler(data);
-          } else {
-            this.logger.warn(`[REDIS] No handler for event: ${data.event}`);
+          } catch (handlerError) {
+            this.logger.error(`[REDIS] Error in handler for ${data.event}:`, handlerError.message);
+            this.logger.error(`[REDIS] Stack:`, handlerError.stack);
           }
-        } catch (error) {
-          this.logger.error('Error parsing Redis message:', error.message);
+        } else {
+          this.logger.warn(`[REDIS] No handler for event: ${data.event}`);
         }
       }
     });

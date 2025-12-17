@@ -106,8 +106,15 @@ export class WebsocketService {
   }
 
   getRoomClients(room: string): number {
-    if (!this.server) return 0;
-    const roomSockets = this.server.sockets.adapter.rooms.get(room);
-    return roomSockets?.size || 0;
+    try {
+      if (!this.server || !this.server.sockets || !this.server.sockets.adapter) {
+        return 0;
+      }
+      const roomSockets = this.server.sockets.adapter.rooms.get(room);
+      return roomSockets?.size || 0;
+    } catch (error) {
+      this.logger.warn(`Error getting room clients for ${room}: ${error.message}`);
+      return 0;
+    }
   }
 }

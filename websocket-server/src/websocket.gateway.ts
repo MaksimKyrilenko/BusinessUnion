@@ -313,12 +313,18 @@ export class WebsocketGateway
 
   sendNewMessage(chatId: number, message: any) {
     const room = `chat:${chatId}`;
-    const clientsCount = this.websocketService.getRoomClients(room);
     
     this.logger.log(`=== SENDING NEW MESSAGE ===`);
     this.logger.log(`Room: ${room}`);
     this.logger.log(`Message ID: ${message?.id}`);
     this.logger.log(`Sender ID: ${message?.senderId}`);
+    
+    if (!this.server) {
+      this.logger.error(`Server not initialized, cannot send message`);
+      return;
+    }
+    
+    const clientsCount = this.websocketService.getRoomClients(room);
     this.logger.log(`Clients in room: ${clientsCount}`);
 
     this.server.to(room).emit('chat:newMessage', message);
