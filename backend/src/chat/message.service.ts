@@ -1,10 +1,11 @@
-import { BadRequestException, Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, ForbiddenException, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Message } from './entities/message.entity';
 import { ChatUser } from './entities/chat-user.entity';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { MessageStatus } from './enums/message-status.enum';
+import { WebsocketGateway } from '../websocket/websocket.gateway';
 
 @Injectable()
 export class MessageService {
@@ -13,6 +14,8 @@ export class MessageService {
     private messageRepository: Repository<Message>,
     @InjectRepository(ChatUser)
     private chatUserRepository: Repository<ChatUser>,
+    @Inject(forwardRef(() => WebsocketGateway))
+    private websocketGateway: WebsocketGateway,
   ) {}
 
   async create(createMessageDto: CreateMessageDto, userId: number): Promise<Message> {
@@ -51,6 +54,13 @@ export class MessageService {
     }
 
     console.log(`Создано новое сообщение ID: ${result.id} отправитель: ${result.sender?.firstName || ''} ${result.sender?.lastName || ''}`);
+
+    // Отправляем сообщение через WebSocket всем участникам чата
+    try {
+      this.websocketGateway.sendNewMessage(createMessageDto.chatId, result);
+    } catch (error) {
+      console.error('Ошибка при отправке сообщения через WebSocket:', error);
+    }
 
     return result;
   }
@@ -129,6 +139,60 @@ export class MessageService {
     // Сбрасываем счетчик непрочитанных сообщений
     chatUser.unreadCount = 0;
     await this.chatUserRepository.save(chatUser);
+  }
+
+  async editMessage(messageId: number, userId: number, newText: string): Promise<Message> {
+    const message = await this.messageRepository.findOne({
+      where: { id: messageId },
+      relations: ['sender', 'sender.profile'],
+    });
+
+    if (!message) {
+      throw new NotFoundException('Сообщение не найдено');
+    }
+
+    // Проверяем, что пользователь является автором сообщения
+    if (message.senderId !== userId) {
+      throw new ForbiddenException('Вы можете редактировать только свои сообщения');
+    }
+
+    message.text = newText;
+    message.isEdited = true;
+    const savedMessage = await this.messageRepository.save(message);
+
+    // Отправляем уведомление через WebSocket
+    try {
+      this.websocketGateway.sendMessageEdited(message.chatId, savedMessage);
+    } catch (error) {
+      console.error('Ошибка при отправке уведомления о редактировании через WebSocket:', error);
+    }
+
+    return savedMessage;
+  }
+
+  async deleteMessage(messageId: number, userId: number): Promise<void> {
+    const message = await this.messageRepository.findOne({
+      where: { id: messageId },
+    });
+
+    if (!message) {
+      throw new NotFoundException('Сообщение не найдено');
+    }
+
+    // Проверяем, что пользователь является автором сообщения
+    if (message.senderId !== userId) {
+      throw new ForbiddenException('Вы можете удалять только свои сообщения');
+    }
+
+    const chatId = message.chatId;
+    await this.messageRepository.remove(message);
+
+    // Отправляем уведомление через WebSocket
+    try {
+      this.websocketGateway.sendMessageDeleted(chatId, messageId);
+    } catch (error) {
+      console.error('Ошибка при отправке уведомления об удалении через WebSocket:', error);
+    }
   }
 
   async addReaction(messageId: number, userId: number, reaction: string): Promise<Message> {

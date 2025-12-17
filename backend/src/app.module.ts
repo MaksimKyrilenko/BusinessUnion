@@ -25,6 +25,7 @@ import { EducationModule } from './education/education.module';
 import { CommunitiesModule } from './communities/communities.module';
 import { CryptoTrackerModule } from './crypto-tracker/crypto-tracker.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { WebsocketModule } from './websocket/websocket.module';
 
 @Module({
   imports: [
@@ -60,6 +61,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
     CommunitiesModule,
     CryptoTrackerModule,
     DashboardModule,
+    WebsocketModule,
   ],
   controllers: [AppController],
   providers: [AppService],

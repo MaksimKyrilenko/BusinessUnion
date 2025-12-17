@@ -58,6 +58,9 @@ export class Message {
   @Column({ type: 'simple-json', nullable: true })
   reactions: Record<string, number>;
 
+  @Column({ default: false })
+  isEdited: boolean;
+
   @CreateDateColumn()
   createdAt: Date;
 
