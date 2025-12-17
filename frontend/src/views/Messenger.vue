@@ -2644,6 +2644,10 @@ export default {
     
     // Настройка WebSocket обработчиков
     const setupWebSocketHandlers = () => {
+      console.log('=== setupWebSocketHandlers CALLED ===')
+      console.log('WebSocket connected:', websocketService.connected)
+      console.log('WebSocket socket:', websocketService.socket?.id || 'no socket')
+      
       // Обработчик новых сообщений
       const unsubNewMessage = websocketService.on('chat:newMessage', (message) => {
         // Защита от дубликатов - сообщение может прийти из комнаты чата и из user комнаты
@@ -2746,10 +2750,13 @@ export default {
     }
 
     onMounted(() => {
+      console.log('=== Messenger onMounted ===')
       loadChats()
       
       // Подключаем WebSocket обработчики
+      console.log('Calling setupWebSocketHandlers...')
       setupWebSocketHandlers()
+      console.log('setupWebSocketHandlers completed')
     })
     
     // Отключаем WebSocket обработчики при размонтировании

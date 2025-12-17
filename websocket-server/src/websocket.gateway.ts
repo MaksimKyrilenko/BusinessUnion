@@ -325,6 +325,10 @@ export class WebsocketGateway
       return;
     }
     
+    // Проверяем сколько клиентов в комнате чата
+    const chatRoomClients = this.websocketService.getRoomClients(room);
+    this.logger.log(`Clients in room ${room}: ${chatRoomClients}`);
+    
     // Отправляем в комнату чата (для тех кто открыл этот чат)
     this.server.to(room).emit('chat:newMessage', message);
     this.logger.log(`Event 'chat:newMessage' emitted to room ${room}`);
@@ -334,10 +338,14 @@ export class WebsocketGateway
     if (participantIds && participantIds.length > 0) {
       for (const odId of participantIds) {
         const userRoom = `user:${odId}`;
+        const userRoomClients = this.websocketService.getRoomClients(userRoom);
+        this.logger.log(`Clients in room ${userRoom}: ${userRoomClients}`);
         this.server.to(userRoom).emit('chat:newMessage', message);
         this.logger.log(`Event 'chat:newMessage' also sent to ${userRoom}`);
       }
     }
+    
+    this.logger.log(`=== MESSAGE SEND COMPLETE ===`);
   }
 
   sendMessageEdited(chatId: number, message: any) {

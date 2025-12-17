@@ -47,6 +47,9 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     this.logger.log('Subscribed to websocket:events channel');
 
     this.subscriber.on('message', (channel, message) => {
+      this.logger.log(`=== REDIS MESSAGE RECEIVED ===`);
+      this.logger.log(`Channel: ${channel}`);
+      
       if (channel === 'websocket:events') {
         let data: any;
         try {
@@ -57,12 +60,15 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
         }
         
         this.logger.log(`[REDIS] Received event: ${data.event}`);
-        this.logger.log(`[REDIS] Data: ${JSON.stringify(data).substring(0, 200)}...`);
+        this.logger.log(`[REDIS] Data: ${JSON.stringify(data).substring(0, 300)}...`);
+        this.logger.log(`[REDIS] Registered handlers: ${Array.from(this.messageHandlers.keys()).join(', ')}`);
         
         const handler = this.messageHandlers.get(data.event);
         if (handler) {
+          this.logger.log(`[REDIS] Found handler for ${data.event}, calling...`);
           try {
             handler(data);
+            this.logger.log(`[REDIS] Handler for ${data.event} completed`);
           } catch (handlerError) {
             this.logger.error(`[REDIS] Error in handler for ${data.event}:`, handlerError.message);
             this.logger.error(`[REDIS] Stack:`, handlerError.stack);

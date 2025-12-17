@@ -161,7 +161,11 @@ class WebSocketService {
 
     // Новое сообщение
     this.socket.on('chat:newMessage', (message) => {
-      console.log('WebSocket: New message received', message);
+      console.log('=== WebSocket: SOCKET.IO EVENT chat:newMessage ===');
+      console.log('Message ID:', message?.id);
+      console.log('Chat ID:', message?.chatId);
+      console.log('Sender ID:', message?.senderId);
+      console.log('Listeners count:', this.listeners.get('chat:newMessage')?.length || 0);
       this.emit('chat:newMessage', message);
     });
 
@@ -351,6 +355,7 @@ class WebSocketService {
       this.listeners.set(event, []);
     }
     this.listeners.get(event).push(callback);
+    console.log(`[WS] Subscribed to event: ${event}, total listeners: ${this.listeners.get(event).length}`);
     
     // Возвращаем функцию для отписки
     return () => this.off(event, callback);
@@ -373,14 +378,19 @@ class WebSocketService {
    * Вызвать событие
    */
   emit(event, data) {
-    if (this.listeners.has(event)) {
-      this.listeners.get(event).forEach(callback => {
+    const listeners = this.listeners.get(event);
+    console.log(`[WS] Emitting event: ${event}, listeners: ${listeners?.length || 0}`);
+    if (listeners && listeners.length > 0) {
+      listeners.forEach((callback, index) => {
         try {
+          console.log(`[WS] Calling listener ${index + 1} for ${event}`);
           callback(data);
         } catch (error) {
           console.error(`WebSocket: Error in listener for ${event}`, error);
         }
       });
+    } else {
+      console.warn(`[WS] No listeners for event: ${event}`);
     }
   }
 

@@ -186,6 +186,51 @@ curl http://localhost:3002/health
 curl http://localhost:3002/stats
 ```
 
+## Проверка в консоли браузера
+
+Откройте консоль браузера (F12) и проверьте следующие логи:
+
+### При загрузке страницы:
+```
+=== Router Ready - Checking WebSocket ===
+Token exists: true
+Initiating WebSocket connection from main.js
+=== WebSocket Connect Called ===
+=== WebSocket CONNECTED ===
+Socket ID: xxx
+=== WebSocket AUTHENTICATED ===
+User ID: 1
+```
+
+### При открытии мессенджера:
+```
+=== Messenger onMounted ===
+Calling setupWebSocketHandlers...
+=== setupWebSocketHandlers CALLED ===
+WebSocket connected: true
+[WS] Subscribed to event: chat:newMessage, total listeners: 1
+setupWebSocketHandlers completed
+```
+
+### При выборе чата:
+```
+[WS] joinChat called, chatId: 5, connected: true
+[WS] joinChat response: { success: true, room: 'chat:5' }
+```
+
+### При получении сообщения:
+```
+=== WebSocket: SOCKET.IO EVENT chat:newMessage ===
+Message ID: 123
+Chat ID: 5
+Listeners count: 1
+[WS] Emitting event: chat:newMessage, listeners: 1
+[WS] Calling listener 1 for chat:newMessage
+WebSocket: Получено новое сообщение 123 chatId: 5
+```
+
+Если какой-то из этих логов отсутствует - это указывает на проблему.
+
 ## Частые проблемы
 
 ### 1. WebSocket не подключается
