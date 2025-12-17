@@ -1,0 +1,2089 @@
+root@flawlesscrowd:/opt/BusinessUnion# docker logs -f businessunion-websocket
+[Nest] 1  - 12/17/2025, 4:53:52 PM     LOG [WebSocketServer] === Starting WebSocket Server ===
+[Nest] 1  - 12/17/2025, 4:53:52 PM     LOG [WebSocketServer] Environment: production
+[Nest] 1  - 12/17/2025, 4:53:52 PM     LOG [WebSocketServer] Port: 3002
+[Nest] 1  - 12/17/2025, 4:53:52 PM     LOG [WebSocketServer] Redis Host: redis
+[Nest] 1  - 12/17/2025, 4:53:52 PM     LOG [WebSocketServer] CORS Origin: *
+[Nest] 1  - 12/17/2025, 4:53:52 PM     LOG [NestFactory] Starting Nest application... +113ms
+[Nest] 1  - 12/17/2025, 4:53:52 PM     LOG [WebsocketGateway] === WebSocket Gateway Constructor ===
+[Nest] 1  - 12/17/2025, 4:53:52 PM     LOG [WebsocketGateway] WS_CORS_ORIGIN: *
+[Nest] 1  - 12/17/2025, 4:53:52 PM     LOG [InstanceLoader] ConfigHostModule dependencies initialized +0ms
+[Nest] 1  - 12/17/2025, 4:53:52 PM     LOG [InstanceLoader] JwtModule dependencies initialized +0ms
+[Nest] 1  - 12/17/2025, 4:53:52 PM     LOG [InstanceLoader] ConfigModule dependencies initialized +0ms
+[Nest] 1  - 12/17/2025, 4:53:52 PM     LOG [InstanceLoader] AppModule dependencies initialized +0ms
+[Nest] 1  - 12/17/2025, 4:53:52 PM     LOG [WebsocketService] Server instance set
+[Nest] 1  - 12/17/2025, 4:53:52 PM     LOG [WebsocketGateway] === WebSocket Gateway Initialized ===
+[Nest] 1  - 12/17/2025, 4:53:52 PM     LOG [WebsocketGateway] Server instance created: true
+[Nest] 1  - 12/17/2025, 4:53:52 PM     LOG [WebSocketsController] WebsocketGateway subscribed to the "chat:join" message +0ms
+[Nest] 1  - 12/17/2025, 4:53:52 PM     LOG [WebSocketsController] WebsocketGateway subscribed to the "chat:leave" message +1ms
+[Nest] 1  - 12/17/2025, 4:53:52 PM     LOG [WebSocketsController] WebsocketGateway subscribed to the "chat:typing" message +0ms
+[Nest] 1  - 12/17/2025, 4:53:52 PM     LOG [WebSocketsController] WebsocketGateway subscribed to the "chat:read" message +0ms
+[Nest] 1  - 12/17/2025, 4:53:52 PM     LOG [WebSocketsController] WebsocketGateway subscribed to the "project:join" message +0ms
+[Nest] 1  - 12/17/2025, 4:53:52 PM     LOG [WebSocketsController] WebsocketGateway subscribed to the "project:leave" message +0ms
+[Nest] 1  - 12/17/2025, 4:53:52 PM     LOG [WebSocketsController] WebsocketGateway subscribed to the "community:join" message +0ms
+[Nest] 1  - 12/17/2025, 4:53:52 PM     LOG [WebSocketsController] WebsocketGateway subscribed to the "community:leave" message +0ms
+[Nest] 1  - 12/17/2025, 4:53:52 PM     LOG [RoutesResolver] HealthController {/}: +1ms
+[Nest] 1  - 12/17/2025, 4:53:52 PM     LOG [RouterExplorer] Mapped {/health, GET} route +1ms
+[Nest] 1  - 12/17/2025, 4:53:52 PM     LOG [RouterExplorer] Mapped {/stats, GET} route +1ms
+[Nest] 1  - 12/17/2025, 4:53:52 PM     LOG [WebsocketGateway] === Setting up Redis event handlers ===
+[Nest] 1  - 12/17/2025, 4:53:52 PM     LOG [RedisService] Registered handler for event: chat:newMessage
+[Nest] 1  - 12/17/2025, 4:53:52 PM     LOG [RedisService] Registered handler for event: chat:messageEdited
+[Nest] 1  - 12/17/2025, 4:53:52 PM     LOG [RedisService] Registered handler for event: chat:messageDeleted
+[Nest] 1  - 12/17/2025, 4:53:52 PM     LOG [RedisService] Registered handler for event: notification
+[Nest] 1  - 12/17/2025, 4:53:52 PM     LOG [RedisService] Registered handler for event: project:update
+[Nest] 1  - 12/17/2025, 4:53:52 PM     LOG [RedisService] Registered handler for event: community:update
+[Nest] 1  - 12/17/2025, 4:53:52 PM     LOG [RedisService] Registered handler for event: crypto:update
+[Nest] 1  - 12/17/2025, 4:53:52 PM     LOG [RedisService] Registered handler for event: exchangeRates:update
+[Nest] 1  - 12/17/2025, 4:53:52 PM     LOG [WebsocketGateway] Redis event handlers registered
+[Nest] 1  - 12/17/2025, 4:53:52 PM     LOG [RedisService] === Connecting to Redis ===
+[Nest] 1  - 12/17/2025, 4:53:52 PM     LOG [RedisService] Host: redis:6379
+[Nest] 1  - 12/17/2025, 4:53:52 PM     LOG [RedisService] Redis subscriber connected
+[Nest] 1  - 12/17/2025, 4:53:52 PM     LOG [RedisService] Redis publisher connected
+[Nest] 1  - 12/17/2025, 4:53:52 PM     LOG [RedisService] Subscribed to websocket:events channel
+[Nest] 1  - 12/17/2025, 4:53:52 PM     LOG [NestApplication] Nest application successfully started +1ms
+[Nest] 1  - 12/17/2025, 4:53:52 PM     LOG [WebSocketServer] === WebSocket Server running on port 3002 ===
+[Nest] 1  - 12/17/2025, 4:55:54 PM     LOG [RedisService] === REDIS MESSAGE RECEIVED ===
+[Nest] 1  - 12/17/2025, 4:55:54 PM     LOG [RedisService] Channel: websocket:events
+[Nest] 1  - 12/17/2025, 4:55:54 PM     LOG [RedisService] [REDIS] Received event: chat:newMessage
+[Nest] 1  - 12/17/2025, 4:55:54 PM     LOG [RedisService] [REDIS] Data: {"event":"chat:newMessage","chatId":14,"message":{"id":49,"text":"привет","type":"text","fileUrl":null,"fileName":null,"fileSize":null,"status":"sent","replyToId":null,"forwardedFromId":null,"senderId":6,"sender":{"id":6,"firstName":"Аркадий","lastName":"Иванов","middleName":"Витальевич","email":"az...
+[Nest] 1  - 12/17/2025, 4:55:54 PM     LOG [RedisService] [REDIS] Registered handlers: chat:newMessage, chat:messageEdited, chat:messageDeleted, notification, project:update, community:update, crypto:update, exchangeRates:update
+[Nest] 1  - 12/17/2025, 4:55:54 PM     LOG [RedisService] [REDIS] Found handler for chat:newMessage, calling...
+[Nest] 1  - 12/17/2025, 4:55:54 PM     LOG [WebsocketGateway] [REDIS->WS] chat:newMessage for chat 14, participants: 1, 6
+[Nest] 1  - 12/17/2025, 4:55:54 PM     LOG [WebsocketGateway] === SENDING NEW MESSAGE ===
+[Nest] 1  - 12/17/2025, 4:55:54 PM     LOG [WebsocketGateway] Room: chat:14
+[Nest] 1  - 12/17/2025, 4:55:54 PM     LOG [WebsocketGateway] Message ID: 49
+[Nest] 1  - 12/17/2025, 4:55:54 PM     LOG [WebsocketGateway] Sender ID: 6
+[Nest] 1  - 12/17/2025, 4:55:54 PM     LOG [WebsocketGateway] Participants: 1, 6
+[Nest] 1  - 12/17/2025, 4:55:54 PM     LOG [WebsocketGateway] Clients in room chat:14: 0
+[Nest] 1  - 12/17/2025, 4:55:54 PM     LOG [WebsocketGateway] Event 'chat:newMessage' emitted to room chat:14
+[Nest] 1  - 12/17/2025, 4:55:54 PM     LOG [WebsocketGateway] Clients in room user:1: 0
+[Nest] 1  - 12/17/2025, 4:55:54 PM     LOG [WebsocketGateway] Event 'chat:newMessage' also sent to user:1
+[Nest] 1  - 12/17/2025, 4:55:54 PM     LOG [WebsocketGateway] Clients in room user:6: 0
+[Nest] 1  - 12/17/2025, 4:55:54 PM     LOG [WebsocketGateway] Event 'chat:newMessage' also sent to user:6
+[Nest] 1  - 12/17/2025, 4:55:54 PM     LOG [WebsocketGateway] === MESSAGE SEND COMPLETE ===
+[Nest] 1  - 12/17/2025, 4:55:54 PM     LOG [RedisService] [REDIS] Handler for chat:newMessage completed
+[Nest] 1  - 12/17/2025, 4:56:01 PM     LOG [RedisService] === REDIS MESSAGE RECEIVED ===
+[Nest] 1  - 12/17/2025, 4:56:01 PM     LOG [RedisService] Channel: websocket:events
+[Nest] 1  - 12/17/2025, 4:56:01 PM     LOG [RedisService] [REDIS] Received event: chat:newMessage
+[Nest] 1  - 12/17/2025, 4:56:01 PM     LOG [RedisService] [REDIS] Data: {"event":"chat:newMessage","chatId":14,"message":{"id":50,"text":"парпа","type":"text","fileUrl":null,"fileName":null,"fileSize":null,"status":"sent","replyToId":null,"forwardedFromId":null,"senderId":1,"sender":{"id":1,"firstName":"Азим","lastName":"Булатов","middleName":"Сейранович","email":"azimb...
+[Nest] 1  - 12/17/2025, 4:56:01 PM     LOG [RedisService] [REDIS] Registered handlers: chat:newMessage, chat:messageEdited, chat:messageDeleted, notification, project:update, community:update, crypto:update, exchangeRates:update
+[Nest] 1  - 12/17/2025, 4:56:01 PM     LOG [RedisService] [REDIS] Found handler for chat:newMessage, calling...
+[Nest] 1  - 12/17/2025, 4:56:01 PM     LOG [WebsocketGateway] [REDIS->WS] chat:newMessage for chat 14, participants: 1, 6
+[Nest] 1  - 12/17/2025, 4:56:01 PM     LOG [WebsocketGateway] === SENDING NEW MESSAGE ===
+[Nest] 1  - 12/17/2025, 4:56:01 PM     LOG [WebsocketGateway] Room: chat:14
+[Nest] 1  - 12/17/2025, 4:56:01 PM     LOG [WebsocketGateway] Message ID: 50
+[Nest] 1  - 12/17/2025, 4:56:01 PM     LOG [WebsocketGateway] Sender ID: 1
+[Nest] 1  - 12/17/2025, 4:56:01 PM     LOG [WebsocketGateway] Participants: 1, 6
+[Nest] 1  - 12/17/2025, 4:56:01 PM     LOG [WebsocketGateway] Clients in room chat:14: 0
+[Nest] 1  - 12/17/2025, 4:56:01 PM     LOG [WebsocketGateway] Event 'chat:newMessage' emitted to room chat:14
+[Nest] 1  - 12/17/2025, 4:56:01 PM     LOG [WebsocketGateway] Clients in room user:1: 0
+[Nest] 1  - 12/17/2025, 4:56:01 PM     LOG [WebsocketGateway] Event 'chat:newMessage' also sent to user:1
+[Nest] 1  - 12/17/2025, 4:56:01 PM     LOG [WebsocketGateway] Clients in room user:6: 0
+[Nest] 1  - 12/17/2025, 4:56:01 PM     LOG [WebsocketGateway] Event 'chat:newMessage' also sent to user:6
+[Nest] 1  - 12/17/2025, 4:56:01 PM     LOG [WebsocketGateway] === MESSAGE SEND COMPLETE ===
+[Nest] 1  - 12/17/2025, 4:56:01 PM     LOG [RedisService] [REDIS] Handler for chat:newMessage completed
+
+
+
+Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1821 Попытка отправки сообщения Object
+Messenger.vue:1839 Отправка сообщения в чат 14: "парпа"
+messenger.service.js:184 Отправка сообщения: Object
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T15:23:38.765Z vs 2025-12-17T15:23:16.142Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T15:24:11.528Z vs 2025-12-17T15:23:38.765Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T15:24:21.423Z vs 2025-12-17T15:24:11.528Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T15:33:52.994Z vs 2025-12-17T15:24:21.423Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T15:35:08.108Z vs 2025-12-17T15:33:52.994Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T15:44:10.837Z vs 2025-12-17T15:35:08.108Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T15:44:48.685Z vs 2025-12-17T15:44:10.837Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:06:41.129Z vs 2025-12-17T15:44:48.685Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:08:18.666Z vs 2025-12-17T16:06:41.129Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:15:56.082Z vs 2025-12-17T16:08:18.666Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:16:10.493Z vs 2025-12-17T16:15:56.082Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:30:35.765Z vs 2025-12-17T16:16:10.493Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:31:03.015Z vs 2025-12-17T16:30:35.765Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:31:15.299Z vs 2025-12-17T16:31:03.015Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:31:25.381Z vs 2025-12-17T16:31:15.299Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:31:50.353Z vs 2025-12-17T16:31:25.381Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:38:57.827Z vs 2025-12-17T16:31:50.353Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:39:10.260Z vs 2025-12-17T16:38:57.827Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:41:23.720Z vs 2025-12-17T16:39:10.260Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:42:17.008Z vs 2025-12-17T16:41:23.720Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:43:05.029Z vs 2025-12-17T16:42:17.008Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:55:54.246Z vs 2025-12-17T16:43:05.029Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:56:00.143Z vs 2025-12-17T16:55:54.246Z
+Messenger.vue:1987 Сообщения отсортированы: 24 сообщений
+Messenger.vue:2012 Группировка сообщений: 1 дней
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+messenger.service.js:188 Сообщение успешно отправлено: Object
+Messenger.vue:1887 Ответ от сервера при отправке сообщения: Object
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T15:23:38.765Z vs 2025-12-17T15:23:16.142Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T15:24:11.528Z vs 2025-12-17T15:23:38.765Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T15:24:21.423Z vs 2025-12-17T15:24:11.528Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T15:33:52.994Z vs 2025-12-17T15:24:21.423Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T15:35:08.108Z vs 2025-12-17T15:33:52.994Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T15:44:10.837Z vs 2025-12-17T15:35:08.108Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T15:44:48.685Z vs 2025-12-17T15:44:10.837Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:06:41.129Z vs 2025-12-17T15:44:48.685Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:08:18.666Z vs 2025-12-17T16:06:41.129Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:15:56.082Z vs 2025-12-17T16:08:18.666Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:16:10.493Z vs 2025-12-17T16:15:56.082Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:30:35.765Z vs 2025-12-17T16:16:10.493Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:31:03.015Z vs 2025-12-17T16:30:35.765Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:31:15.299Z vs 2025-12-17T16:31:03.015Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:31:25.381Z vs 2025-12-17T16:31:15.299Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:31:50.353Z vs 2025-12-17T16:31:25.381Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:38:57.827Z vs 2025-12-17T16:31:50.353Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:39:10.260Z vs 2025-12-17T16:38:57.827Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:41:23.720Z vs 2025-12-17T16:39:10.260Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:42:17.008Z vs 2025-12-17T16:41:23.720Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:43:05.029Z vs 2025-12-17T16:42:17.008Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:55:54.246Z vs 2025-12-17T16:43:05.029Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:56:01.701Z vs 2025-12-17T16:55:54.246Z
+Messenger.vue:1987 Сообщения отсортированы: 24 сообщений
+Messenger.vue:2012 Группировка сообщений: 1 дней
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Аркадий Иванов
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 1, localStorage 1
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+websocket.service.js:293 [WS] sendTyping called, chatId: 14, isTyping: false
+
+
+Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1821 Попытка отправки сообщения Object
+Messenger.vue:1839 Отправка сообщения в чат 14: "привет"
+messenger.service.js:184 Отправка сообщения: Object
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T15:23:38.765Z vs 2025-12-17T15:23:16.142Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T15:24:11.528Z vs 2025-12-17T15:23:38.765Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T15:24:21.423Z vs 2025-12-17T15:24:11.528Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T15:33:52.994Z vs 2025-12-17T15:24:21.423Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T15:35:08.108Z vs 2025-12-17T15:33:52.994Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T15:44:10.837Z vs 2025-12-17T15:35:08.108Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T15:44:48.685Z vs 2025-12-17T15:44:10.837Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:06:41.129Z vs 2025-12-17T15:44:48.685Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:08:18.666Z vs 2025-12-17T16:06:41.129Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:15:56.082Z vs 2025-12-17T16:08:18.666Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:16:10.493Z vs 2025-12-17T16:15:56.082Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:30:35.765Z vs 2025-12-17T16:16:10.493Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:31:03.015Z vs 2025-12-17T16:30:35.765Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:31:15.299Z vs 2025-12-17T16:31:03.015Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:31:25.381Z vs 2025-12-17T16:31:15.299Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:31:50.353Z vs 2025-12-17T16:31:25.381Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:38:57.827Z vs 2025-12-17T16:31:50.353Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:39:10.260Z vs 2025-12-17T16:38:57.827Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:41:23.720Z vs 2025-12-17T16:39:10.260Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:42:17.008Z vs 2025-12-17T16:41:23.720Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:43:05.029Z vs 2025-12-17T16:42:17.008Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:55:52.679Z vs 2025-12-17T16:43:05.029Z
+Messenger.vue:1987 Сообщения отсортированы: 23 сообщений
+Messenger.vue:2012 Группировка сообщений: 1 дней
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+websocket.service.js:293 [WS] sendTyping called, chatId: 14, isTyping: false
+messenger.service.js:188 Сообщение успешно отправлено: Object
+Messenger.vue:1887 Ответ от сервера при отправке сообщения: Object
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T15:23:38.765Z vs 2025-12-17T15:23:16.142Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T15:24:11.528Z vs 2025-12-17T15:23:38.765Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T15:24:21.423Z vs 2025-12-17T15:24:11.528Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T15:33:52.994Z vs 2025-12-17T15:24:21.423Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T15:35:08.108Z vs 2025-12-17T15:33:52.994Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T15:44:10.837Z vs 2025-12-17T15:35:08.108Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T15:44:48.685Z vs 2025-12-17T15:44:10.837Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:06:41.129Z vs 2025-12-17T15:44:48.685Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:08:18.666Z vs 2025-12-17T16:06:41.129Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:15:56.082Z vs 2025-12-17T16:08:18.666Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:16:10.493Z vs 2025-12-17T16:15:56.082Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:30:35.765Z vs 2025-12-17T16:16:10.493Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:31:03.015Z vs 2025-12-17T16:30:35.765Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:31:15.299Z vs 2025-12-17T16:31:03.015Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:31:25.381Z vs 2025-12-17T16:31:15.299Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:31:50.353Z vs 2025-12-17T16:31:25.381Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:38:57.827Z vs 2025-12-17T16:31:50.353Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:39:10.260Z vs 2025-12-17T16:38:57.827Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:41:23.720Z vs 2025-12-17T16:39:10.260Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:42:17.008Z vs 2025-12-17T16:41:23.720Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:43:05.029Z vs 2025-12-17T16:42:17.008Z
+Messenger.vue:1983 Сортировка сообщений: 2025-12-17T16:55:54.246Z vs 2025-12-17T16:43:05.029Z
+Messenger.vue:1987 Сообщения отсортированы: 23 сообщений
+Messenger.vue:2012 Группировка сообщений: 1 дней
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2619 Получение аватара для пользователя: Proxy(Object)
+Messenger.vue:2638 Аватар не найден, используем дефолтный
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:1262 Получение полного имени для пользователя: Proxy(Object)
+Messenger.vue:1265 Структура объекта пользователя: id, firstName, lastName, middleName, email, password, userType, interests, profile, createdAt, updatedAt
+Messenger.vue:1277 Собрано полное имя из firstName и lastName: Азим Булатов
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 1, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: false
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true
+Messenger.vue:2052 Сравнение ID: сообщение от 6, текущий 6, localStorage 6
+Messenger.vue:2056 Результат сравнения - собственное сообщение: true

@@ -9,6 +9,7 @@ class WebSocketService {
     this.reconnectAttempts = 0;
     this.maxReconnectAttempts = 5;
     this.listeners = new Map();
+    this.pendingChatId = null; // Чат для присоединения после подключения
     
     // Состояние типинга для чатов
     this.typingUsers = reactive({});
@@ -114,6 +115,9 @@ class WebSocketService {
       console.log('Socket ID:', data.socketId);
       console.log('Online users:', data.onlineUsers);
       this.onlineUsers.value = data.onlineUsers || [];
+      
+      // Присоединяемся к отложенному чату если есть
+      this.joinPendingChat();
     });
 
     // Отключение
@@ -270,7 +274,22 @@ class WebSocketService {
         console.log(`[WS] joinChat response:`, response);
       });
     } else {
-      console.warn('[WS] Cannot join chat - not connected');
+      console.warn('[WS] Cannot join chat - not connected, will retry when connected');
+      // Сохраняем chatId для присоединения после подключения
+      this.pendingChatId = chatId;
+    }
+  }
+
+  /**
+   * Присоединиться к отложенному чату (вызывается после подключения)
+   */
+  joinPendingChat() {
+    if (this.pendingChatId && this.socket?.connected) {
+      console.log(`[WS] Joining pending chat: ${this.pendingChatId}`);
+      this.socket.emit('chat:join', { chatId: this.pendingChatId }, (response) => {
+        console.log(`[WS] joinPendingChat response:`, response);
+      });
+      this.pendingChatId = null;
     }
   }
 
