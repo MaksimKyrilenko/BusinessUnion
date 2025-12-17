@@ -5,11 +5,14 @@ class WebSocketService {
   constructor() {
     this.socket = null;
     this.isConnected = ref(false);
+    this.isAuthenticated = ref(false); // Флаг успешной аутентификации
     this.onlineUsers = ref([]);
     this.reconnectAttempts = 0;
     this.maxReconnectAttempts = 5;
     this.listeners = new Map();
-    this.pendingChatId = null; // Чат для присоединения после подключения
+    this.pendingChatId = null;
+    this.connectionPromise = null; // Promise для ожидания подключения
+    this.connectionResolve = null;
     
     // Состояние типинга для чатов
     this.typingUsers = reactive({});
@@ -66,7 +69,39 @@ class WebSocketService {
     });
 
     console.log('WebSocket: Socket instance created');
+    
+    // Создаём Promise для ожидания подключения
+    this.connectionPromise = new Promise((resolve) => {
+      this.connectionResolve = resolve;
+    });
+    
     this.setupEventListeners();
+  }
+
+  /**
+   * Ожидание подключения и аутентификации
+   */
+  async waitForConnection(timeout = 5000) {
+    if (this.isAuthenticated.value) {
+      return true;
+    }
+    
+    if (!this.connectionPromise) {
+      this.connect();
+    }
+    
+    // Ждём подключения с таймаутом
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Connection timeout')), timeout);
+    });
+    
+    try {
+      await Promise.race([this.connectionPromise, timeoutPromise]);
+      return true;
+    } catch (e) {
+      console.warn('WebSocket: Connection timeout');
+      return false;
+    }
   }
 
   /**
@@ -115,6 +150,13 @@ class WebSocketService {
       console.log('Socket ID:', data.socketId);
       console.log('Online users:', data.onlineUsers);
       this.onlineUsers.value = data.onlineUsers || [];
+      this.isAuthenticated.value = true;
+      
+      // Резолвим Promise ожидания подключения
+      if (this.connectionResolve) {
+        this.connectionResolve();
+        this.connectionResolve = null;
+      }
       
       // Присоединяемся к отложенному чату если есть
       this.joinPendingChat();
@@ -125,6 +167,11 @@ class WebSocketService {
       console.log('=== WebSocket DISCONNECTED ===');
       console.log('Reason:', reason);
       this.isConnected.value = false;
+      this.isAuthenticated.value = false;
+      
+      // Сбрасываем Promise подключения для возможности переподключения
+      this.connectionPromise = null;
+      this.connectionResolve = null;
     });
 
     // Ошибка подключения
@@ -265,17 +312,30 @@ class WebSocketService {
   // ==================== CHAT METHODS ====================
 
   /**
-   * Присоединиться к чату
+   * Присоединиться к чату (с ожиданием подключения)
    */
-  joinChat(chatId) {
-    console.log(`[WS] joinChat called, chatId: ${chatId}, connected: ${this.socket?.connected}`);
+  async joinChat(chatId) {
+    console.log(`[WS] joinChat called, chatId: ${chatId}, connected: ${this.socket?.connected}, authenticated: ${this.isAuthenticated.value}`);
+    
+    // Если не подключены - ждём подключения
+    if (!this.isAuthenticated.value) {
+      console.log('[WS] Not authenticated yet, waiting for connection...');
+      this.pendingChatId = chatId;
+      const connected = await this.waitForConnection();
+      if (!connected) {
+        console.error('[WS] Failed to connect, cannot join chat');
+        return;
+      }
+    }
+    
     if (this.socket?.connected) {
+      console.log(`[WS] Emitting chat:join for chatId: ${chatId}`);
       this.socket.emit('chat:join', { chatId }, (response) => {
         console.log(`[WS] joinChat response:`, response);
       });
+      this.pendingChatId = null;
     } else {
-      console.warn('[WS] Cannot join chat - not connected, will retry when connected');
-      // Сохраняем chatId для присоединения после подключения
+      console.warn('[WS] Socket not connected after waiting');
       this.pendingChatId = chatId;
     }
   }
