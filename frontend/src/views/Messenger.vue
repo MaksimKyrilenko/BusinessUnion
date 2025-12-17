@@ -1895,6 +1895,9 @@ export default {
             // Если временное сообщение не найдено, добавляем реальное в конец списка
             selectedChat.value.messages.push(response.data);
           }
+          
+          // Добавляем ID в processedMessageIds чтобы WebSocket не добавил дубликат
+          processedMessageIds.add(response.data.id);
         }
         
         // Очищаем поле ввода
@@ -2636,30 +2639,10 @@ export default {
       return defaultAvatar;
     }
 
-    onMounted(() => {
-      loadChats()
-      
-      // Подключаем WebSocket обработчики
-      setupWebSocketHandlers()
-    })
-    
-    // Отключаем WebSocket обработчики при размонтировании
-    onUnmounted(() => {
-      // Покидаем текущий чат
-      if (selectedChat.value) {
-        websocketService.leaveChat(selectedChat.value.id)
-      }
-      
-      // Отписываемся от всех событий
-      wsUnsubscribers.forEach(unsub => {
-        if (typeof unsub === 'function') unsub()
-      })
-    })
-    
-    // Настройка WebSocket обработчиков
     // Set для отслеживания уже обработанных сообщений (защита от дубликатов)
     const processedMessageIds = new Set()
     
+    // Настройка WebSocket обработчиков
     const setupWebSocketHandlers = () => {
       // Обработчик новых сообщений
       const unsubNewMessage = websocketService.on('chat:newMessage', (message) => {
@@ -2761,6 +2744,26 @@ export default {
       })
       wsUnsubscribers.push(unsubOffline)
     }
+
+    onMounted(() => {
+      loadChats()
+      
+      // Подключаем WebSocket обработчики
+      setupWebSocketHandlers()
+    })
+    
+    // Отключаем WebSocket обработчики при размонтировании
+    onUnmounted(() => {
+      // Покидаем текущий чат
+      if (selectedChat.value) {
+        websocketService.leaveChat(selectedChat.value.id)
+      }
+      
+      // Отписываемся от всех событий
+      wsUnsubscribers.forEach(unsub => {
+        if (typeof unsub === 'function') unsub()
+      })
+    })
 
     // Функция для полного форматирования даты и времени для всплывающей подсказки
     const formatFullDateTime = (timestamp) => {
