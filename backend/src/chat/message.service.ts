@@ -1,11 +1,11 @@
-import { BadRequestException, Injectable, NotFoundException, ForbiddenException, Inject, forwardRef } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Message } from './entities/message.entity';
 import { ChatUser } from './entities/chat-user.entity';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { MessageStatus } from './enums/message-status.enum';
-import { WebsocketGateway } from '../websocket/websocket.gateway';
+import { RedisPublisherService } from '../redis/redis-publisher.service';
 
 @Injectable()
 export class MessageService {
@@ -14,8 +14,7 @@ export class MessageService {
     private messageRepository: Repository<Message>,
     @InjectRepository(ChatUser)
     private chatUserRepository: Repository<ChatUser>,
-    @Inject(forwardRef(() => WebsocketGateway))
-    private websocketGateway: WebsocketGateway,
+    private redisPublisher: RedisPublisherService,
   ) {}
 
   async create(createMessageDto: CreateMessageDto, userId: number): Promise<Message> {
@@ -55,11 +54,12 @@ export class MessageService {
 
     console.log(`Создано новое сообщение ID: ${result.id} отправитель: ${result.sender?.firstName || ''} ${result.sender?.lastName || ''}`);
 
-    // Отправляем сообщение через WebSocket всем участникам чата
+    // Отправляем сообщение через Redis -> WebSocket сервер
     try {
-      this.websocketGateway.sendNewMessage(createMessageDto.chatId, result);
+      console.log(`[REDIS] Отправка сообщения ${result.id} в чат ${createMessageDto.chatId}`);
+      await this.redisPublisher.sendChatMessage(createMessageDto.chatId, result);
     } catch (error) {
-      console.error('Ошибка при отправке сообщения через WebSocket:', error);
+      console.error('Ошибка при отправке сообщения через Redis:', error);
     }
 
     return result;
@@ -160,11 +160,11 @@ export class MessageService {
     message.isEdited = true;
     const savedMessage = await this.messageRepository.save(message);
 
-    // Отправляем уведомление через WebSocket
+    // Отправляем уведомление через Redis -> WebSocket сервер
     try {
-      this.websocketGateway.sendMessageEdited(message.chatId, savedMessage);
+      await this.redisPublisher.sendMessageEdited(message.chatId, savedMessage);
     } catch (error) {
-      console.error('Ошибка при отправке уведомления о редактировании через WebSocket:', error);
+      console.error('Ошибка при отправке уведомления о редактировании через Redis:', error);
     }
 
     return savedMessage;
@@ -187,11 +187,11 @@ export class MessageService {
     const chatId = message.chatId;
     await this.messageRepository.remove(message);
 
-    // Отправляем уведомление через WebSocket
+    // Отправляем уведомление через Redis -> WebSocket сервер
     try {
-      this.websocketGateway.sendMessageDeleted(chatId, messageId);
+      await this.redisPublisher.sendMessageDeleted(chatId, messageId);
     } catch (error) {
-      console.error('Ошибка при отправке уведомления об удалении через WebSocket:', error);
+      console.error('Ошибка при отправке уведомления об удалении через Redis:', error);
     }
   }
 

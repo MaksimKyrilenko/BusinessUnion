@@ -25,7 +25,7 @@ import { EducationModule } from './education/education.module';
 import { CommunitiesModule } from './communities/communities.module';
 import { CryptoTrackerModule } from './crypto-tracker/crypto-tracker.module';
 import { DashboardModule } from './dashboard/dashboard.module';
-import { WebsocketModule } from './websocket/websocket.module';
+import { RedisModule } from './redis/redis.module';
 
 @Module({
   imports: [
@@ -48,6 +48,7 @@ import { WebsocketModule } from './websocket/websocket.module';
         logging: configService.get('DB_LOGGING') === 'true',
       }),
     }),
+    RedisModule, // Глобальный модуль для публикации событий в WebSocket сервер
     UsersModule,
     ProjectsModule,
     InvestmentsModule,
@@ -61,7 +62,6 @@ import { WebsocketModule } from './websocket/websocket.module';
     CommunitiesModule,
     CryptoTrackerModule,
     DashboardModule,
-    WebsocketModule,
   ],
   controllers: [AppController],
   providers: [AppService],

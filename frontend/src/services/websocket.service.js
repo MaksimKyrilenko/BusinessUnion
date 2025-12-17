@@ -18,22 +18,30 @@ class WebSocketService {
    * Подключение к WebSocket серверу
    */
   connect() {
+    console.log('=== WebSocket Connect Called ===');
+    
     const token = localStorage.getItem('token');
     
     if (!token) {
       console.warn('WebSocket: No token found, skipping connection');
       return;
     }
+    
+    console.log('WebSocket: Token found (length:', token.length, ')');
 
     if (this.socket?.connected) {
-      console.log('WebSocket: Already connected');
+      console.log('WebSocket: Already connected, socket id:', this.socket.id);
       return;
     }
 
     // Определяем URL для подключения
     const wsUrl = this.getWebSocketUrl();
     
-    console.log('WebSocket: Connecting to', wsUrl);
+    console.log('=== WebSocket Connection Details ===');
+    console.log('URL:', wsUrl);
+    console.log('Hostname:', window.location.hostname);
+    console.log('Port:', window.location.port);
+    console.log('Origin:', window.location.origin);
 
     this.socket = io(wsUrl, {
       auth: { token },
@@ -45,6 +53,7 @@ class WebSocketService {
       timeout: 20000,
     });
 
+    console.log('WebSocket: Socket instance created');
     this.setupEventListeners();
   }
 
@@ -57,18 +66,18 @@ class WebSocketService {
       return process.env.VUE_APP_WS_URL;
     }
     
-    // В Docker/production используем тот же origin (nginx проксирует)
-    // В development на localhost:8081 подключаемся к backend на 3001
+    // В Docker/production используем тот же origin (nginx проксирует на websocket:3002)
+    // В development на localhost:8081 подключаемся к websocket серверу на 3002
     const hostname = window.location.hostname;
     const port = window.location.port;
     
     // Если это development сервер Vue (порт 8081)
     if (hostname === 'localhost' && port === '8081') {
-      return 'http://localhost:3001';
+      return 'http://localhost:3002';
     }
     
     // В остальных случаях (Docker, production) используем текущий origin
-    // nginx проксирует /socket.io на backend
+    // nginx проксирует /socket.io на websocket контейнер
     return window.location.origin;
   }
 
@@ -76,29 +85,41 @@ class WebSocketService {
    * Настройка обработчиков событий
    */
   setupEventListeners() {
+    console.log('=== Setting up WebSocket Event Listeners ===');
+    
     // Подключение
     this.socket.on('connect', () => {
-      console.log('WebSocket: Connected', this.socket.id);
+      console.log('=== WebSocket CONNECTED ===');
+      console.log('Socket ID:', this.socket.id);
+      console.log('Transport:', this.socket.io?.engine?.transport?.name);
       this.isConnected.value = true;
       this.reconnectAttempts = 0;
     });
 
     // Успешная аутентификация
     this.socket.on('connected', (data) => {
-      console.log('WebSocket: Authenticated', data);
+      console.log('=== WebSocket AUTHENTICATED ===');
+      console.log('User ID:', data.userId);
+      console.log('Socket ID:', data.socketId);
+      console.log('Online users:', data.onlineUsers);
       this.onlineUsers.value = data.onlineUsers || [];
     });
 
     // Отключение
     this.socket.on('disconnect', (reason) => {
-      console.log('WebSocket: Disconnected', reason);
+      console.log('=== WebSocket DISCONNECTED ===');
+      console.log('Reason:', reason);
       this.isConnected.value = false;
     });
 
     // Ошибка подключения
     this.socket.on('connect_error', (error) => {
-      console.error('WebSocket: Connection error', error.message);
+      console.error('=== WebSocket CONNECTION ERROR ===');
+      console.error('Error:', error.message);
+      console.error('Description:', error.description);
+      console.error('Type:', error.type);
       this.reconnectAttempts++;
+      console.log('Reconnect attempt:', this.reconnectAttempts, '/', this.maxReconnectAttempts);
       
       if (this.reconnectAttempts >= this.maxReconnectAttempts) {
         console.error('WebSocket: Max reconnection attempts reached');
@@ -107,7 +128,8 @@ class WebSocketService {
 
     // Ошибка
     this.socket.on('error', (error) => {
-      console.error('WebSocket: Error', error);
+      console.error('=== WebSocket ERROR ===');
+      console.error('Error:', error);
     });
 
     // Пользователь онлайн
@@ -227,8 +249,13 @@ class WebSocketService {
    * Присоединиться к чату
    */
   joinChat(chatId) {
+    console.log(`[WS] joinChat called, chatId: ${chatId}, connected: ${this.socket?.connected}`);
     if (this.socket?.connected) {
-      this.socket.emit('chat:join', { chatId });
+      this.socket.emit('chat:join', { chatId }, (response) => {
+        console.log(`[WS] joinChat response:`, response);
+      });
+    } else {
+      console.warn('[WS] Cannot join chat - not connected');
     }
   }
 
@@ -236,8 +263,11 @@ class WebSocketService {
    * Покинуть чат
    */
   leaveChat(chatId) {
+    console.log(`[WS] leaveChat called, chatId: ${chatId}, connected: ${this.socket?.connected}`);
     if (this.socket?.connected) {
-      this.socket.emit('chat:leave', { chatId });
+      this.socket.emit('chat:leave', { chatId }, (response) => {
+        console.log(`[WS] leaveChat response:`, response);
+      });
     }
   }
 
@@ -245,6 +275,7 @@ class WebSocketService {
    * Отправить статус "печатает"
    */
   sendTyping(chatId, isTyping) {
+    console.log(`[WS] sendTyping called, chatId: ${chatId}, isTyping: ${isTyping}`);
     if (this.socket?.connected) {
       this.socket.emit('chat:typing', { chatId, isTyping });
     }

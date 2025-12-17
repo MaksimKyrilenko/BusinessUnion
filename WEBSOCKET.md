@@ -1,30 +1,62 @@
 # WebSocket Integration
 
-## Обзор
+## Архитектура
 
-Проект использует Socket.IO для real-time коммуникации между клиентом и сервером.
-
-## Backend (NestJS)
-
-### Структура файлов
+WebSocket сервер вынесен в **отдельный контейнер** для удобства отладки и масштабирования.
 
 ```
-backend/src/websocket/
-├── websocket.module.ts      # Модуль WebSocket
-├── websocket.gateway.ts     # Gateway для обработки событий
-├── websocket.service.ts     # Сервис для управления подключениями
-├── crypto-updates.service.ts # Сервис для обновления крипто-данных
-└── index.ts                 # Экспорты
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│   Frontend  │────▶│    Nginx    │────▶│  WebSocket  │
+│   (Vue.js)  │     │   (proxy)   │     │   Server    │
+└─────────────┘     └─────────────┘     └──────┬──────┘
+                                               │
+                           ┌───────────────────┘
+                           ▼
+                    ┌─────────────┐
+                    │    Redis    │
+                    │  (pub/sub)  │
+                    └──────┬──────┘
+                           │
+                           ▼
+                    ┌─────────────┐
+                    │   Backend   │
+                    │  (NestJS)   │
+                    └─────────────┘
 ```
 
-### События
+## Контейнеры
 
-#### Подключение
+| Контейнер | Порт | Описание |
+|-----------|------|----------|
+| `businessunion-backend` | 3001 | REST API |
+| `businessunion-websocket` | 3002 | Socket.IO сервер |
+| `businessunion-redis` | 6379 | Pub/Sub для событий |
+| `businessunion-frontend` | 80 | Vue.js + Nginx |
+
+## Просмотр логов
+
+```bash
+# Логи WebSocket сервера (основные для отладки)
+docker logs -f businessunion-websocket
+
+# Логи backend (отправка событий в Redis)
+docker logs -f businessunion-backend
+
+# Логи Redis
+docker logs -f businessunion-redis
+
+# Все логи вместе
+docker-compose logs -f websocket backend redis
+```
+
+## События
+
+### Подключение
 - `connected` - успешное подключение с данными пользователя
 - `user:online` - пользователь вошел в сеть
 - `user:offline` - пользователь вышел из сети
 
-#### Чат
+### Чат
 - `chat:join` - присоединиться к комнате чата
 - `chat:leave` - покинуть комнату чата
 - `chat:typing` - индикатор "печатает"
@@ -33,152 +65,161 @@ backend/src/websocket/
 - `chat:messageEdited` - сообщение отредактировано
 - `chat:messageDeleted` - сообщение удалено
 
-#### Проекты
-- `project:join` - присоединиться к комнате проекта
-- `project:leave` - покинуть комнату проекта
+### Проекты
+- `project:join` / `project:leave` - комнаты проектов
 - `project:update` - обновление проекта
 
-#### Сообщества
-- `community:join` - присоединиться к комнате сообщества
-- `community:leave` - покинуть комнату сообщества
+### Сообщества
+- `community:join` / `community:leave` - комнаты сообществ
 - `community:update` - обновление сообщества
 
-#### Крипто
-- `crypto:update` - обновление крипто-данных (цены, индексы, аномалии)
+### Крипто
+- `crypto:update` - обновление крипто-данных
 
-#### Уведомления
+### Уведомления
 - `notification` - push-уведомление
 
-## Frontend (Vue.js)
-
-### Сервис WebSocket
+## Frontend использование
 
 ```javascript
 import websocketService from '@/services/websocket.service';
 
-// Подключение
+// Подключение (автоматически при наличии токена)
 websocketService.connect();
-
-// Отключение
-websocketService.disconnect();
-
-// Проверка статуса
-websocketService.connected; // boolean
 
 // Подписка на события
 const unsubscribe = websocketService.on('chat:newMessage', (message) => {
   console.log('Новое сообщение:', message);
 });
 
+// Присоединение к чату
+websocketService.joinChat(chatId);
+
+// Отправка статуса "печатает"
+websocketService.sendTyping(chatId, true);
+
 // Отписка
 unsubscribe();
 ```
 
-### Composables
+## Как работает отправка сообщений
 
-```javascript
-import { useWebSocket, useChatWebSocket, useNotifications } from '@/composables/useWebSocket';
+1. **Frontend** отправляет HTTP POST на `/api/messages`
+2. **Backend** сохраняет сообщение в БД
+3. **Backend** публикует событие в **Redis** (`websocket:events`)
+4. **WebSocket Server** получает событие из Redis
+5. **WebSocket Server** отправляет сообщение всем клиентам в комнате чата
 
-// Базовый WebSocket
-const { isConnected, onlineUsers, isUserOnline } = useWebSocket();
+## Отладка
 
-// Для чата
-const { typingUsers, sendTyping, onNewMessage } = useChatWebSocket(chatId);
+### Логи WebSocket сервера
 
-// Для уведомлений
-const { notifications, unreadCount, markAsRead } = useNotifications();
+При подключении клиента:
+```
+[WebsocketGateway] === New Connection Attempt ===
+[WebsocketGateway] Socket ID: abc123xyz
+[WebsocketGateway] Transport: websocket
+[WebsocketGateway] Token received (length: 200)
+[WebsocketGateway] Token verified. User ID: 1
+[WebsocketGateway] === User 1 Connected Successfully ===
 ```
 
-### Компоненты
-
-- `<OnlineStatus :userId="123" />` - индикатор онлайн-статуса
-- `<TypingIndicator :users="typingUsers" />` - индикатор "печатает"
-- `<NotificationBell />` - колокольчик уведомлений
-
-## Аутентификация
-
-WebSocket использует JWT токен для аутентификации. Токен передается при подключении:
-
-```javascript
-const socket = io(url, {
-  auth: { token: 'your-jwt-token' }
-});
+При присоединении к чату:
+```
+[WebsocketGateway] [CHAT:JOIN] User 1 joined room chat:5
+[WebsocketGateway] [CHAT:JOIN] Client abc123xyz rooms: abc123xyz, user:1, chat:5
 ```
 
-## Комнаты
-
-- `user:{userId}` - персональная комната пользователя
-- `chat:{chatId}` - комната чата
-- `project:{projectId}` - комната проекта
-- `community:{communityId}` - комната сообщества
-
-## Docker конфигурация
-
-WebSocket работает через тот же backend контейнер. В `docker-compose.yml` добавлены:
-
-```yaml
-backend:
-  environment:
-    WS_CORS_ORIGIN: ${WS_CORS_ORIGIN:-*}  # CORS для WebSocket
-  ulimits:
-    nofile:
-      soft: 65536
-      hard: 65536  # Увеличенные лимиты для множества соединений
+При получении события из Redis:
+```
+[RedisService] [REDIS] Received event: chat:newMessage
+[WebsocketGateway] [REDIS->WS] chat:newMessage for chat 5
+[WebsocketGateway] === SENDING NEW MESSAGE ===
+[WebsocketGateway] Room: chat:5
+[WebsocketGateway] Clients in room: 2
 ```
 
-## Nginx конфигурация
+### Логи Backend
 
-```nginx
-location /socket.io {
-    proxy_pass http://backend:3001;
-    proxy_http_version 1.1;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection "upgrade";
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_read_timeout 86400;
-    proxy_send_timeout 86400;
+При отправке сообщения:
+```
+[REDIS] Отправка сообщения 123 в чат 5
+[RedisPublisherService] [REDIS] Publishing event: chat:newMessage
+[RedisPublisherService] [REDIS] Event chat:newMessage published successfully
+```
+
+### Консоль браузера
+
+```
+=== WebSocket Connect Called ===
+WebSocket: Token found (length: 200)
+=== WebSocket Connection Details ===
+URL: http://localhost (или http://localhost:3002 в dev)
+=== WebSocket CONNECTED ===
+Socket ID: abc123xyz
+Transport: websocket
+=== WebSocket AUTHENTICATED ===
+User ID: 1
+Online users: [1, 2, 3]
+[WS] joinChat called, chatId: 5, connected: true
+[WS] joinChat response: { success: true, room: 'chat:5' }
+WebSocket: New message received { id: 123, text: '...', ... }
+```
+
+## Health Check
+
+```bash
+# Проверка WebSocket сервера
+curl http://localhost:3002/health
+
+# Ответ:
+{
+  "status": "ok",
+  "service": "websocket-server",
+  "timestamp": "2024-01-01T12:00:00.000Z",
+  "connections": 5,
+  "onlineUsers": 3,
+  "redis": true
 }
+
+# Статистика
+curl http://localhost:3002/stats
 ```
 
-## Примеры использования
+## Частые проблемы
 
-### Отправка сообщения с real-time обновлением
+### 1. WebSocket не подключается
+- Проверьте токен в localStorage
+- Проверьте логи: `docker logs businessunion-websocket`
+- Убедитесь что Redis работает: `docker logs businessunion-redis`
 
-```javascript
-// В компоненте чата
-import messengerService from '@/services/messenger.service';
+### 2. Сообщения не приходят в реальном времени
+- Проверьте что клиент присоединился к комнате (joinChat)
+- Проверьте логи backend - видно ли `[REDIS] Publishing event`
+- Проверьте логи websocket - видно ли `[REDIS] Received event`
 
-// Подписка на новые сообщения
-messengerService.onNewMessage((message) => {
-  messages.value.push(message);
-});
+### 3. Ошибка аутентификации
+- Проверьте JWT_SECRET одинаковый в backend и websocket
+- Убедитесь что токен не истёк
 
-// Присоединение к чату
-messengerService.joinChat(chatId);
-
-// Отправка статуса "печатает"
-messengerService.sendTyping(chatId, true);
+### 4. Redis не подключается
+```bash
+# Проверка Redis
+docker exec -it businessunion-redis redis-cli ping
+# Должен ответить: PONG
 ```
 
-### Отображение онлайн-статуса
+## Переменные окружения
 
-```vue
-<template>
-  <div class="user-card">
-    <span>{{ user.name }}</span>
-    <OnlineStatus :userId="user.id" showText />
-  </div>
-</template>
-```
+```env
+# WebSocket Server
+WS_PORT=3002
+WS_CORS_ORIGIN=*
+JWT_SECRET=your-secret-key
+REDIS_HOST=redis
+REDIS_PORT=6379
 
-### Уведомления
-
-```vue
-<template>
-  <header>
-    <NotificationBell />
-  </header>
-</template>
+# Backend
+REDIS_HOST=redis
+REDIS_PORT=6379
 ```

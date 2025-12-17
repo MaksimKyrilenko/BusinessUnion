@@ -36,7 +36,27 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  # Backend NestJS приложение (включая WebSocket/Socket.IO)
+  # Redis для коммуникации между backend и websocket
+  redis:
+    image: redis:7-alpine
+    container_name: businessunion-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - businessunion-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Backend NestJS приложение (REST API)
   backend:
     build:
       context: ./backend
@@ -64,14 +84,17 @@ services:
       ALPHA_VANTAGE_API_KEY: ${ALPHA_VANTAGE_API_KEY:-}
       FMP_API_KEY: ${FMP_API_KEY:-}
       EXCHANGE_RATES_API_KEY: ${EXCHANGE_RATES_API_KEY:-}
-      # WebSocket настройки
-      WS_CORS_ORIGIN: ${WS_CORS_ORIGIN:-*}
+      # Redis для WebSocket коммуникации
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
     ports:
       - "3001:3001"
     volumes:
       - ./backend/uploads:/app/uploads
     depends_on:
       mysql:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     networks:
       - businessunion-network
@@ -94,7 +117,47 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
-    # Важно для WebSocket - увеличиваем лимиты соединений
+
+  # WebSocket Server (отдельный контейнер для Socket.IO)
+  websocket:
+    build:
+      context: ./websocket-server
+      dockerfile: Dockerfile
+    container_name: businessunion-websocket
+    restart: always
+    environment:
+      NODE_ENV: production
+      WS_PORT: 3002
+      JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-this}
+      WS_CORS_ORIGIN: ${WS_CORS_ORIGIN:-*}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    ports:
+      - "3002:3002"
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - businessunion-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
     ulimits:
       nofile:
         soft: 65536
@@ -106,7 +169,6 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        # Пустое значение = используется относительный путь /api (проксируется nginx)
         VUE_APP_API_URL: ${VUE_APP_API_URL:-}
     container_name: businessunion-frontend
     restart: always
@@ -114,6 +176,7 @@ services:
       - "${FRONTEND_PORT:-80}:80"
     depends_on:
       - backend
+      - websocket
     networks:
       - businessunion-network
     logging:

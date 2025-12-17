@@ -68,18 +68,23 @@ app.mount('#app'); // Монтируем приложение в #app
 // Инициализируем WebSocket после монтирования приложения
 // Подключение произойдет автоматически если есть токен
 router.isReady().then(() => {
+  console.log('=== Router Ready - Checking WebSocket ===');
   const token = localStorage.getItem('token');
+  console.log('Token exists:', !!token);
   if (token) {
+    console.log('Initiating WebSocket connection from main.js');
     websocketService.connect();
   }
 });
 
 // Переподключаем WebSocket при логине
 router.afterEach((to, from) => {
+  console.log(`[Router] Navigation: ${from.path} -> ${to.path}`);
   // Если пользователь только что залогинился
   if (to.path !== '/login' && to.path !== '/register') {
     const token = localStorage.getItem('token');
     if (token && !websocketService.connected) {
+      console.log('[Router] Token found, WebSocket not connected - connecting...');
       websocketService.connect();
     }
   }

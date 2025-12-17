@@ -1,4 +1,4 @@
-import { Module, forwardRef } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Chat } from './entities/chat.entity';
 import { Message } from './entities/message.entity';
@@ -9,13 +9,12 @@ import { MessageController } from './message.controller';
 import { MessageService } from './message.service';
 import { UsersModule } from '../users/users.module';
 import { User } from '../users/user.entity';
-import { WebsocketModule } from '../websocket/websocket.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Chat, Message, ChatUser, User]),
     UsersModule,
-    forwardRef(() => WebsocketModule),
+    // RedisModule уже глобальный, не нужно импортировать
   ],
   controllers: [ChatController, MessageController],
   providers: [ChatService, MessageService],
