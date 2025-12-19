@@ -62,12 +62,25 @@ export default {
   setup(props) {
     // Получаем другого участника для личных чатов
     const otherParticipant = computed(() => {
-      if (props.chat.type !== 'personal' || !props.chat.participants?.length) {
-        return null
+      if (props.chat.type !== 'personal') return null
+      
+      // Пробуем participants (из findAll)
+      if (props.chat.participants?.length) {
+        const found = props.chat.participants.find(
+          p => String(p.id) !== String(props.currentUserId)
+        )
+        if (found) return found
       }
-      return props.chat.participants.find(
-        p => String(p.id) !== String(props.currentUserId)
-      )
+      
+      // Пробуем users (из findOne) - там структура chatUser.user
+      if (props.chat.users?.length) {
+        const chatUser = props.chat.users.find(
+          cu => cu.user && String(cu.user.id) !== String(props.currentUserId)
+        )
+        if (chatUser?.user) return chatUser.user
+      }
+      
+      return null
     })
 
     // Имя чата - для личных показываем имя и фамилию собеседника

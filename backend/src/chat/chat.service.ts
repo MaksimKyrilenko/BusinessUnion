@@ -37,33 +37,54 @@ export class ChatService {
       return [];
     }
 
-    // Найти все чаты с сообщениями и участниками
+    // Найти все чаты с участниками (БЕЗ всех сообщений для оптимизации)
     const chats = await this.chatRepository
       .createQueryBuilder('chat')
       .leftJoinAndSelect('chat.users', 'chatUser')
       .leftJoinAndSelect('chatUser.user', 'user')
       .leftJoinAndSelect('user.profile', 'userProfile')
-      .leftJoinAndSelect('chat.messages', 'messages')
-      .leftJoinAndSelect('messages.sender', 'messageSender')
       .where('chat.id IN (:...chatIds)', { chatIds })
-      .orderBy('messages.createdAt', 'DESC')
       .getMany();
 
-    // Преобразуем данные для фронтенда - добавляем participants
-    return chats.map(chat => {
-      const participants = chat.users?.map(cu => ({
-        id: cu.user?.id,
-        firstName: cu.user?.firstName || '',
-        lastName: cu.user?.lastName || '',
-        email: cu.user?.email || '',
-        avatar: cu.user?.profile?.avatar || null,
-        role: cu.role
-      })) || [];
-      
-      return {
-        ...chat,
-        participants
-      };
+    // Для каждого чата загружаем только последнее сообщение
+    const chatsWithLastMessage = await Promise.all(
+      chats.map(async (chat) => {
+        const lastMessage = await this.chatRepository
+          .createQueryBuilder('chat')
+          .leftJoinAndSelect('chat.messages', 'messages')
+          .leftJoinAndSelect('messages.sender', 'messageSender')
+          .where('chat.id = :chatId', { chatId: chat.id })
+          .orderBy('messages.createdAt', 'DESC')
+          .getOne()
+          .then(c => c?.messages?.[0] || null);
+
+        const participants = chat.users?.map(cu => ({
+          id: cu.user?.id,
+          firstName: cu.user?.firstName || '',
+          lastName: cu.user?.lastName || '',
+          email: cu.user?.email || '',
+          avatar: cu.user?.profile?.avatar || null,
+          role: cu.role
+        })) || [];
+
+        // Получаем unreadCount для текущего пользователя
+        const chatUser = chatUsers.find(cu => cu.chatId === chat.id);
+        
+        return {
+          ...chat,
+          participants,
+          lastMessage,
+          messages: [], // Не возвращаем все сообщения в списке чатов
+          unreadCount: chatUser?.unreadCount || 0
+        };
+      })
+    );
+
+    // Сортируем по времени последнего сообщения
+    return chatsWithLastMessage.sort((a, b) => {
+      const timeA = a.lastMessage?.createdAt ? new Date(a.lastMessage.createdAt).getTime() : 0;
+      const timeB = b.lastMessage?.createdAt ? new Date(b.lastMessage.createdAt).getTime() : 0;
+      return timeB - timeA;
     });
   }
 
@@ -97,7 +118,20 @@ export class ChatService {
       throw new NotFoundException(`Чат с ID ${id} не найден`);
     }
 
-    return chat;
+    // Добавляем participants для консистентности с findAll
+    const participants = chat.users?.map(cu => ({
+      id: cu.user?.id,
+      firstName: cu.user?.firstName || '',
+      lastName: cu.user?.lastName || '',
+      email: cu.user?.email || '',
+      avatar: cu.user?.profile?.avatar || null,
+      role: cu.role
+    })) || [];
+
+    return {
+      ...chat,
+      participants
+    } as Chat;
   }
 
   async create(createChatDto: CreateChatDto, creatorId: number): Promise<Chat> {
