@@ -68,10 +68,13 @@ export default {
 .messages-container {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 8px;
+  /* Важно: минимальная высота 0 чтобы flex работал правильно */
+  min-height: 0;
 }
 
 .messages-container::-webkit-scrollbar {

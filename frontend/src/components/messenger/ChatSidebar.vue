@@ -26,7 +26,14 @@
 
     <div class="chat-list">
       <div v-if="loading" class="chat-loading-indicator">
-        <span>Загрузка чатов...</span>
+        <!-- Скелетон загрузки -->
+        <div class="chat-skeleton" v-for="i in 5" :key="i">
+          <div class="skeleton-avatar"></div>
+          <div class="skeleton-content">
+            <div class="skeleton-line skeleton-title"></div>
+            <div class="skeleton-line skeleton-text"></div>
+          </div>
+        </div>
       </div>
       <div v-else-if="filteredChats.length === 0" class="empty-chat-list">
         <div class="empty-state">
@@ -176,13 +183,64 @@ export default {
   border-radius: 3px;
 }
 
-.chat-loading-indicator,
+.chat-loading-indicator {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 0;
+}
+
 .empty-chat-list {
   display: flex;
   align-items: center;
   justify-content: center;
   height: 200px;
   color: #64748b;
+}
+
+/* Скелетон загрузки */
+.chat-skeleton {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  gap: 12px;
+}
+
+.skeleton-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.skeleton-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skeleton-line {
+  height: 12px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.skeleton-title {
+  width: 60%;
+}
+
+.skeleton-text {
+  width: 80%;
+  height: 10px;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 .empty-state {

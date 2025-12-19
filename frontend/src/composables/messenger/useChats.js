@@ -20,14 +20,40 @@ export function useChats() {
   const unreadCount = computed(() => chats.value.reduce((sum, c) => sum + (c.unreadCount || 0), 0))
 
   /**
+   * Получить имя для поиска (для личных чатов - имя собеседника)
+   */
+  const getChatSearchName = (chat, currentUserId) => {
+    if (chat.type === 'group') {
+      return chat.name || ''
+    }
+    
+    // Для личных чатов ищем по имени собеседника
+    if (chat.participants?.length) {
+      const otherUser = chat.participants.find(
+        p => String(p.id) !== String(currentUserId)
+      )
+      if (otherUser) {
+        const firstName = otherUser.firstName || ''
+        const lastName = otherUser.lastName || ''
+        return `${firstName} ${lastName}`.trim()
+      }
+    }
+    
+    return chat.name || ''
+  }
+
+  /**
    * Отфильтрованные чаты
    */
   const filteredChats = computed(() => {
+    const userId = localStorage.getItem('userId')
     return chats.value
-      .filter(chat => 
-        (activeTab.value === 'personal' ? chat.type === 'personal' : chat.type === 'group') &&
-        chat.name.toLowerCase().includes(searchQuery.value.toLowerCase())
-      )
+      .filter(chat => {
+        const matchesTab = activeTab.value === 'personal' ? chat.type === 'personal' : chat.type === 'group'
+        const searchName = getChatSearchName(chat, userId)
+        const matchesSearch = searchName.toLowerCase().includes(searchQuery.value.toLowerCase())
+        return matchesTab && matchesSearch
+      })
       .sort((a, b) => {
         // Сначала закрепленные чаты
         if (a.isPinned && !b.isPinned) return -1

@@ -416,6 +416,9 @@ export default {
         // Генерируем уникальный временный ID
         const tempId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
         
+        // Сохраняем replyTo ДО очистки
+        const savedReplyTo = replyingTo.value ? { ...replyingTo.value } : null
+        
         const tempMessage = {
           id: tempId,
           text: newMessage.value.trim(),
@@ -424,6 +427,7 @@ export default {
           status: 'sending',
           createdAt: new Date().toISOString(),
           sender: { id: Number(userId), firstName: 'Вы', lastName: '' },
+          replyTo: savedReplyTo, // Добавляем replyTo для отображения
           _isTemp: true // Маркер временного сообщения
         }
 
@@ -954,6 +958,10 @@ export default {
   border-radius: 16px;
   overflow: hidden;
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  /* Фиксируем высоту чтобы поле ввода не уезжало */
+  height: calc(100vh - 220px);
+  min-height: 400px;
+  max-height: calc(100vh - 220px);
 }
 
 .messenger-main {
@@ -961,6 +969,9 @@ export default {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  height: 100%;
+  /* Важно: ограничиваем высоту и делаем overflow hidden */
+  overflow: hidden;
 }
 
 .messenger-placeholder {
