@@ -42,12 +42,29 @@ export class ChatService {
       .createQueryBuilder('chat')
       .leftJoinAndSelect('chat.users', 'chatUser')
       .leftJoinAndSelect('chatUser.user', 'user')
+      .leftJoinAndSelect('user.profile', 'userProfile')
       .leftJoinAndSelect('chat.messages', 'messages')
+      .leftJoinAndSelect('messages.sender', 'messageSender')
       .where('chat.id IN (:...chatIds)', { chatIds })
       .orderBy('messages.createdAt', 'DESC')
       .getMany();
 
-    return chats;
+    // Преобразуем данные для фронтенда - добавляем participants
+    return chats.map(chat => {
+      const participants = chat.users?.map(cu => ({
+        id: cu.user?.id,
+        firstName: cu.user?.firstName || cu.user?.profile?.firstName || '',
+        lastName: cu.user?.lastName || cu.user?.profile?.lastName || '',
+        email: cu.user?.email || '',
+        avatar: cu.user?.avatar || cu.user?.profile?.avatar || null,
+        role: cu.role
+      })) || [];
+      
+      return {
+        ...chat,
+        participants
+      };
+    });
   }
 
   async findOne(id: number, userId: number): Promise<Chat> {

@@ -169,6 +169,8 @@ export default {
 <style scoped>
 .message-input-container {
   position: relative;
+  flex-shrink: 0; /* Не сжимаем поле ввода */
+  background: #fff;
 }
 
 .reply-bar {

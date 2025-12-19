@@ -70,33 +70,45 @@ export default {
       )
     })
 
-    // Имя чата - для личных показываем ТОЛЬКО имя собеседника
+    // Имя чата - для личных показываем имя и фамилию собеседника
     const chatDisplayName = computed(() => {
       if (props.chat.type === 'group') {
         return props.chat.name || 'Группа'
       }
       
-      // Для личных чатов показываем ТОЛЬКО имя собеседника (не chat.name!)
+      // Для личных чатов показываем имя собеседника
       if (otherParticipant.value) {
+        // Пробуем прямые поля
         const firstName = otherParticipant.value.firstName || ''
         const lastName = otherParticipant.value.lastName || ''
-        const fullName = [firstName, lastName].filter(Boolean).join(' ')
+        let fullName = [firstName, lastName].filter(Boolean).join(' ')
         if (fullName) return fullName
         
         // Пробуем profile
         if (otherParticipant.value.profile) {
-          const profileName = [
-            otherParticipant.value.profile.firstName,
-            otherParticipant.value.profile.lastName
-          ].filter(Boolean).join(' ')
-          if (profileName) return profileName
+          const profileFirstName = otherParticipant.value.profile.firstName || ''
+          const profileLastName = otherParticipant.value.profile.lastName || ''
+          fullName = [profileFirstName, profileLastName].filter(Boolean).join(' ')
+          if (fullName) return fullName
         }
         
-        return otherParticipant.value.email?.split('@')[0] || 'Собеседник'
+        // Пробуем name
+        if (otherParticipant.value.name) {
+          return otherParticipant.value.name
+        }
+        
+        // Пробуем email
+        if (otherParticipant.value.email) {
+          return otherParticipant.value.email.split('@')[0]
+        }
       }
       
-      // Fallback - НЕ используем chat.name для личных чатов
-      return 'Собеседник'
+      // Fallback - используем chat.name если есть (там может быть имя)
+      if (props.chat.name) {
+        return props.chat.name
+      }
+      
+      return 'Чат'
     })
 
     // Аватар

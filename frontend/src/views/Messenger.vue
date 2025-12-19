@@ -860,10 +860,11 @@ export default {
 <style scoped>
 .messenger-page {
   padding: 1rem;
-  min-height: 100vh;
+  height: 100vh;
   background: #f1f5f9;
   display: flex;
   flex-direction: column;
+  overflow: hidden; /* Предотвращаем скролл страницы */
 }
 
 /* Blue Header */
@@ -958,10 +959,7 @@ export default {
   border-radius: 16px;
   overflow: hidden;
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-  /* Фиксируем высоту чтобы поле ввода не уезжало */
-  height: calc(100vh - 220px);
-  min-height: 400px;
-  max-height: calc(100vh - 220px);
+  min-height: 0; /* Важно для flex */
 }
 
 .messenger-main {
@@ -969,8 +967,7 @@ export default {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  height: 100%;
-  /* Важно: ограничиваем высоту и делаем overflow hidden */
+  min-height: 0; /* Важно для flex */
   overflow: hidden;
 }
 
