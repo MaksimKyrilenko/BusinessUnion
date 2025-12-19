@@ -53,10 +53,10 @@ export class ChatService {
     return chats.map(chat => {
       const participants = chat.users?.map(cu => ({
         id: cu.user?.id,
-        firstName: cu.user?.firstName || cu.user?.profile?.firstName || '',
-        lastName: cu.user?.lastName || cu.user?.profile?.lastName || '',
+        firstName: cu.user?.firstName || '',
+        lastName: cu.user?.lastName || '',
         email: cu.user?.email || '',
-        avatar: cu.user?.avatar || cu.user?.profile?.avatar || null,
+        avatar: cu.user?.profile?.avatar || null,
         role: cu.role
       })) || [];
       
