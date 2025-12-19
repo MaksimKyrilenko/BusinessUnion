@@ -135,20 +135,18 @@ export function useChats() {
         loadGroupMembers(chatId)
       }
       
-      // Отмечаем как прочитанное
-      if (selectedChat.value?.unreadCount > 0) {
-        try {
-          await messengerService.markChatAsRead(chatId)
-          const chatIndex = chats.value.findIndex(c => c.id === chatId)
-          if (chatIndex !== -1) {
-            chats.value[chatIndex].unreadCount = 0
-          }
-          if (selectedChat.value) {
-            selectedChat.value.unreadCount = 0
-          }
-        } catch (error) {
-          console.error('Ошибка при отметке чата как прочитанного:', error)
+      // Отмечаем как прочитанное (всегда при открытии чата)
+      try {
+        await messengerService.markChatAsRead(chatId)
+        const chatIndex = chats.value.findIndex(c => c.id === chatId)
+        if (chatIndex !== -1) {
+          chats.value[chatIndex].unreadCount = 0
         }
+        if (selectedChat.value) {
+          selectedChat.value.unreadCount = 0
+        }
+      } catch (error) {
+        console.error('Ошибка при отметке чата как прочитанного:', error)
       }
       
       updateLastMessage(chatId)

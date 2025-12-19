@@ -90,6 +90,26 @@ export function useMessages(selectedChat, currentUserId) {
   }
 
   /**
+   * Обновление статуса сообщений как прочитанных
+   */
+  const markMessagesAsRead = () => {
+    if (!selectedChat.value?.messages) return
+    
+    const myId = String(currentUserId.value).trim()
+    
+    selectedChat.value.messages = selectedChat.value.messages.map(msg => {
+      const senderId = msg.senderId ? String(msg.senderId).trim() : 
+                       msg.sender?.id ? String(msg.sender.id).trim() : null
+      
+      // Обновляем статус только для чужих сообщений
+      if (senderId && senderId !== myId && msg.status !== 'read') {
+        return { ...msg, status: 'read' }
+      }
+      return msg
+    })
+  }
+
+  /**
    * Прокрутка к последнему сообщению
    */
   const scrollToBottom = () => {
@@ -317,6 +337,7 @@ export function useMessages(selectedChat, currentUserId) {
     downloadImage,
     addProcessedMessageId,
     isMessageProcessed,
-    clearProcessedMessageIds
+    clearProcessedMessageIds,
+    markMessagesAsRead
   }
 }

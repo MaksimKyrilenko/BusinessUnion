@@ -272,7 +272,8 @@ export default {
       downloadFile,
       downloadImage,
       addProcessedMessageId,
-      isMessageProcessed
+      isMessageProcessed,
+      markMessagesAsRead
     } = useMessages(selectedChat, currentUserId)
 
     // File upload composable
@@ -380,6 +381,8 @@ export default {
     // Methods
     const handleSelectChat = async (chatId) => {
       await selectChat(chatId, loadMessages, loadGroupMembers)
+      // Обновляем статус сообщений как прочитанных на фронтенде
+      markMessagesAsRead()
     }
 
     const handleCreateGroup = () => {

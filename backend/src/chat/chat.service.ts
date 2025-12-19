@@ -3,9 +3,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Chat } from './entities/chat.entity';
 import { ChatUser } from './entities/chat-user.entity';
+import { Message } from './entities/message.entity';
 import { CreateChatDto } from './dto/create-chat.dto';
 import { ChatType } from './enums/chat-type.enum';
 import { ChatUserRole } from './enums/chat-user-role.enum';
+import { MessageStatus } from './enums/message-status.enum';
 import { User } from '../users/user.entity';
 import { Logger } from '@nestjs/common';
 
@@ -20,6 +22,8 @@ export class ChatService {
     private chatUserRepository: Repository<ChatUser>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    @InjectRepository(Message)
+    private messageRepository: Repository<Message>,
   ) {}
 
   async findAll(userId: number): Promise<Chat[]> {
@@ -276,8 +280,21 @@ export class ChatService {
       throw new NotFoundException(`Чат не найден или вы не имеете доступа`);
     }
 
+    // Сбрасываем счётчик непрочитанных
     chatUser.unreadCount = 0;
     await this.chatUserRepository.save(chatUser);
+
+    // Обновляем статус всех сообщений в чате как прочитанные (кроме своих)
+    await this.messageRepository
+      .createQueryBuilder()
+      .update(Message)
+      .set({ status: MessageStatus.READ })
+      .where('chatId = :chatId AND senderId != :userId AND status != :readStatus', { 
+        chatId, 
+        userId,
+        readStatus: MessageStatus.READ 
+      })
+      .execute();
   }
 
   async markAsUnread(chatId: number, userId: number): Promise<void> {
