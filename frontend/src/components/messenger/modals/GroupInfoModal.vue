@@ -983,14 +983,10 @@ input:checked + .toggle-slider:before {
 }
 </style>
 
-<!-- Глобальные стили для переопределения Modal -->
+<!-- Глобальные стили для переопределения Modal - убираем внешний скролл -->
 <style>
 .chat-info-modal .modal-body {
   overflow: hidden !important;
   padding: 0 !important;
-}
-
-.chat-info-modal .modal-content {
-  overflow: hidden !important;
 }
 </style>
