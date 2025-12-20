@@ -66,7 +66,6 @@
               
               <div class="message-header">
                 <span class="sender-name">{{ getMessageSenderName(message) }}</span>
-                <span class="message-time">{{ formatTime(message.createdAt) }}</span>
               </div>
               
               <!-- Image message -->
@@ -87,7 +86,7 @@
               <!-- Text message -->
               <div v-else class="message-text">{{ message.text }}</div>
               
-              <!-- Reactions -->
+              <!-- Reactions inside bubble -->
               <div v-if="message.reactions && Object.keys(message.reactions).length > 0" class="message-reactions">
                 <button 
                   v-for="(users, emoji) in message.reactions" 
@@ -117,6 +116,10 @@
                   </button>
                 </template>
               </div>
+            </div>
+            <!-- Message meta (time) - outside bubble -->
+            <div class="message-meta">
+              <span class="message-time">{{ formatTime(message.createdAt) }}</span>
             </div>
           </div>
         </template>

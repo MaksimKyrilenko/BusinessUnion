@@ -48,6 +48,18 @@
         </div>
         <!-- Метка редактирования -->
         <span v-if="message.isEdited" class="edited-label">изменено</span>
+        <!-- Reactions inside bubble -->
+        <div v-if="message.reactions && Object.keys(message.reactions).length > 0" class="message-reactions">
+          <div 
+            v-for="(users, reaction) in message.reactions" 
+            :key="reaction"
+            :class="['reaction-badge', { 'reaction-own': hasMyReaction(reaction) }]"
+            @click="$emit('toggleReaction', reaction)"
+            :title="getReactionTooltip(users)"
+          >
+            {{ reaction }} {{ Array.isArray(users) ? users.length : users }}
+          </div>
+        </div>
       </div>
       <div class="message-meta">
         <span class="message-time" :title="formatFullDateTime(message.createdAt || message.timestamp)">
@@ -82,17 +94,6 @@
           <button class="action-btn" @click="copyMessage" title="Копировать">
             <i class="fas fa-copy"></i>
           </button>
-        </div>
-        <div v-if="message.reactions && Object.keys(message.reactions).length > 0" class="message-reactions">
-          <div 
-            v-for="(users, reaction) in message.reactions" 
-            :key="reaction"
-            :class="['reaction-badge', { 'reaction-own': hasMyReaction(reaction) }]"
-            @click="$emit('toggleReaction', reaction)"
-            :title="getReactionTooltip(users)"
-          >
-            {{ reaction }} {{ Array.isArray(users) ? users.length : users }}
-          </div>
         </div>
         <span v-if="isOwn" class="message-status">
           <i :class="['fas', getStatusIcon(message.status)]"></i>
@@ -260,14 +261,11 @@ export default {
   background: #f1f5f9;
   padding: 10px 14px;
   border-radius: 16px;
-  border-top-left-radius: 4px;
 }
 
 .message-own .message-bubble {
   background: #2196F3;
   color: #fff;
-  border-top-left-radius: 16px;
-  border-top-right-radius: 4px;
 }
 
 .message-author {
@@ -465,11 +463,19 @@ export default {
 
 .message-reactions {
   display: flex;
+  flex-wrap: wrap;
   gap: 4px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.message-own .message-reactions {
+  border-top-color: rgba(255, 255, 255, 0.15);
 }
 
 .reaction-badge {
-  background: #f1f5f9;
+  background: rgba(0, 0, 0, 0.05);
   padding: 2px 8px;
   border-radius: 12px;
   font-size: 12px;
@@ -477,13 +483,26 @@ export default {
   transition: background 0.2s ease;
 }
 
+.message-own .reaction-badge {
+  background: rgba(255, 255, 255, 0.2);
+}
+
 .reaction-badge:hover {
-  background: #e2e8f0;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.message-own .reaction-badge:hover {
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .reaction-badge.reaction-own {
   background: #dbeafe;
   border: 1px solid #2196F3;
+}
+
+.message-own .reaction-badge.reaction-own {
+  background: rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.5);
 }
 
 .message-status {
