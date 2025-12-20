@@ -106,8 +106,12 @@ export default {
 }
 
 .sidebar-header {
-  padding: 1.5rem;
+  padding: 1rem 1.5rem;
   border-bottom: 1px solid #e5e7eb;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
 }
 
 .logo {
@@ -167,6 +171,8 @@ export default {
 .admin-header {
   background: white;
   padding: 1rem 2rem;
+  height: 64px;
+  box-sizing: border-box;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -174,6 +180,7 @@ export default {
   position: sticky;
   top: 0;
   z-index: 50;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .header-title h1 {
