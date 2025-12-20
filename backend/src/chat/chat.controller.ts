@@ -13,17 +13,20 @@ import {
   Put
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { extname } from 'path';
+import { memoryStorage } from 'multer';
 import { ChatService } from './chat.service';
 import { CreateChatDto } from './dto/create-chat.dto';
 import { Chat } from './entities/chat.entity';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { MinioService } from '../minio/minio.service';
 
 @Controller('chats')
 @UseGuards(JwtAuthGuard)
 export class ChatController {
-  constructor(private readonly chatService: ChatService) {}
+  constructor(
+    private readonly chatService: ChatService,
+    private readonly minioService: MinioService,
+  ) {}
 
   @Get()
   async findAll(@Request() req): Promise<Chat[]> {
@@ -272,21 +275,21 @@ export class ChatController {
   @Post(':id/avatar')
   @UseInterceptors(
     FileInterceptor('avatar', {
-      storage: diskStorage({
-        destination: './uploads/avatars',
-        filename: (req, file, cb) => {
-          const randomName = Array(32)
-            .fill(null)
-            .map(() => Math.round(Math.random() * 16).toString(16))
-            .join('');
-          return cb(null, `${Date.now()}-${randomName}${extname(file.originalname)}`);
-        },
-      }),
+      storage: memoryStorage(),
+      limits: {
+        fileSize: 2 * 1024 * 1024, // 2MB limit
+      },
+      fileFilter: (req, file, cb) => {
+        if (!file.mimetype.match(/\/(jpg|jpeg|png|webp)$/)) {
+          return cb(new BadRequestException('Поддерживаются только JPG, JPEG, PNG и WEBP'), false);
+        }
+        cb(null, true);
+      },
     }),
   )
   async uploadAvatar(
     @Param('id', ParseIntPipe) id: number,
-    @UploadedFile() file,
+    @UploadedFile() file: Express.Multer.File,
     @Request() req,
   ) {
     if (!file) {
@@ -303,9 +306,17 @@ export class ChatController {
       throw new BadRequestException('Некорректный ID пользователя');
     }
 
-    // Convert to base64 for storage in DB
-    const avatarUrl = await this.chatService.updateChatAvatar(id, userIdNum, file);
-    return { avatarUrl };
+    // Upload to MinIO
+    const { objectName, url } = await this.minioService.uploadFromMulter(
+      this.minioService.BUCKETS.AVATARS,
+      file,
+    );
+
+    // Save URL to chat
+    const avatarUrl = `/api/files/avatar/${objectName}`;
+    await this.chatService.updateChatAvatarUrl(id, userIdNum, avatarUrl);
+    
+    return { avatarUrl, minioUrl: url };
   }
 
   @Put(':id')

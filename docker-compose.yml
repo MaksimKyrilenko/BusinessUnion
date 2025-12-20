@@ -56,6 +56,34 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  # MinIO для хранения файлов
+  minio:
+    image: minio/minio:latest
+    container_name: businessunion-minio
+    restart: always
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-minioadmin}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - businessunion-network
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
   # Backend NestJS приложение (REST API)
   backend:
     build:
@@ -87,14 +115,21 @@ services:
       # Redis для WebSocket коммуникации
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      # MinIO для хранения файлов
+      MINIO_ENDPOINT: minio
+      MINIO_PORT: 9000
+      MINIO_USE_SSL: "false"
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-minioadmin}
+      MINIO_PUBLIC_URL: ${MINIO_PUBLIC_URL:-}
     ports:
       - "3001:3001"
-    volumes:
-      - ./backend/uploads:/app/uploads
     depends_on:
       mysql:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      minio:
         condition: service_healthy
     networks:
       - businessunion-network
@@ -201,6 +236,8 @@ services:
 
 volumes:
   mysql_data:
+    driver: local
+  minio_data:
     driver: local
 
 networks:

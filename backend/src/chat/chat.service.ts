@@ -477,6 +477,32 @@ export class ChatService {
     return avatarBase64;
   }
 
+  async updateChatAvatarUrl(chatId: number, userId: number, avatarUrl: string): Promise<void> {
+    // Проверяем, является ли пользователь участником чата с правами администратора
+    const chatUser = await this.chatUserRepository.findOne({
+      where: { chatId, userId },
+    });
+
+    if (!chatUser) {
+      throw new NotFoundException(`Чат не найден или вы не имеете доступа`);
+    }
+
+    // Проверяем, имеет ли пользователь права для изменения аватара группы
+    if (chatUser.role !== ChatUserRole.OWNER && chatUser.role !== ChatUserRole.ADMIN) {
+      throw new BadRequestException('У вас нет прав для изменения аватара группы');
+    }
+
+    // Получаем чат
+    const chat = await this.chatRepository.findOne({ where: { id: chatId } });
+    if (!chat) {
+      throw new NotFoundException(`Чат с ID ${chatId} не найден`);
+    }
+
+    // Обновляем аватар в БД
+    chat.avatar = avatarUrl;
+    await this.chatRepository.save(chat);
+  }
+
   async updateChat(chatId: number, userId: number, updateData: { name?: string; description?: string }): Promise<Chat> {
     this.logger.log(`[updateChat] Начало обновления чата ${chatId}, пользователь ${userId}, данные:`, updateData);
     

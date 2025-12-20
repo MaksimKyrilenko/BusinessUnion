@@ -1,14 +1,14 @@
 import { Module } from '@nestjs/common';
 import { FilesController } from './files.controller';
 import { MulterModule } from '@nestjs/platform-express';
-import { join } from 'path';
+import { memoryStorage } from 'multer';
 
 @Module({
   imports: [
     MulterModule.register({
-      dest: join(__dirname, '..', '..', 'uploads'),
+      storage: memoryStorage(),
     }),
   ],
   controllers: [FilesController],
 })
-export class FilesModule {} 
+export class FilesModule {}

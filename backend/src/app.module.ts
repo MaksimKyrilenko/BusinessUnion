@@ -26,6 +26,7 @@ import { CommunitiesModule } from './communities/communities.module';
 import { CryptoTrackerModule } from './crypto-tracker/crypto-tracker.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { RedisModule } from './redis/redis.module';
+import { MinioModule } from './minio/minio.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { RedisModule } from './redis/redis.module';
       }),
     }),
     RedisModule, // Глобальный модуль для публикации событий в WebSocket сервер
+    MinioModule, // Глобальный модуль для работы с файлами в MinIO
     UsersModule,
     ProjectsModule,
     InvestmentsModule,

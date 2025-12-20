@@ -1,201 +1,337 @@
-import { Controller, Post, UseInterceptors, UploadedFile, UseGuards, Get, Param, Res, HttpException, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  UseInterceptors,
+  UploadedFile,
+  UseGuards,
+  Get,
+  Param,
+  Res,
+  HttpException,
+  HttpStatus,
+  Delete,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { extname, join } from 'path';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Response } from 'express';
-import * as fs from 'fs';
+import { MinioService } from '../minio/minio.service';
+import { memoryStorage } from 'multer';
 
 @Controller('files')
 export class FilesController {
-  
-  // Путь для хранения загруженных файлов (используем process.cwd() вместо __dirname для сохранения в корне проекта)
-  private readonly uploadDir = join(process.cwd(), 'uploads');
-  private readonly imageDir = join(this.uploadDir, 'images');
-  private readonly fileDir = join(this.uploadDir, 'files');
-  
-  constructor() {
-    // Создаем директории для хранения файлов, если они не существуют
-    this.ensureDirectoryExists(this.uploadDir);
-    this.ensureDirectoryExists(this.imageDir);
-    this.ensureDirectoryExists(this.fileDir);
-  }
-  
-  // Загрузка обычных файлов
+  constructor(private readonly minioService: MinioService) {}
+
+  // Upload regular files
   @Post('upload')
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(
     FileInterceptor('file', {
-      storage: diskStorage({
-        destination: (req, file, cb) => {
-          const uploadPath = join(process.cwd(), 'uploads', 'files');
-          // Создаем директорию, если она не существует
-          if (!fs.existsSync(uploadPath)) {
-            fs.mkdirSync(uploadPath, { recursive: true });
-          }
-          cb(null, uploadPath);
-        },
-        filename: (req, file, cb) => {
-          // Создаем уникальное имя файла
-          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-          const ext = extname(file.originalname);
-          cb(null, `${uniqueSuffix}${ext}`);
-        },
-      }),
+      storage: memoryStorage(),
       limits: {
-        fileSize: 10 * 1024 * 1024, // 10MB лимит размера файла
+        fileSize: 10 * 1024 * 1024, // 10MB limit
       },
       fileFilter: (req, file, cb) => {
-        // Запрещаем загрузку исполняемых файлов в целях безопасности
         const forbiddenExtensions = ['.exe', '.sh', '.bat', '.cmd', '.msi', '.dll'];
-        if (forbiddenExtensions.includes(extname(file.originalname).toLowerCase())) {
+        const ext = '.' + file.originalname.split('.').pop()?.toLowerCase();
+        if (forbiddenExtensions.includes(ext)) {
           return cb(new HttpException('Запрещенный тип файла', HttpStatus.BAD_REQUEST), false);
         }
         cb(null, true);
       },
     }),
   )
-  async uploadFile(@UploadedFile() file: any) {
+  async uploadFile(@UploadedFile() file: Express.Multer.File) {
     if (!file) {
       throw new HttpException('Файл не был загружен', HttpStatus.BAD_REQUEST);
     }
-    
-    // Формируем относительный путь для доступа к файлу через API
-    const relativePath = `/api/files/download/${file.filename}`;
-    
+
+    const { objectName, url } = await this.minioService.uploadFromMulter(
+      this.minioService.BUCKETS.FILES,
+      file,
+    );
+
     return {
       originalName: file.originalname,
-      filename: file.filename,
+      filename: objectName,
       size: file.size,
       mimetype: file.mimetype,
-      url: relativePath
+      url: `/api/files/download/${objectName}`,
+      minioUrl: url,
     };
   }
-  
-  // Загрузка изображений
+
+  // Upload images
   @Post('upload/image')
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(
     FileInterceptor('image', {
-      storage: diskStorage({
-        destination: (req, file, cb) => {
-          const uploadPath = join(process.cwd(), 'uploads', 'images');
-          // Создаем директорию, если она не существует
-          if (!fs.existsSync(uploadPath)) {
-            fs.mkdirSync(uploadPath, { recursive: true });
-          }
-          cb(null, uploadPath);
-        },
-        filename: (req, file, cb) => {
-          // Создаем уникальное имя файла
-          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-          const ext = extname(file.originalname);
-          cb(null, `${uniqueSuffix}${ext}`);
-        },
-      }),
+      storage: memoryStorage(),
       limits: {
-        fileSize: 5 * 1024 * 1024, // 5MB лимит для изображений
+        fileSize: 5 * 1024 * 1024, // 5MB limit
       },
       fileFilter: (req, file, cb) => {
-        // Разрешаем только изображения
         if (!file.mimetype.match(/\/(jpg|jpeg|png|gif|webp)$/)) {
-          return cb(new HttpException('Поддерживаются только изображения формата JPG, JPEG, PNG, GIF и WEBP', HttpStatus.BAD_REQUEST), false);
+          return cb(
+            new HttpException(
+              'Поддерживаются только изображения формата JPG, JPEG, PNG, GIF и WEBP',
+              HttpStatus.BAD_REQUEST,
+            ),
+            false,
+          );
         }
         cb(null, true);
       },
     }),
   )
-  async uploadImage(@UploadedFile() file: any) {
+  async uploadImage(@UploadedFile() file: Express.Multer.File) {
     if (!file) {
       throw new HttpException('Изображение не было загружено', HttpStatus.BAD_REQUEST);
     }
-    
-    console.log('FilesController: Image uploaded successfully', {
-      filename: file.filename,
-      path: file.path,
-      size: file.size,
-      mimetype: file.mimetype,
-      imageDir: this.imageDir
-    });
-    
-    // Формируем относительный путь для доступа к изображению через API
-    // Используем путь через API для надежности
-    const relativePath = `/api/files/image/${file.filename}`;
-    
+
+    const { objectName, url } = await this.minioService.uploadFromMulter(
+      this.minioService.BUCKETS.IMAGES,
+      file,
+    );
+
     return {
       originalName: file.originalname,
-      filename: file.filename,
+      filename: objectName,
       size: file.size,
       mimetype: file.mimetype,
-      url: relativePath
+      url: `/api/files/image/${objectName}`,
+      minioUrl: url,
     };
   }
-  
-  // Получение загруженного файла
+
+
+  // Upload avatar
+  @Post('upload/avatar')
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(
+    FileInterceptor('avatar', {
+      storage: memoryStorage(),
+      limits: {
+        fileSize: 2 * 1024 * 1024, // 2MB limit for avatars
+      },
+      fileFilter: (req, file, cb) => {
+        if (!file.mimetype.match(/\/(jpg|jpeg|png|webp)$/)) {
+          return cb(
+            new HttpException(
+              'Поддерживаются только изображения формата JPG, JPEG, PNG и WEBP',
+              HttpStatus.BAD_REQUEST,
+            ),
+            false,
+          );
+        }
+        cb(null, true);
+      },
+    }),
+  )
+  async uploadAvatar(@UploadedFile() file: Express.Multer.File) {
+    if (!file) {
+      throw new HttpException('Аватар не был загружен', HttpStatus.BAD_REQUEST);
+    }
+
+    const { objectName, url } = await this.minioService.uploadFromMulter(
+      this.minioService.BUCKETS.AVATARS,
+      file,
+    );
+
+    return {
+      originalName: file.originalname,
+      filename: objectName,
+      size: file.size,
+      mimetype: file.mimetype,
+      url: `/api/files/avatar/${objectName}`,
+      minioUrl: url,
+    };
+  }
+
+  // Upload project files (business plan, presentation)
+  @Post('upload/project')
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: memoryStorage(),
+      limits: {
+        fileSize: 50 * 1024 * 1024, // 50MB limit for project files
+      },
+      fileFilter: (req, file, cb) => {
+        const allowedMimes = [
+          'application/pdf',
+          'application/msword',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          'application/vnd.ms-powerpoint',
+          'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+          'application/vnd.ms-excel',
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ];
+        if (!allowedMimes.includes(file.mimetype)) {
+          return cb(
+            new HttpException(
+              'Поддерживаются только PDF, DOC, DOCX, PPT, PPTX, XLS, XLSX',
+              HttpStatus.BAD_REQUEST,
+            ),
+            false,
+          );
+        }
+        cb(null, true);
+      },
+    }),
+  )
+  async uploadProjectFile(@UploadedFile() file: Express.Multer.File) {
+    if (!file) {
+      throw new HttpException('Файл не был загружен', HttpStatus.BAD_REQUEST);
+    }
+
+    const { objectName, url } = await this.minioService.uploadFromMulter(
+      this.minioService.BUCKETS.PROJECTS,
+      file,
+    );
+
+    return {
+      originalName: file.originalname,
+      filename: objectName,
+      size: file.size,
+      mimetype: file.mimetype,
+      url: `/api/files/project/${objectName}`,
+      minioUrl: url,
+    };
+  }
+
+  // Get file (download)
   @Get('download/:filename')
   async getFile(@Param('filename') filename: string, @Res() res: Response) {
-    const filePath = join(this.fileDir, filename);
-    
     try {
-      // Проверяем существование файла
-      if (!fs.existsSync(filePath)) {
+      const exists = await this.minioService.fileExists(
+        this.minioService.BUCKETS.FILES,
+        filename,
+      );
+      if (!exists) {
         throw new HttpException('Файл не найден', HttpStatus.NOT_FOUND);
       }
-      
-      // Отправляем файл как вложение
-      return res.download(filePath, filename);
+
+      const stats = await this.minioService.getFileStats(
+        this.minioService.BUCKETS.FILES,
+        filename,
+      );
+      const stream = await this.minioService.getFile(
+        this.minioService.BUCKETS.FILES,
+        filename,
+      );
+
+      res.setHeader('Content-Type', stats.metaData?.['content-type'] || 'application/octet-stream');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      stream.pipe(res);
     } catch (error) {
-      if (error instanceof HttpException) {
-        throw error;
-      }
+      if (error instanceof HttpException) throw error;
       throw new HttpException('Ошибка при получении файла', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
-  
-  // Получение загруженного изображения
+
+  // Get image
   @Get('image/:filename')
   async getImage(@Param('filename') filename: string, @Res() res: Response) {
-    const imagePath = join(this.imageDir, filename);
-    
     try {
-      console.log('FilesController: Requesting image', {
+      const exists = await this.minioService.fileExists(
+        this.minioService.BUCKETS.IMAGES,
         filename,
-        imagePath,
-        exists: fs.existsSync(imagePath),
-        imageDir: this.imageDir
-      });
-      
-      // Проверяем существование изображения
-      if (!fs.existsSync(imagePath)) {
-        console.error('FilesController: Image not found', { imagePath, filename });
+      );
+      if (!exists) {
         throw new HttpException('Изображение не найдено', HttpStatus.NOT_FOUND);
       }
-      
-      // Определяем тип содержимого (MIME-тип)
-      const ext = extname(filename).toLowerCase();
-      let contentType = 'image/jpeg'; // По умолчанию
-      
-      if (ext === '.png') contentType = 'image/png';
-      else if (ext === '.gif') contentType = 'image/gif';
-      else if (ext === '.webp') contentType = 'image/webp';
-      
-      // Отправляем изображение с соответствующим типом содержимого
-      res.setHeader('Content-Type', contentType);
-      res.setHeader('Cache-Control', 'public, max-age=31536000'); // Кэшируем на год
-      return res.sendFile(imagePath);
+
+      const stats = await this.minioService.getFileStats(
+        this.minioService.BUCKETS.IMAGES,
+        filename,
+      );
+      const stream = await this.minioService.getFile(
+        this.minioService.BUCKETS.IMAGES,
+        filename,
+      );
+
+      res.setHeader('Content-Type', stats.metaData?.['content-type'] || 'image/jpeg');
+      res.setHeader('Cache-Control', 'public, max-age=31536000');
+      stream.pipe(res);
     } catch (error) {
-      if (error instanceof HttpException) {
-        throw error;
-      }
-      console.error('FilesController: Error getting image', error);
+      if (error instanceof HttpException) throw error;
       throw new HttpException('Ошибка при получении изображения', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
-  
-  // Вспомогательный метод для создания директории, если она не существует
-  private ensureDirectoryExists(directory: string): void {
-    if (!fs.existsSync(directory)) {
-      fs.mkdirSync(directory, { recursive: true });
+
+  // Get avatar
+  @Get('avatar/:filename')
+  async getAvatar(@Param('filename') filename: string, @Res() res: Response) {
+    try {
+      const exists = await this.minioService.fileExists(
+        this.minioService.BUCKETS.AVATARS,
+        filename,
+      );
+      if (!exists) {
+        throw new HttpException('Аватар не найден', HttpStatus.NOT_FOUND);
+      }
+
+      const stats = await this.minioService.getFileStats(
+        this.minioService.BUCKETS.AVATARS,
+        filename,
+      );
+      const stream = await this.minioService.getFile(
+        this.minioService.BUCKETS.AVATARS,
+        filename,
+      );
+
+      res.setHeader('Content-Type', stats.metaData?.['content-type'] || 'image/jpeg');
+      res.setHeader('Cache-Control', 'public, max-age=31536000');
+      stream.pipe(res);
+    } catch (error) {
+      if (error instanceof HttpException) throw error;
+      throw new HttpException('Ошибка при получении аватара', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
-} 
+
+  // Get project file
+  @Get('project/:filename')
+  async getProjectFile(@Param('filename') filename: string, @Res() res: Response) {
+    try {
+      const exists = await this.minioService.fileExists(
+        this.minioService.BUCKETS.PROJECTS,
+        filename,
+      );
+      if (!exists) {
+        throw new HttpException('Файл не найден', HttpStatus.NOT_FOUND);
+      }
+
+      const stats = await this.minioService.getFileStats(
+        this.minioService.BUCKETS.PROJECTS,
+        filename,
+      );
+      const stream = await this.minioService.getFile(
+        this.minioService.BUCKETS.PROJECTS,
+        filename,
+      );
+
+      res.setHeader('Content-Type', stats.metaData?.['content-type'] || 'application/octet-stream');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      stream.pipe(res);
+    } catch (error) {
+      if (error instanceof HttpException) throw error;
+      throw new HttpException('Ошибка при получении файла', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  // Delete file
+  @Delete(':bucket/:filename')
+  @UseGuards(JwtAuthGuard)
+  async deleteFile(
+    @Param('bucket') bucket: string,
+    @Param('filename') filename: string,
+  ) {
+    const validBuckets = Object.values(this.minioService.BUCKETS);
+    if (!validBuckets.includes(bucket)) {
+      throw new HttpException('Неверный bucket', HttpStatus.BAD_REQUEST);
+    }
+
+    await this.minioService.deleteFile(bucket, filename);
+    return { message: 'Файл удален' };
+  }
+}
