@@ -154,7 +154,7 @@ export class ProjectsService {
     
     const project = await this.projectsRepository.findOne({
       where: { id },
-      relations: ['author', 'category']
+      relations: ['author']
     });
     
     if (!project) {
