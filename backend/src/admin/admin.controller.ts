@@ -1,7 +1,6 @@
 import {
   Controller,
   Get,
-  Post,
   Patch,
   Delete,
   Body,
@@ -37,8 +36,8 @@ export class AdminController {
     @Query('userType') userType?: UserType,
   ) {
     return this.adminService.getUsers(
-      parseInt(page) || 1,
-      parseInt(limit) || 20,
+      page ? parseInt(page, 10) : 1,
+      limit ? parseInt(limit, 10) : 20,
       search,
       userType,
     );
@@ -80,8 +79,8 @@ export class AdminController {
     @Query('status') status?: string,
   ) {
     return this.adminService.getProjects(
-      parseInt(page) || 1,
-      parseInt(limit) || 20,
+      page ? parseInt(page, 10) : 1,
+      limit ? parseInt(limit, 10) : 20,
       search,
       status,
     );
@@ -121,8 +120,8 @@ export class AdminController {
     @Query('limit') limit?: string,
   ) {
     return this.adminService.getInvestments(
-      parseInt(page) || 1,
-      parseInt(limit) || 20,
+      page ? parseInt(page, 10) : 1,
+      limit ? parseInt(limit, 10) : 20,
     );
   }
 
@@ -140,8 +139,8 @@ export class AdminController {
     @Query('search') search?: string,
   ) {
     return this.adminService.getCommunities(
-      parseInt(page) || 1,
-      parseInt(limit) || 20,
+      page ? parseInt(page, 10) : 1,
+      limit ? parseInt(limit, 10) : 20,
       search,
     );
   }
@@ -160,16 +159,16 @@ export class AdminController {
 
   @Get('analytics/registrations')
   async getRegistrationStats(@Query('days') days?: string) {
-    return this.adminService.getRegistrationStats(parseInt(days) || 30);
+    return this.adminService.getRegistrationStats(days ? parseInt(days, 10) : 30);
   }
 
   @Get('analytics/projects')
   async getProjectStats(@Query('days') days?: string) {
-    return this.adminService.getProjectStats(parseInt(days) || 30);
+    return this.adminService.getProjectStats(days ? parseInt(days, 10) : 30);
   }
 
   @Get('analytics/investments')
   async getInvestmentStats(@Query('days') days?: string) {
-    return this.adminService.getInvestmentStats(parseInt(days) || 30);
+    return this.adminService.getInvestmentStats(days ? parseInt(days, 10) : 30);
   }
 }
