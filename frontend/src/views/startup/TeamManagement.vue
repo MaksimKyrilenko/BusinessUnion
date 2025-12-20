@@ -75,6 +75,36 @@
               </button>
             </div>
           </div>
+          
+          <!-- Документы проекта -->
+          <div v-if="currentProject.presentationUrl || currentProject.businessPlanUrl" class="project-documents-section">
+            <h2 class="documents-section-title">Документы проекта</h2>
+            <div class="documents-grid">
+              <a v-if="currentProject.presentationUrl" :href="currentProject.presentationUrl" target="_blank" class="document-card">
+                <div class="document-icon presentation">
+                  <i class="fas fa-file-powerpoint"></i>
+                </div>
+                <div class="document-info">
+                  <div class="document-title">Презентация проекта</div>
+                  <div class="document-action">
+                    <i class="fas fa-download"></i> Скачать
+                  </div>
+                </div>
+              </a>
+              
+              <a v-if="currentProject.businessPlanUrl" :href="currentProject.businessPlanUrl" target="_blank" class="document-card">
+                <div class="document-icon business-plan">
+                  <i class="fas fa-file-pdf"></i>
+                </div>
+                <div class="document-info">
+                  <div class="document-title">Бизнес-план проекта</div>
+                  <div class="document-action">
+                    <i class="fas fa-download"></i> Скачать
+                  </div>
+                </div>
+              </a>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -651,6 +681,18 @@ export default {
 .user-info { flex: 1; }
 .user-info h4 { margin: 0 0 0.25rem 0; }
 .user-info p { margin: 0; color: #666; font-size: 0.875rem; }
+/* Документы проекта */
+.project-documents-section { margin-top: 1.5rem; }
+.documents-section-title { font-size: 1.25rem; font-weight: 600; color: #1e293b; margin: 0 0 1rem 0; }
+.documents-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; }
+.document-card { display: flex; align-items: center; gap: 1rem; padding: 1.25rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; text-decoration: none; color: inherit; transition: all 0.3s ease; }
+.document-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(33, 150, 243, 0.15); border-color: #2196F3; }
+.document-icon { width: 56px; height: 56px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
+.document-icon.presentation { background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%); color: white; }
+.document-icon.business-plan { background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%); color: white; }
+.document-card .document-info { flex: 1; }
+.document-card .document-title { font-size: 1rem; font-weight: 600; color: #1e293b; margin-bottom: 4px; }
+.document-action { font-size: 0.875rem; color: #2196F3; display: flex; align-items: center; gap: 6px; }
 @media (max-width: 1200px) { .tasks-container { grid-template-columns: 1fr; } }
 @media (max-width: 1024px) { .team-content { grid-template-columns: 1fr; } .project-info-header, .project-info-main { flex-direction: column; } .project-info-image { width: 100%; max-width: 300px; } .form-row { grid-template-columns: 1fr; } }
 </style>
