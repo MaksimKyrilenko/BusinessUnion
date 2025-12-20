@@ -560,8 +560,7 @@ export default {
 .reaction-picker {
   position: absolute;
   bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
   background: #fff;
   border-radius: 24px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
@@ -570,6 +569,13 @@ export default {
   gap: 4px;
   z-index: 9999;
   margin-bottom: 8px;
+  white-space: nowrap;
+}
+
+/* Для своих сообщений (справа) - выравниваем вправо */
+.message-own .reaction-picker {
+  left: auto;
+  right: 0;
 }
 
 .reaction-emoji {
