@@ -281,6 +281,7 @@
 
 <script>
 import api from '@/axios';
+import fileUploadService from '@/services/fileUpload.service';
 
 export default {
   name: 'EditProfile',
@@ -288,6 +289,8 @@ export default {
     return {
       isLoading: true,
       isSaving: false,
+      isUploadingAvatar: false,
+      isUploadingGallery: false,
       userData: {
         id: null,
         firstName: '',
@@ -407,11 +410,15 @@ export default {
       }
       
       try {
-        const compressedBase64 = await this.compressImage(file, 300, 300);
-        this.profileData.avatar = compressedBase64;
+        this.isUploadingAvatar = true;
+        // Загружаем в MinIO
+        const result = await fileUploadService.uploadAvatar(file);
+        this.profileData.avatar = result.url;
       } catch (error) {
-        this.profileData.avatar = null;
-        alert('Не удалось обработать изображение.');
+        console.error('Ошибка загрузки аватара:', error);
+        alert('Не удалось загрузить изображение.');
+      } finally {
+        this.isUploadingAvatar = false;
       }
     },
     
@@ -508,11 +515,16 @@ export default {
       }
       
       try {
-        const compressedBase64 = await this.compressImage(file, 600, 600);
+        this.isUploadingGallery = true;
+        // Загружаем в MinIO
+        const result = await fileUploadService.uploadImage(file);
         if (!this.profileData.gallery) this.profileData.gallery = [];
-        this.profileData.gallery.push(compressedBase64);
+        this.profileData.gallery.push(result.url);
       } catch (error) {
-        alert('Не удалось обработать изображение.');
+        console.error('Ошибка загрузки изображения:', error);
+        alert('Не удалось загрузить изображение.');
+      } finally {
+        this.isUploadingGallery = false;
       }
     },
     
@@ -524,24 +536,6 @@ export default {
       try {
         this.isSaving = true;
         const dataToSend = { ...this.profileData };
-        
-        if (dataToSend.avatar) {
-          const avatarSizeKB = Math.round(dataToSend.avatar.length / 1024);
-          if (avatarSizeKB > 2048) {
-            alert('Аватар слишком большой.');
-            this.isSaving = false;
-            return;
-          }
-        }
-        
-        if (dataToSend.gallery?.length > 0) {
-          const totalGallerySizeKB = dataToSend.gallery.reduce((size, img) => size + (img ? Math.round(img.length / 1024) : 0), 0);
-          if (totalGallerySizeKB > 8192) {
-            alert('Общий размер галереи слишком большой.');
-            this.isSaving = false;
-            return;
-          }
-        }
         
         dataToSend.investmentSize = Number(dataToSend.investmentSize) || 0;
         dataToSend.gallery = dataToSend.gallery || [];
