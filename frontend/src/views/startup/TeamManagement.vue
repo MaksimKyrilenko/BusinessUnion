@@ -10,7 +10,7 @@
         <div v-if="loadingProject" class="loading-project">
           <div class="spinner"></div>
           <p>Загрузка информации о проекте...</p>
-      </div>
+        </div>
         <div v-else-if="currentProject" class="project-info-content">
           <div class="project-info-card">
             <div class="project-info-header">
@@ -884,6 +884,7 @@ export default {
       chatMessages,
       loadingChat,
       newMessage,
+      teamChat,
       currentUserRole,
       canAddMembers,
       canChangeRole,
