@@ -1050,14 +1050,20 @@ export default {
     onMounted(async () => {
       setupWebSocketHandlers()
 
+      // Запускаем подключение WebSocket в фоне, не блокируя загрузку чатов
       if (!websocketService.isAuthenticated.value) {
         websocketService.connect()
-        await websocketService.waitForConnection(10000)
+        // Ждём подключения в фоне, не блокируя UI
+        websocketService.waitForConnection(10000).then(() => {
+          onlineUsers.value = websocketService.onlineUsers.value || []
+        }).catch(err => {
+          console.warn('[Messenger] WebSocket connection timeout:', err)
+        })
+      } else {
+        onlineUsers.value = websocketService.onlineUsers.value || []
       }
-      
-      // Получаем начальный список онлайн пользователей
-      onlineUsers.value = websocketService.onlineUsers.value || []
 
+      // Загружаем чаты сразу, не дожидаясь WebSocket
       const chatId = await loadChats(currentUserId)
       
       // Обновляем кэш чатов в store для глобальных уведомлений
