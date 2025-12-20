@@ -46,7 +46,7 @@ export default {
     'downloadImage',
     'showImagePreview'
   ],
-  setup() {
+  setup(props, { expose }) {
     const container = ref(null)
 
     const scrollToBottom = () => {
@@ -54,6 +54,11 @@ export default {
         container.value.scrollTop = container.value.scrollHeight
       }
     }
+
+    // Экспортируем метод для доступа через ref
+    expose({
+      scrollToBottom
+    })
 
     return {
       container,

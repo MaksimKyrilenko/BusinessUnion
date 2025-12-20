@@ -76,13 +76,18 @@ export function useMessages(selectedChat, currentUserId) {
   /**
    * Загрузка сообщений чата
    */
-  const loadMessages = async (chatId) => {
+  const loadMessages = async (chatId, scrollFn) => {
     try {
       const response = await messengerService.getMessages(chatId)
       
       if (response && response.data && selectedChat.value && selectedChat.value.id === chatId) {
         selectedChat.value.messages = response.data
-        setTimeout(() => scrollToBottom(), 100)
+        // Используем переданную функцию скролла или fallback
+        if (scrollFn && typeof scrollFn === 'function') {
+          setTimeout(() => scrollFn(), 100)
+        } else {
+          setTimeout(() => scrollToBottom(), 100)
+        }
       }
     } catch (error) {
       console.error(`Ошибка при загрузке сообщений для чата ${chatId}:`, error)

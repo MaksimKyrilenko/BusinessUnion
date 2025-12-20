@@ -379,12 +379,24 @@ export default {
     const canSendMessage = computed(() => selectedChat.value && newMessage.value.trim().length > 0)
 
     // Methods
+    
+    // Функция скролла к последнему сообщению через ref компонента
+    const doScrollToBottom = () => {
+      nextTick(() => {
+        if (messageListRef.value?.scrollToBottom) {
+          messageListRef.value.scrollToBottom()
+        }
+      })
+    }
+    
     const handleSelectChat = async (chatId) => {
       await selectChat(chatId, loadMessages, loadGroupMembers)
       // Обновляем статус сообщений как прочитанных на фронтенде
       markMessagesAsRead()
       // Отправляем WebSocket событие о прочтении для уведомления отправителя
       sendReadReceipt()
+      // Скроллим к последним сообщениям
+      setTimeout(() => doScrollToBottom(), 150)
     }
     
     // Отправка уведомления о прочтении сообщений
@@ -467,7 +479,7 @@ export default {
           selectedChat.value.messages = []
         }
         selectedChat.value.messages.push(tempMessage)
-        scrollToBottom()
+        doScrollToBottom()
 
         const messengerService = (await import('@/services/messenger.service')).default
         const response = await messengerService.sendMessage(messageData)
@@ -490,7 +502,7 @@ export default {
           }
         }
 
-        scrollToBottom()
+        doScrollToBottom()
       } catch (error) {
         console.error('Ошибка при отправке сообщения:', error)
         // Помечаем временное сообщение как ошибочное
@@ -679,7 +691,7 @@ export default {
           console.log('[WS Handler] Добавляем новое сообщение в чат')
           selectedChat.value.messages.push(message)
           nextTick(() => {
-            scrollToBottom()
+            doScrollToBottom()
             // Если это не наше сообщение и мы в этом чате - отправляем уведомление о прочтении
             if (!isOwnMsg) {
               websocketService.markAsRead(message.chatId, message.id)
