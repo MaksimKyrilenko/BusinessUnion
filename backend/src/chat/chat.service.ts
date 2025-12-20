@@ -340,7 +340,7 @@ export class ChatService {
     await this.chatUserRepository.save(chatUser);
   }
 
-  async togglePin(chatId: number, userId: number, isPinned: boolean): Promise<void> {
+  async togglePin(chatId: number, userId: number, isPinned: boolean): Promise<{ isPinned: boolean }> {
     // Проверяем, является ли пользователь участником чата
     const chatUser = await this.chatUserRepository.findOne({
       where: { chatId, userId },
@@ -353,9 +353,13 @@ export class ChatService {
     // Обновляем статус закрепления для конкретного пользователя
     chatUser.isPinned = isPinned;
     await this.chatUserRepository.save(chatUser);
+    
+    this.logger.log(`[togglePin] Чат ${chatId} для пользователя ${userId}: isPinned = ${chatUser.isPinned}`);
+    
+    return { isPinned: chatUser.isPinned };
   }
 
-  async toggleMute(chatId: number, userId: number): Promise<void> {
+  async toggleMute(chatId: number, userId: number): Promise<{ isMuted: boolean }> {
     const chatUser = await this.chatUserRepository.findOne({
       where: { chatId, userId },
     });
@@ -366,6 +370,10 @@ export class ChatService {
 
     chatUser.isMuted = !chatUser.isMuted;
     await this.chatUserRepository.save(chatUser);
+    
+    this.logger.log(`[toggleMute] Чат ${chatId} для пользователя ${userId}: isMuted = ${chatUser.isMuted}`);
+    
+    return { isMuted: chatUser.isMuted };
   }
 
   async leaveChat(chatId: number, userId: number): Promise<void> {

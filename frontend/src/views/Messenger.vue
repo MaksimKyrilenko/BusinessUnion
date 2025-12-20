@@ -521,17 +521,38 @@ export default {
     }
     
     const togglePersonalChatNotifications = async (value) => {
+      console.log(`[togglePersonalChatNotifications] Изменение уведомлений на ${value}`)
+      
+      if (!selectedChat.value) return
+      
+      // Сохраняем предыдущее значение для отката
+      const previousValue = personalChatNotifications.value
       personalChatNotifications.value = value
-      if (selectedChat.value) {
-        try {
-          const messengerService = (await import('@/services/messenger.service')).default
-          await messengerService.toggleMuteChat(selectedChat.value.id)
+      
+      try {
+        const messengerService = (await import('@/services/messenger.service')).default
+        const response = await messengerService.toggleMuteChat(selectedChat.value.id)
+        
+        // Обновляем состояние из ответа сервера
+        if (response?.data?.isMuted !== undefined) {
+          selectedChat.value.isMuted = response.data.isMuted
+          personalChatNotifications.value = !response.data.isMuted
+          
+          // Обновляем в списке чатов
+          const chatIndex = chats.value.findIndex(c => c.id === selectedChat.value.id)
+          if (chatIndex !== -1) {
+            chats.value[chatIndex].isMuted = response.data.isMuted
+          }
+          
+          console.log(`[togglePersonalChatNotifications] Уведомления ${response.data.isMuted ? 'отключены' : 'включены'}`)
+        } else {
+          // Fallback
           selectedChat.value.isMuted = !value
-        } catch (error) {
-          console.error('Ошибка при изменении уведомлений:', error)
-          // Откатываем изменение
-          personalChatNotifications.value = !value
         }
+      } catch (error) {
+        console.error('[togglePersonalChatNotifications] Ошибка при изменении уведомлений:', error)
+        // Откатываем изменение
+        personalChatNotifications.value = previousValue
       }
     }
 

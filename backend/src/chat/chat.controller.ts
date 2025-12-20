@@ -158,7 +158,7 @@ export class ChatController {
     @Param('id', ParseIntPipe) id: number,
     @Body() body: { isPinned: boolean },
     @Request() req,
-  ): Promise<void> {
+  ): Promise<{ isPinned: boolean }> {
     // Получаем ID пользователя из JWT токена
     const userId = req.user.sub;
     if (!userId) {
@@ -178,7 +178,7 @@ export class ChatController {
   async toggleMute(
     @Param('id', ParseIntPipe) id: number,
     @Request() req,
-  ): Promise<void> {
+  ): Promise<{ isMuted: boolean }> {
     // Получаем ID пользователя из JWT токена
     const userId = req.user.sub;
     if (!userId) {

@@ -185,11 +185,23 @@ export function useChats() {
    */
   const pinChat = async (chat) => {
     try {
-      await messengerService.togglePinChat(chat.id, !chat.isPinned)
-      chat.isPinned = !chat.isPinned
+      const newPinnedState = !chat.isPinned
+      console.log(`[pinChat] Закрепление чата ${chat.id}, новое состояние: ${newPinnedState}`)
+      
+      const response = await messengerService.togglePinChat(chat.id, newPinnedState)
+      
+      // Обновляем состояние из ответа сервера
+      if (response?.data?.isPinned !== undefined) {
+        chat.isPinned = response.data.isPinned
+      } else {
+        // Fallback если сервер не вернул данные
+        chat.isPinned = newPinnedState
+      }
+      
       chat.showMenu = false
+      console.log(`[pinChat] Чат ${chat.id} успешно ${chat.isPinned ? 'закреплён' : 'откреплён'}`)
     } catch (error) {
-      console.error('Ошибка при закреплении чата:', error)
+      console.error('[pinChat] Ошибка при закреплении чата:', error)
     }
   }
 
@@ -211,11 +223,22 @@ export function useChats() {
    */
   const muteChat = async (chat) => {
     try {
-      await messengerService.toggleMuteChat(chat.id)
-      chat.isMuted = !chat.isMuted
+      console.log(`[muteChat] Изменение уведомлений чата ${chat.id}, текущее состояние: ${chat.isMuted}`)
+      
+      const response = await messengerService.toggleMuteChat(chat.id)
+      
+      // Обновляем состояние из ответа сервера
+      if (response?.data?.isMuted !== undefined) {
+        chat.isMuted = response.data.isMuted
+      } else {
+        // Fallback если сервер не вернул данные
+        chat.isMuted = !chat.isMuted
+      }
+      
       chat.showMenu = false
+      console.log(`[muteChat] Уведомления чата ${chat.id}: ${chat.isMuted ? 'отключены' : 'включены'}`)
     } catch (error) {
-      console.error('Ошибка при отключении уведомлений:', error)
+      console.error('[muteChat] Ошибка при отключении уведомлений:', error)
     }
   }
 

@@ -125,26 +125,40 @@ class MessengerService {
       })
   }
 
-  togglePinChat(chatId, isPinned) {
-    return axios.post(`${API_URL}/chats/${chatId}/pin`, { isPinned }, { headers: authHeader() })
+  markChatAsUnread(chatId) {
+    return axios.post(`${API_URL}/chats/${chatId}/unread`, {}, { headers: authHeader() })
       .then(response => {
-        console.log(`Статус закрепления чата ${chatId} изменен на ${isPinned}`)
+        console.log(`Чат ${chatId} отмечен как непрочитанный`)
         return response
       })
       .catch(error => {
-        console.error(`Ошибка при изменении статуса закрепления чата ${chatId}:`, error)
+        console.error(`Ошибка при отметке чата ${chatId} как непрочитанного:`, error)
+        throw error
+      })
+  }
+
+  togglePinChat(chatId, isPinned) {
+    console.log(`[togglePinChat] Запрос на изменение статуса закрепления чата ${chatId} на ${isPinned}`)
+    return axios.post(`${API_URL}/chats/${chatId}/pin`, { isPinned }, { headers: authHeader() })
+      .then(response => {
+        console.log(`[togglePinChat] Статус закрепления чата ${chatId} успешно изменен:`, response.data)
+        return response
+      })
+      .catch(error => {
+        console.error(`[togglePinChat] Ошибка при изменении статуса закрепления чата ${chatId}:`, error)
         throw error
       })
   }
 
   toggleMuteChat(chatId) {
+    console.log(`[toggleMuteChat] Запрос на изменение статуса уведомлений чата ${chatId}`)
     return axios.post(`${API_URL}/chats/${chatId}/mute`, {}, { headers: authHeader() })
       .then(response => {
-        console.log(`Статус отключения уведомлений чата ${chatId} изменен`)
+        console.log(`[toggleMuteChat] Статус уведомлений чата ${chatId} успешно изменен:`, response.data)
         return response
       })
       .catch(error => {
-        console.error(`Ошибка при изменении статуса отключения уведомлений чата ${chatId}:`, error)
+        console.error(`[toggleMuteChat] Ошибка при изменении статуса уведомлений чата ${chatId}:`, error)
         throw error
       })
   }
