@@ -59,6 +59,12 @@
         <i class="fas fa-coins"></i>
         <span>Крипто трекер</span>
       </router-link>
+      
+      <!-- Админ-панель (только для админов) -->
+      <router-link v-if="userType === 'admin'" to="/admin" class="nav-item admin-link">
+        <i class="fas fa-shield-halved"></i>
+        <span>Админ-панель</span>
+      </router-link>
     </div>
     
     <!-- Профиль и выход -->
@@ -234,6 +240,24 @@ export default defineComponent({
 
 .nav-links::-webkit-scrollbar-thumb:hover {
   background: #555;
+}
+
+/* Стиль для ссылки админ-панели */
+.nav-item.admin-link {
+  color: #9c27b0;
+  background: rgba(156, 39, 176, 0.05);
+  border-left: 3px solid #9c27b0;
+}
+
+.nav-item.admin-link:hover {
+  background: rgba(156, 39, 176, 0.15);
+  color: #7b1fa2;
+}
+
+.nav-item.admin-link.router-link-active {
+  background: rgba(156, 39, 176, 0.15);
+  color: #7b1fa2;
+  border-right: 3px solid #9c27b0;
 }
 
 @media (max-width: 768px) {

@@ -20,17 +20,38 @@
 </template>
 
 <script>
+import { computed } from 'vue'
+import { useUserStore } from '@/stores/user'
+
 export default {
   name: 'MobileNav',
+  setup() {
+    const userStore = useUserStore()
+    const userType = computed(() => userStore.user?.userType || localStorage.getItem('userType'))
+    
+    return { userType }
+  },
   data() {
     return {
-      isOpen: false,
-      menuItems: [
+      isOpen: false
+    }
+  },
+  computed: {
+    menuItems() {
+      const items = [
         { name: 'Главная', path: '/dashboard' },
-        { name: 'Проекты', path: '/projects' },
-        { name: 'Сообщения', path: '/messages' },
+        { name: 'Мессенджер', path: '/messenger' },
+        { name: 'Люди', path: '/people' },
+        { name: 'Сообщества', path: '/community' },
+        { name: 'Каталог стартапов', path: '/startups' },
         { name: 'Профиль', path: '/profile' }
       ]
+      
+      if (this.userType === 'admin') {
+        items.push({ name: 'Админ-панель', path: '/admin' })
+      }
+      
+      return items
     }
   },
   methods: {
