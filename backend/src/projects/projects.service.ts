@@ -31,6 +31,8 @@ export class ProjectsService {
 
   async create(createProjectDto: CreateProjectDto, user: any, files?: any): Promise<Project> {
     console.log('Создание проекта:', createProjectDto);
+    console.log('businessPlanUrl из DTO:', createProjectDto.businessPlanUrl);
+    console.log('presentationUrl из DTO:', createProjectDto.presentationUrl);
     console.log('Пользователь:', user);
     
     if (!user || !user.sub) {
@@ -118,15 +120,26 @@ export class ProjectsService {
       author
     };
     
-    // Добавляем URL загруженных файлов, если они есть
+    // Добавляем URL загруженных файлов из multipart, если они есть
     if (businessPlanUrl) projectData.businessPlanUrl = businessPlanUrl;
     if (presentationUrl) projectData.presentationUrl = presentationUrl;
     
-    // Если изображение пришло как base64, сохраняем его напрямую
-    // Если пришло как файл, сохраняем URL
-    if (createProjectDto.image && createProjectDto.image.startsWith('data:image')) {
-      // Это base64 изображение, сохраняем напрямую
+    // Если URL пришли из DTO (загружены в MinIO на фронтенде), используем их
+    if (createProjectDto.businessPlanUrl && !projectData.businessPlanUrl) {
+      projectData.businessPlanUrl = createProjectDto.businessPlanUrl;
+      console.log('Используем businessPlanUrl из DTO:', createProjectDto.businessPlanUrl);
+    }
+    if (createProjectDto.presentationUrl && !projectData.presentationUrl) {
+      projectData.presentationUrl = createProjectDto.presentationUrl;
+      console.log('Используем presentationUrl из DTO:', createProjectDto.presentationUrl);
+    }
+    
+    console.log('Итоговые URL файлов - businessPlanUrl:', projectData.businessPlanUrl, 'presentationUrl:', projectData.presentationUrl);
+    
+    // Изображение - используем URL из MinIO или из загруженного файла
+    if (createProjectDto.image) {
       projectData.image = createProjectDto.image;
+      console.log('Используем изображение из DTO:', createProjectDto.image);
     } else if (imageUrl) {
       projectData.image = imageUrl;
     }

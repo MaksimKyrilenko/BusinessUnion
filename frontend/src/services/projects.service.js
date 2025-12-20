@@ -91,10 +91,10 @@ class ProjectsService {
         additionalInfo: projectData.additionalInfo
       };
 
-      // Добавляем изображение в base64, если оно есть
+      // Добавляем изображение (URL из MinIO)
       if (projectData.image) {
         formattedData.image = projectData.image;
-        console.log('Добавлено изображение в base64, длина:', projectData.image.length);
+        console.log('Добавлено изображение:', projectData.image);
       }
 
       // Добавляем URL файлов из MinIO, если они есть

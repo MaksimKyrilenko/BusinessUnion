@@ -196,7 +196,7 @@
           class="btn btn-primary"
           :disabled="loading"
         >
-          {{ loading ? 'Сохранение...' : 'Создать стартап' }}
+          {{ loading ? 'Сохранение...' : (projectId ? 'Сохранить изменения' : 'Создать стартап') }}
         </button>
       </div>
     </form>
@@ -340,8 +340,17 @@ export default {
         loading.value = true;
         error.value = null;
 
+        console.log('=== ОТЛАДКА СОЗДАНИЯ СТАРТАПА ===');
+        console.log('form.value:', JSON.stringify(form.value, null, 2));
+        console.log('form.value.businessPlanUrl:', form.value.businessPlanUrl);
+        console.log('form.value.presentationUrl:', form.value.presentationUrl);
+
         // Создаем копию данных формы
         const { businessPlan, presentation, image, businessPlanUrl, presentationUrl, imageUrl, ...projectData } = form.value;
+        
+        console.log('После деструктуризации:');
+        console.log('businessPlanUrl:', businessPlanUrl);
+        console.log('presentationUrl:', presentationUrl);
         
         // Добавляем категорию
         projectData.category = { id: Number(form.value.category) };
@@ -354,10 +363,14 @@ export default {
         // Добавляем URL файлов из MinIO
         if (businessPlanUrl) {
           projectData.businessPlanUrl = businessPlanUrl;
+          console.log('Добавлен businessPlanUrl в projectData:', businessPlanUrl);
         }
         if (presentationUrl) {
           projectData.presentationUrl = presentationUrl;
+          console.log('Добавлен presentationUrl в projectData:', presentationUrl);
         }
+
+        console.log('Итоговые projectData:', JSON.stringify(projectData, null, 2));
 
         let project;
         if (props.projectId) {
@@ -395,7 +408,8 @@ export default {
       isUploadingBusinessPlan,
       isUploadingPresentation,
       handleFileUpload,
-      handleSubmit
+      handleSubmit,
+      projectId: props.projectId
     };
   }
 };
