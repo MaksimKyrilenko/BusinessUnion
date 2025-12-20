@@ -1,6 +1,6 @@
 import axios from '../axios';
 
-const API_URL = '/api/files';
+const API_URL = '/files';
 
 /**
  * Сервис для загрузки файлов в MinIO

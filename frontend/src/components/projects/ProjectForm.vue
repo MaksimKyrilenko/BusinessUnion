@@ -127,6 +127,7 @@
 <script>
 import BaseButton from '@/components/ui/BaseButton.vue'
 import api from '@/axios'
+import fileUploadService from '@/services/fileUpload.service'
 
 export default {
   name: 'ProjectForm',
@@ -142,6 +143,7 @@ export default {
   data() {
     return {
       categories: [],
+      isUploadingImage: false,
       formData: {
         title: '',
         description: '',
@@ -175,18 +177,13 @@ export default {
       if (!file) return
 
       try {
-        const formData = new FormData()
-        formData.append('image', file)
-        
-        const response = await api.post('/upload', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
-        })
-        
-        this.formData.image = response.data.url
+        this.isUploadingImage = true
+        const result = await fileUploadService.uploadImage(file)
+        this.formData.image = result.url
       } catch (error) {
         console.error('Ошибка при загрузке изображения:', error)
+      } finally {
+        this.isUploadingImage = false
       }
     },
     handleSubmit() {

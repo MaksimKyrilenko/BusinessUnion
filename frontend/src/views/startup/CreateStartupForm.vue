@@ -206,6 +206,7 @@
 <script>
 import { ref, onMounted } from 'vue';
 import { projectsService } from '@/services/projects.service';
+import fileUploadService from '@/services/fileUpload.service';
 
 export default {
   name: 'CreateStartupForm',
@@ -220,6 +221,9 @@ export default {
     const loading = ref(false);
     const error = ref(null);
     const categories = ref([]);
+    const isUploadingImage = ref(false);
+    const isUploadingBusinessPlan = ref(false);
+    const isUploadingPresentation = ref(false);
     const stages = ref([
       { id: 'idea', name: 'Идея' },
       { id: 'mvp', name: 'MVP' },
@@ -237,9 +241,11 @@ export default {
       expectedRoi: 30,
       location: '',
       businessPlan: null,
+      businessPlanUrl: null,
       presentation: null,
+      presentationUrl: null,
       image: null,
-      imageBase64: null,
+      imageUrl: null,
       additionalInfo: {
         foundedAt: '',
         hasTeam: false,
@@ -265,29 +271,32 @@ export default {
       
       if (!file) return;
       
-      // Для изображений конвертируем в base64
-      if (field === 'image' && file.type.startsWith('image/')) {
-        try {
-          const base64 = await convertFileToBase64(file);
-          form.value[field] = base64;
-          form.value.imageBase64 = base64; // Сохраняем также отдельно для отправки
-        } catch (error) {
-          console.error('Ошибка при конвертации изображения в base64:', error);
-          error.value = 'Ошибка при обработке изображения';
+      try {
+        // Загружаем файлы в MinIO
+        if (field === 'image' && file.type.startsWith('image/')) {
+          isUploadingImage.value = true;
+          const result = await fileUploadService.uploadImage(file);
+          form.value.image = file.name;
+          form.value.imageUrl = result.url;
+        } else if (field === 'businessPlan') {
+          isUploadingBusinessPlan.value = true;
+          const result = await fileUploadService.uploadProjectFile(file);
+          form.value.businessPlan = file.name;
+          form.value.businessPlanUrl = result.url;
+        } else if (field === 'presentation') {
+          isUploadingPresentation.value = true;
+          const result = await fileUploadService.uploadProjectFile(file);
+          form.value.presentation = file.name;
+          form.value.presentationUrl = result.url;
         }
-      } else {
-        // Для других файлов оставляем как есть
-        form.value[field] = file;
+      } catch (err) {
+        console.error('Ошибка при загрузке файла:', err);
+        error.value = 'Ошибка при загрузке файла';
+      } finally {
+        isUploadingImage.value = false;
+        isUploadingBusinessPlan.value = false;
+        isUploadingPresentation.value = false;
       }
-    };
-
-    const convertFileToBase64 = (file) => {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
     };
 
     const loadProjectData = async () => {
@@ -332,14 +341,22 @@ export default {
         error.value = null;
 
         // Создаем копию данных формы
-        const { businessPlan, presentation, image, imageBase64, ...projectData } = form.value;
+        const { businessPlan, presentation, image, businessPlanUrl, presentationUrl, imageUrl, ...projectData } = form.value;
         
         // Добавляем категорию
         projectData.category = { id: Number(form.value.category) };
         
-        // Добавляем base64 изображение, если оно есть
-        if (imageBase64) {
-          projectData.image = imageBase64;
+        // Добавляем URL изображения из MinIO
+        if (imageUrl) {
+          projectData.image = imageUrl;
+        }
+        
+        // Добавляем URL файлов из MinIO
+        if (businessPlanUrl) {
+          projectData.businessPlan = businessPlanUrl;
+        }
+        if (presentationUrl) {
+          projectData.presentation = presentationUrl;
         }
 
         let project;
@@ -349,20 +366,6 @@ export default {
         } else {
           // Режим создания
           project = await projectsService.createProject(projectData);
-        }
-
-        // Если есть другие файлы для загрузки (не изображения)
-        if (businessPlan || presentation) {
-          const formData = new FormData();
-          if (businessPlan) formData.append('businessPlan', businessPlan);
-          if (presentation) formData.append('presentation', presentation);
-
-          try {
-            await projectsService.uploadProjectFiles(project.id, formData);
-          } catch (uploadError) {
-            console.error('Ошибка при загрузке файлов:', uploadError);
-            // Продолжаем выполнение даже при ошибке загрузки файлов
-          }
         }
 
         // Эмитим событие успешного создания/обновления
@@ -388,6 +391,9 @@ export default {
       error,
       categories,
       stages,
+      isUploadingImage,
+      isUploadingBusinessPlan,
+      isUploadingPresentation,
       handleFileUpload,
       handleSubmit
     };

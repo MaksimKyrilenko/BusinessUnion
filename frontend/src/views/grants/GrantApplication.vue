@@ -316,6 +316,7 @@
 <script>
 import BaseButton from '@/components/ui/BaseButton.vue'
 import api from '@/axios'
+import fileUploadService from '@/services/fileUpload.service'
 
 export default {
   name: 'GrantApplication',
@@ -354,10 +355,16 @@ export default {
           }
         ],
         presentation: null,
+        presentationUrl: null,
         businessPlan: null,
-        additionalDocs: []
+        businessPlanUrl: null,
+        additionalDocs: [],
+        additionalDocsUrls: []
       },
-      isSubmitting: false
+      isSubmitting: false,
+      isUploadingPresentation: false,
+      isUploadingBusinessPlan: false,
+      isUploadingDocs: false
     }
   },
   methods: {
@@ -404,43 +411,67 @@ export default {
         this.formData.team.splice(index, 1)
       }
     },
-    handleFileUpload(type, event) {
+    async handleFileUpload(type, event) {
       const files = event.target.files
-      if (files.length) {
+      if (!files.length) return
+      
+      try {
         if (type === 'additionalDocs') {
-          this.formData[type] = Array.from(files)
-        } else {
-          this.formData[type] = files[0]
+          this.isUploadingDocs = true
+          const uploadPromises = Array.from(files).map(file => 
+            fileUploadService.uploadProjectFile(file)
+          )
+          const results = await Promise.all(uploadPromises)
+          this.formData.additionalDocs = Array.from(files).map(f => f.name)
+          this.formData.additionalDocsUrls = results.map(r => r.url)
+        } else if (type === 'presentation') {
+          this.isUploadingPresentation = true
+          const result = await fileUploadService.uploadProjectFile(files[0])
+          this.formData.presentation = files[0].name
+          this.formData.presentationUrl = result.url
+        } else if (type === 'businessPlan') {
+          this.isUploadingBusinessPlan = true
+          const result = await fileUploadService.uploadProjectFile(files[0])
+          this.formData.businessPlan = files[0].name
+          this.formData.businessPlanUrl = result.url
         }
+      } catch (error) {
+        console.error('Ошибка при загрузке файла:', error)
+      } finally {
+        this.isUploadingPresentation = false
+        this.isUploadingBusinessPlan = false
+        this.isUploadingDocs = false
       }
     },
     async handleSubmit() {
       this.isSubmitting = true
       try {
-        const formData = new FormData()
+        // Подготавливаем данные для отправки
+        const submitData = {
+          projectName: this.formData.projectName,
+          shortDescription: this.formData.shortDescription,
+          description: this.formData.description,
+          goals: this.formData.goals,
+          expectedResults: this.formData.expectedResults,
+          totalCost: this.formData.totalCost,
+          requestedAmount: this.formData.requestedAmount,
+          fundingSources: this.formData.fundingSources,
+          budget: this.formData.budget,
+          team: this.formData.team
+        }
         
-        // Добавляем все поля формы
-        Object.keys(this.formData).forEach(key => {
-          if (key === 'budget' || key === 'team') {
-            formData.append(key, JSON.stringify(this.formData[key]))
-          } else if (key === 'additionalDocs') {
-            this.formData[key].forEach(file => {
-              formData.append('additionalDocs', file)
-            })
-          } else if (key === 'presentation' || key === 'businessPlan') {
-            if (this.formData[key]) {
-              formData.append(key, this.formData[key])
-            }
-          } else {
-            formData.append(key, this.formData[key])
-          }
-        })
+        // Добавляем URL файлов из MinIO
+        if (this.formData.presentationUrl) {
+          submitData.presentation = this.formData.presentationUrl
+        }
+        if (this.formData.businessPlanUrl) {
+          submitData.businessPlan = this.formData.businessPlanUrl
+        }
+        if (this.formData.additionalDocsUrls.length) {
+          submitData.additionalDocs = this.formData.additionalDocsUrls
+        }
         
-        await api.post(`/grants/${this.$route.params.id}/apply`, formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
-        })
+        await api.post(`/grants/${this.$route.params.id}/apply`, submitData)
         
         // Перенаправляем на страницу успешной отправки
         this.$router.push('/grants/application-success')

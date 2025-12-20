@@ -239,6 +239,7 @@
 <script>
 import BaseButton from '@/components/ui/BaseButton.vue'
 import api from '@/axios'
+import fileUploadService from '@/services/fileUpload.service'
 
 export default {
   name: 'CreateStartup',
@@ -265,11 +266,15 @@ export default {
           }
         ],
         presentation: null,
-        businessPlan: null
+        presentationUrl: null,
+        businessPlan: null,
+        businessPlanUrl: null
       },
       sectors: [],
       technologies: [],
-      isSubmitting: false
+      isSubmitting: false,
+      isUploadingPresentation: false,
+      isUploadingBusinessPlan: false
     }
   },
   methods: {
@@ -306,37 +311,55 @@ export default {
         this.formData.team.splice(index, 1)
       }
     },
-    handleFileUpload(type, event) {
+    async handleFileUpload(type, event) {
       const file = event.target.files[0]
-      if (file) {
-        this.formData[type] = file
+      if (!file) return
+      
+      try {
+        if (type === 'presentation') {
+          this.isUploadingPresentation = true
+          const result = await fileUploadService.uploadProjectFile(file)
+          this.formData.presentation = file.name
+          this.formData.presentationUrl = result.url
+        } else if (type === 'businessPlan') {
+          this.isUploadingBusinessPlan = true
+          const result = await fileUploadService.uploadProjectFile(file)
+          this.formData.businessPlan = file.name
+          this.formData.businessPlanUrl = result.url
+        }
+      } catch (error) {
+        console.error('Ошибка при загрузке файла:', error)
+      } finally {
+        this.isUploadingPresentation = false
+        this.isUploadingBusinessPlan = false
       }
     },
     async handleSubmit() {
       this.isSubmitting = true
       try {
-        const formData = new FormData()
+        // Подготавливаем данные для отправки
+        const submitData = {
+          name: this.formData.name,
+          sector: this.formData.sector,
+          stage: this.formData.stage,
+          investment: this.formData.investment,
+          shortDescription: this.formData.shortDescription,
+          description: this.formData.description,
+          problem: this.formData.problem,
+          solution: this.formData.solution,
+          technologies: this.formData.technologies,
+          team: this.formData.team
+        }
         
-        // Добавляем все поля формы
-        Object.keys(this.formData).forEach(key => {
-          if (key === 'team') {
-            formData.append(key, JSON.stringify(this.formData[key]))
-          } else if (key === 'technologies') {
-            formData.append(key, JSON.stringify(this.formData[key]))
-          } else if (key === 'presentation' || key === 'businessPlan') {
-            if (this.formData[key]) {
-              formData.append(key, this.formData[key])
-            }
-          } else {
-            formData.append(key, this.formData[key])
-          }
-        })
+        // Добавляем URL файлов из MinIO
+        if (this.formData.presentationUrl) {
+          submitData.presentation = this.formData.presentationUrl
+        }
+        if (this.formData.businessPlanUrl) {
+          submitData.businessPlan = this.formData.businessPlanUrl
+        }
         
-        await api.post('/startups/create', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
-        })
+        await api.post('/startups/create', submitData)
         
         // Перенаправляем на страницу стартапа
         this.$router.push('/startups/my')
