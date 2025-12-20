@@ -295,51 +295,18 @@
 
         <!-- Командный чат -->
         <div class="chat-section">
-          <div class="section-header">
-            <h2>Командный чат</h2>
+          <EmbeddedGroupChat
+            v-if="teamChat"
+            :chat-id="teamChat.id"
+            :title="'Командный чат'"
+            :members-count="teamMembers.length"
+          />
+          <div v-else-if="loadingChat" class="loading-container">
+            <div class="spinner"></div>
+            <p>Загрузка чата...</p>
           </div>
-          <div class="chat-container">
-            <div v-if="loadingChat" class="loading-container">
-              <div class="spinner"></div>
-              <p>Загрузка чата...</p>
-            </div>
-            <div v-else-if="chatMessages.length === 0" class="empty-state">
-              <p>Пока нет сообщений в командном чате</p>
-            </div>
-            <div v-else class="messages-list">
-              <div 
-                v-for="message in chatMessages" 
-                :key="message.id" 
-                class="message-item"
-                :class="{ 'own-message': isOwnMessage(message) }"
-              >
-                <img 
-                  :src="getMessageSenderAvatar(message)" 
-                  :alt="getMessageSenderName(message)"
-                  class="message-avatar"
-                  @error="handleAvatarError"
-                >
-                <div class="message-content">
-                  <div class="message-header">
-                    <span class="message-sender">{{ getMessageSenderName(message) }}</span>
-                    <span class="message-time">{{ formatTime(message.createdAt) }}</span>
-                  </div>
-                  <div class="message-text">{{ message.text }}</div>
-                </div>
-              </div>
-            </div>
-            <div class="chat-input-container">
-              <input 
-                v-model="newMessage" 
-                @keyup.enter="sendMessage"
-                placeholder="Введите сообщение..."
-                class="chat-input"
-              >
-              <button @click="sendMessage" class="btn btn-primary">
-                <i class="fas fa-paper-plane"></i>
-              </button>
-            </div>
-            </div>
+          <div v-else class="empty-state">
+            <p>Чат команды не найден</p>
           </div>
         </div>
       </div>
@@ -492,12 +459,14 @@ import { projectsService } from '@/services/projects.service';
 import messengerService from '@/services/messenger.service';
 import Modal from '@/components/ui/Modal.vue';
 import CreateStartupForm from './CreateStartupForm.vue';
+import EmbeddedGroupChat from '@/components/messenger/EmbeddedGroupChat.vue';
 
 export default {
   name: 'TeamManagement',
   components: {
     Modal,
-    CreateStartupForm
+    CreateStartupForm,
+    EmbeddedGroupChat
   },
   props: {
     startups: {
@@ -999,12 +968,19 @@ export default {
   gap: 2rem;
 }
 
-.team-section,
-.chat-section {
+.team-section {
   background: white;
   border-radius: 8px;
   padding: 1.5rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.chat-section {
+  background: transparent;
+  padding: 0;
+  box-shadow: none;
+  overflow: hidden;
+  border-radius: 12px;
 }
 
 .section-header {
