@@ -1,6 +1,7 @@
 import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as Minio from 'minio';
+import { Readable } from 'stream';
 
 @Injectable()
 export class MinioService implements OnModuleInit {
@@ -77,11 +78,19 @@ export class MinioService implements OnModuleInit {
   ): Promise<string> {
     const objectName = `${Date.now()}-${fileName}`;
     
-    await this.minioClient.putObject(bucket, objectName, buffer, buffer.length, {
+    // Проверяем что buffer существует и не пустой
+    if (!buffer || buffer.length === 0) {
+      throw new Error('File buffer is empty');
+    }
+    
+    // Создаём readable stream из buffer
+    const stream = Readable.from(buffer);
+    
+    await this.minioClient.putObject(bucket, objectName, stream, buffer.length, {
       'Content-Type': mimetype,
     });
     
-    this.logger.log(`File uploaded: ${bucket}/${objectName}`);
+    this.logger.log(`File uploaded: ${bucket}/${objectName}, size: ${buffer.length} bytes`);
     return objectName;
   }
 
@@ -95,12 +104,26 @@ export class MinioService implements OnModuleInit {
     const ext = file.originalname.split('.').pop();
     const objectName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
     
-    await this.minioClient.putObject(bucket, objectName, file.buffer, file.size, {
-      'Content-Type': file.mimetype,
-    });
+    // Проверяем что buffer существует и не пустой
+    if (!file.buffer || file.buffer.length === 0) {
+      throw new Error('File buffer is empty');
+    }
+    
+    // Создаём readable stream из buffer
+    const stream = Readable.from(file.buffer);
+    
+    await this.minioClient.putObject(
+      bucket, 
+      objectName, 
+      stream, 
+      file.size, 
+      {
+        'Content-Type': file.mimetype,
+      }
+    );
     
     const url = this.getFileUrl(bucket, objectName);
-    this.logger.log(`File uploaded: ${bucket}/${objectName}`);
+    this.logger.log(`File uploaded: ${bucket}/${objectName}, size: ${file.size} bytes`);
     
     return { objectName, url };
   }
