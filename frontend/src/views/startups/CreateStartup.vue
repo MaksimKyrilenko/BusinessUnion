@@ -353,10 +353,10 @@ export default {
         
         // Добавляем URL файлов из MinIO
         if (this.formData.presentationUrl) {
-          submitData.presentation = this.formData.presentationUrl
+          submitData.presentationUrl = this.formData.presentationUrl
         }
         if (this.formData.businessPlanUrl) {
-          submitData.businessPlan = this.formData.businessPlanUrl
+          submitData.businessPlanUrl = this.formData.businessPlanUrl
         }
         
         await api.post('/startups/create', submitData)

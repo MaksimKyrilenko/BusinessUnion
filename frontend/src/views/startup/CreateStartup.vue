@@ -370,10 +370,10 @@ export default {
         
         // Добавляем URL файлов из MinIO
         if (businessPlanUrl) {
-          projectData.businessPlan = businessPlanUrl;
+          projectData.businessPlanUrl = businessPlanUrl;
         }
         if (presentationUrl) {
-          projectData.presentation = presentationUrl;
+          projectData.presentationUrl = presentationUrl;
         }
 
         let project;
