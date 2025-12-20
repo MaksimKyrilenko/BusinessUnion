@@ -66,6 +66,36 @@
             <h2>О проекте</h2>
             <div class="section-content">
               <p>{{ startup.description }}</p>
+              
+              <!-- Документы проекта -->
+              <div v-if="startup.presentationUrl || startup.businessPlanUrl" class="project-documents">
+                <h3 class="documents-title">Документы проекта</h3>
+                <div class="documents-grid">
+                  <a v-if="startup.presentationUrl" :href="startup.presentationUrl" target="_blank" class="document-card">
+                    <div class="document-icon presentation">
+                      <i class="fas fa-file-powerpoint"></i>
+                    </div>
+                    <div class="document-info">
+                      <div class="document-title">Презентация проекта</div>
+                      <div class="document-action">
+                        <i class="fas fa-download"></i> Скачать
+                      </div>
+                    </div>
+                  </a>
+                  
+                  <a v-if="startup.businessPlanUrl" :href="startup.businessPlanUrl" target="_blank" class="document-card">
+                    <div class="document-icon business-plan">
+                      <i class="fas fa-file-pdf"></i>
+                    </div>
+                    <div class="document-info">
+                      <div class="document-title">Бизнес-план проекта</div>
+                      <div class="document-action">
+                        <i class="fas fa-download"></i> Скачать
+                      </div>
+                    </div>
+                  </a>
+                </div>
+              </div>
             </div>
           </section>
 
@@ -108,28 +138,7 @@
             </div>
           </section>
 
-          <section class="content-section" v-if="startup.businessPlanUrl || startup.presentationUrl">
-            <h2>Документы</h2>
-            <div class="section-content">
-              <div class="documents-list">
-                <a v-if="startup.businessPlanUrl" :href="startup.businessPlanUrl" target="_blank" class="document-link">
-                  <i class="fas fa-file-pdf"></i>
-                  <div class="document-info">
-                    <div class="document-title">Бизнес-план</div>
-                    <div class="document-desc">Скачать PDF</div>
-                  </div>
-                </a>
-                
-                <a v-if="startup.presentationUrl" :href="startup.presentationUrl" target="_blank" class="document-link">
-                  <i class="fas fa-file-powerpoint"></i>
-                  <div class="document-info">
-                    <div class="document-title">Презентация</div>
-                    <div class="document-desc">Скачать презентацию</div>
-                  </div>
-                </a>
-              </div>
-            </div>
-          </section>
+
         </div>
 
         <div class="content-sidebar">
@@ -542,6 +551,85 @@ export default {
 
 .section-content p:last-child {
   margin-bottom: 0;
+}
+
+/* Документы проекта */
+.project-documents {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid #e9ecef;
+}
+
+.documents-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 16px 0;
+}
+
+.documents-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.document-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.3s ease;
+}
+
+.document-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(33, 150, 243, 0.15);
+  border-color: #2196F3;
+}
+
+.document-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.document-icon.presentation {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%);
+  color: white;
+}
+
+.document-icon.business-plan {
+  background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+  color: white;
+}
+
+.document-card .document-info {
+  flex: 1;
+}
+
+.document-card .document-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 4px;
+}
+
+.document-action {
+  font-size: 14px;
+  color: #2196F3;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .info-grid {

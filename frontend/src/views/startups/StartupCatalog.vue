@@ -799,6 +799,9 @@ export default {
   overflow: hidden;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .startup-card:hover {
@@ -831,6 +834,9 @@ export default {
 
 .startup-content {
   padding: 20px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 
 .startup-header {
@@ -887,6 +893,8 @@ export default {
 .startup-actions {
   display: flex;
   gap: 8px;
+  margin-top: auto;
+  padding-top: 16px;
 }
 
 .pagination {
