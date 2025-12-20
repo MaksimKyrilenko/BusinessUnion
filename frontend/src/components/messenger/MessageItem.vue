@@ -261,6 +261,12 @@ export default {
   background: #f1f5f9;
   padding: 10px 14px;
   border-radius: 16px;
+  display: inline-block;
+  max-width: 100%;
+}
+
+.message-own .message-content {
+  align-items: flex-end;
 }
 
 .message-own .message-bubble {
