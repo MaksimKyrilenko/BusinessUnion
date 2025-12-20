@@ -103,29 +103,27 @@ export default {
   z-index: 100;
   box-shadow: 2px 0 8px rgba(0,0,0,0.06);
   border-right: 1px solid #e5e7eb;
+  padding: 1rem 0;
 }
 
 .sidebar-header {
   padding: 1rem 1.5rem;
-  border-bottom: 1px solid #e5e7eb;
-  height: 64px;
-  display: flex;
-  align-items: center;
-  box-sizing: border-box;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid #eee;
 }
 
 .logo {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #1a1a2e;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #2196F3;
 }
 
 .logo i {
   font-size: 1.5rem;
-  color: #4F8FFF;
+  color: #2196F3;
 }
 
 .sidebar-nav {
@@ -137,27 +135,29 @@ export default {
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.875rem 1.5rem;
-  color: #64748b;
+  gap: 1rem;
+  padding: 0.75rem 1.5rem;
+  color: #333;
   text-decoration: none;
+  font-weight: 500;
   transition: all 0.2s;
   border-left: 3px solid transparent;
 }
 
 .nav-item:hover {
-  background: #f8fafc;
-  color: #1a1a2e;
+  background: rgba(33, 150, 243, 0.1);
+  color: #2196F3;
 }
 
 .nav-item.active {
-  background: rgba(79, 143, 255, 0.1);
-  color: #4F8FFF;
-  border-left-color: #4F8FFF;
+  background: rgba(33, 150, 243, 0.1);
+  color: #2196F3;
+  border-left-color: #2196F3;
 }
 
 .nav-item i {
-  width: 20px;
+  width: 24px;
+  font-size: 1.1rem;
   text-align: center;
 }
 
