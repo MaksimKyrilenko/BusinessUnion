@@ -92,6 +92,18 @@ export class WebsocketGateway
       this.sendCommunityUpdate(data.communityId, data.update);
     });
 
+    // Пользователь заблокирован
+    this.redisService.onMessage('chat:userBlocked', (data) => {
+      this.logger.log(`[REDIS->WS] chat:userBlocked in chat ${data.chatId}, blocked: ${data.blockedUserId}, by: ${data.blockedByUserId}`);
+      this.sendUserBlocked(data.chatId, data.blockedUserId, data.blockedByUserId, data.isBlocked);
+    });
+
+    // Чат удалён
+    this.redisService.onMessage('chat:deleted', (data) => {
+      this.logger.log(`[REDIS->WS] chat:deleted chat ${data.chatId}, participants: ${data.participantIds?.join(', ')}`);
+      this.sendChatDeleted(data.chatId, data.participantIds, data.deletedByUserId);
+    });
+
     // Крипто обновления
     this.redisService.onMessage('crypto:update', (data) => {
       this.sendCryptoUpdate(data.data);
@@ -358,6 +370,28 @@ export class WebsocketGateway
     const room = `chat:${chatId}`;
     this.logger.log(`[SEND:READ] ${messageIds.length} messages read by user ${readByUserId} in room ${room}`);
     this.server.to(room).emit('chat:messagesRead', { chatId, readByUserId, messageIds });
+  }
+
+  sendUserBlocked(chatId: number, blockedUserId: number, blockedByUserId: number, isBlocked: boolean) {
+    // Отправляем заблокированному пользователю
+    this.websocketService.sendToUser(blockedUserId, 'chat:userBlocked', {
+      chatId,
+      blockedUserId,
+      blockedByUserId,
+      isBlocked
+    });
+    this.logger.log(`[SEND:BLOCKED] User ${blockedUserId} ${isBlocked ? 'blocked' : 'unblocked'} by ${blockedByUserId} in chat ${chatId}`);
+  }
+
+  sendChatDeleted(chatId: number, participantIds: number[], deletedByUserId: number) {
+    // Отправляем всем участникам чата
+    participantIds.forEach(userId => {
+      this.websocketService.sendToUser(userId, 'chat:deleted', {
+        chatId,
+        deletedByUserId
+      });
+    });
+    this.logger.log(`[SEND:CHAT_DELETED] Chat ${chatId} deleted, notified ${participantIds.length} users`);
   }
 
   sendNotification(userId: number, notification: any) {

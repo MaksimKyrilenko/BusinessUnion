@@ -34,6 +34,12 @@ export class ChatUser {
   @Column({ default: false })
   isPinned: boolean;
 
+  @Column({ default: false })
+  isBlocked: boolean;
+
+  @Column({ nullable: true })
+  blockedByUserId: number | null;
+
   @CreateDateColumn()
   createdAt: Date;
 } 

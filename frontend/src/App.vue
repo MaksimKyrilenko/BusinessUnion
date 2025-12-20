@@ -117,6 +117,15 @@ export default defineComponent({
           return
         }
         
+        // Получаем чат из кэша
+        const chat = chatsCache.find(c => c.id === message.chatId)
+        
+        // Проверяем, не заглушен ли чат
+        if (chat?.isMuted) {
+          console.log('[App] Чат заглушен, уведомление не показываем')
+          return
+        }
+        
         // Увеличиваем счётчик непрочитанных
         messengerStore.incrementUnread()
         
@@ -126,7 +135,6 @@ export default defineComponent({
           : 'Пользователь'
         
         // Получаем название чата из кэша
-        const chat = chatsCache.find(c => c.id === message.chatId)
         let chatName = ''
         
         if (chat) {

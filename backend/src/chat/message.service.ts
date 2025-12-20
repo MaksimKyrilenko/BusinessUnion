@@ -27,6 +27,11 @@ export class MessageService {
       throw new BadRequestException('Вы не можете отправлять сообщения в этот чат');
     }
 
+    // Проверяем, не заблокирован ли пользователь в этом чате
+    if (chatUser.isBlocked) {
+      throw new ForbiddenException('Вы заблокированы в этом чате и не можете отправлять сообщения');
+    }
+
     // Создаем новое сообщение
     const message = this.messageRepository.create({
       ...createMessageDto,

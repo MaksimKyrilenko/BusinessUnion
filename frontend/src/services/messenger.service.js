@@ -102,13 +102,37 @@ class MessengerService {
   }
 
   deleteChat(chatId) {
-    return axios.delete(`${API_URL}/chats/${chatId}`, { headers: authHeader() })
+    return axios.post(`${API_URL}/chats/${chatId}/delete`, {}, { headers: authHeader() })
       .then(response => {
         console.log(`Чат ${chatId} успешно удален`)
         return response
       })
       .catch(error => {
         console.error(`Ошибка при удалении чата ${chatId}:`, error)
+        throw error
+      })
+  }
+
+  blockUser(chatId) {
+    return axios.post(`${API_URL}/chats/${chatId}/block`, {}, { headers: authHeader() })
+      .then(response => {
+        console.log(`[blockUser] Статус блокировки в чате ${chatId} изменен:`, response.data)
+        return response
+      })
+      .catch(error => {
+        console.error(`[blockUser] Ошибка при блокировке в чате ${chatId}:`, error)
+        throw error
+      })
+  }
+
+  getBlockStatus(chatId) {
+    return axios.get(`${API_URL}/chats/${chatId}/block-status`, { headers: authHeader() })
+      .then(response => {
+        console.log(`[getBlockStatus] Статус блокировки в чате ${chatId}:`, response.data)
+        return response
+      })
+      .catch(error => {
+        console.error(`[getBlockStatus] Ошибка при получении статуса блокировки:`, error)
         throw error
       })
   }

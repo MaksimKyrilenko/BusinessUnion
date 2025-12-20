@@ -50,11 +50,6 @@
         @update:searchQuery="searchQuery = $event"
         @selectChat="handleSelectChat"
         @createGroup="showCreateGroupModal = true"
-        @toggleChatMenu="toggleChatMenu"
-        @pinChat="pinChat"
-        @markAsUnread="markAsUnread"
-        @muteChat="muteChat"
-        @leaveGroup="leaveGroup"
       />
 
       <!-- Main chat area -->
@@ -94,6 +89,7 @@
           :emojiCategories="emojiCategories"
           :currentEmojiCategory="currentEmojiCategory"
           :currentCategoryEmojis="currentCategoryEmojis"
+          :isBlocked="selectedChat?.isBlockedByOther || false"
           @send="sendMessage"
           @cancelReply="cancelReply"
           @toggleAttachMenu="toggleAttachMenu"
@@ -443,6 +439,21 @@ export default {
         messengerStore.decrementUnread(unreadInChat)
       }
       
+      // Проверяем статус блокировки для личных чатов
+      if (selectedChat.value?.type === 'personal') {
+        try {
+          const messengerService = (await import('@/services/messenger.service')).default
+          const response = await messengerService.getBlockStatus(chatId)
+          if (response?.data) {
+            selectedChat.value.isBlockedByOther = response.data.isBlocked
+            isUserBlocked.value = response.data.blockedByMe
+            personalChatNotifications.value = !selectedChat.value.isMuted
+          }
+        } catch (error) {
+          console.error('Ошибка при проверке статуса блокировки:', error)
+        }
+      }
+      
       // Обновляем статус сообщений как прочитанных на фронтенде
       markMessagesAsRead()
       // Отправляем WebSocket событие о прочтении для уведомления отправителя
@@ -529,9 +540,20 @@ export default {
 
     // Методы для личного чата
     const toggleBlockUser = async () => {
-      isUserBlocked.value = !isUserBlocked.value
-      // TODO: Реализовать API для блокировки пользователя когда будет готов бэкенд
-      console.log('Блокировка пользователя:', isUserBlocked.value ? 'заблокирован' : 'разблокирован')
+      if (!selectedChat.value) return
+      
+      try {
+        const messengerService = (await import('@/services/messenger.service')).default
+        const response = await messengerService.blockUser(selectedChat.value.id)
+        
+        if (response?.data) {
+          isUserBlocked.value = response.data.isBlocked
+          console.log(`[toggleBlockUser] Пользователь ${response.data.isBlocked ? 'заблокирован' : 'разблокирован'}`)
+        }
+      } catch (error) {
+        console.error('[toggleBlockUser] Ошибка при блокировке:', error)
+        alert('Не удалось изменить статус блокировки')
+      }
     }
     
     const togglePersonalChatNotifications = async (value) => {
@@ -571,7 +593,7 @@ export default {
     }
 
     const confirmDeletePersonalChat = async () => {
-      if (!confirm('Удалить этот чат? История сообщений будет удалена.')) return
+      if (!confirm('Удалить этот чат? История сообщений будет удалена у обоих пользователей.')) return
       
       try {
         const messengerService = (await import('@/services/messenger.service')).default
@@ -983,6 +1005,43 @@ export default {
         }
       })
       wsUnsubscribers.push(unsubMessagesRead)
+      
+      // Обработчик блокировки пользователя
+      const unsubUserBlocked = websocketService.on('chat:userBlocked', (data) => {
+        console.log('[WS Handler] Получено событие chat:userBlocked:', data)
+        
+        // Если заблокировали меня
+        const myUserId = localStorage.getItem('userId')
+        if (String(data.blockedUserId) === String(myUserId)) {
+          // Обновляем состояние блокировки в текущем чате
+          if (selectedChat.value && selectedChat.value.id === data.chatId) {
+            selectedChat.value.isBlockedByOther = data.isBlocked
+            if (data.isBlocked) {
+              alert('Этот пользователь вас заблокировал. Вы не можете отправлять сообщения.')
+            }
+          }
+        }
+      })
+      wsUnsubscribers.push(unsubUserBlocked)
+      
+      // Обработчик удаления чата
+      const unsubChatDeleted = websocketService.on('chat:deleted', (data) => {
+        console.log('[WS Handler] Получено событие chat:deleted:', data)
+        
+        // Удаляем чат из списка
+        const chatIndex = chats.value.findIndex(c => c.id === data.chatId)
+        if (chatIndex !== -1) {
+          chats.value.splice(chatIndex, 1)
+        }
+        
+        // Если это текущий открытый чат - закрываем его
+        if (selectedChat.value && selectedChat.value.id === data.chatId) {
+          selectedChat.value = null
+          showPersonalChatInfoModal.value = false
+          alert('Этот чат был удалён')
+        }
+      })
+      wsUnsubscribers.push(unsubChatDeleted)
     }
 
     onMounted(async () => {

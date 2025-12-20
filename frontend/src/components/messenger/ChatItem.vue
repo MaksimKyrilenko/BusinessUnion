@@ -26,85 +26,27 @@
         <span v-if="chat.unreadCount > 0" class="unread-badge">{{ chat.unreadCount > 99 ? '99+' : chat.unreadCount }}</span>
       </div>
     </div>
-    <div class="chat-actions-menu" v-click-outside="closeMenu">
-      <button class="action-btn" @click.stop="toggleMenu">⋮</button>
-      <div v-if="showMenu" class="chat-menu">
-        <button @click.stop="handlePin">
-          {{ chat.isPinned ? 'Открепить' : 'Закрепить' }}
-        </button>
-        <button @click.stop="handleMute">
-          {{ chat.isMuted ? 'Включить уведомления' : 'Отключить уведомления' }}
-        </button>
-        <button v-if="chat.type === 'group'" @click.stop="handleLeave" class="danger">
-          Покинуть группу
-        </button>
-      </div>
-    </div>
   </div>
 </template>
 
 <script>
-import { computed, ref } from 'vue'
-import { formatTime, getUserAvatar, getUserFullName } from '@/utils/messageFormatters'
-
-// Директива для клика вне элемента
-const vClickOutside = {
-  mounted(el, binding) {
-    el._clickOutside = (event) => {
-      if (!(el === event.target || el.contains(event.target))) {
-        binding.value(event)
-      }
-    }
-    document.addEventListener('click', el._clickOutside)
-  },
-  unmounted(el) {
-    document.removeEventListener('click', el._clickOutside)
-  }
-}
+import { computed } from 'vue'
+import { formatTime, getUserAvatar } from '@/utils/messageFormatters'
 
 export default {
   name: 'ChatItem',
-  directives: {
-    'click-outside': vClickOutside
-  },
   props: {
     chat: { type: Object, required: true },
     selected: { type: Boolean, default: false },
     currentUserId: { type: [String, Number], default: null },
     onlineUsers: { type: Array, default: () => [] }
   },
-  emits: ['select', 'pin', 'mute', 'leave'],
-  setup(props, { emit }) {
-    const showMenu = ref(false)
-    
-    const toggleMenu = () => {
-      showMenu.value = !showMenu.value
-    }
-    
-    const closeMenu = () => {
-      showMenu.value = false
-    }
-    
-    const handlePin = () => {
-      emit('pin')
-      closeMenu()
-    }
-    
-    const handleMute = () => {
-      emit('mute')
-      closeMenu()
-    }
-    
-    const handleLeave = () => {
-      emit('leave')
-      closeMenu()
-    }
-    
+  emits: ['select'],
+  setup(props) {
     // Получаем другого участника для личных чатов
     const otherParticipant = computed(() => {
       if (props.chat.type !== 'personal') return null
       
-      // Пробуем participants (из findAll)
       if (props.chat.participants?.length) {
         const found = props.chat.participants.find(
           p => String(p.id) !== String(props.currentUserId)
@@ -112,7 +54,6 @@ export default {
         if (found) return found
       }
       
-      // Пробуем users (из findOne) - там структура chatUser.user
       if (props.chat.users?.length) {
         const chatUser = props.chat.users.find(
           cu => cu.user && String(cu.user.id) !== String(props.currentUserId)
@@ -123,21 +64,17 @@ export default {
       return null
     })
 
-    // Имя чата - для личных показываем имя и фамилию собеседника
     const chatDisplayName = computed(() => {
       if (props.chat.type === 'group') {
         return props.chat.name || 'Группа'
       }
       
-      // Для личных чатов показываем имя собеседника
       if (otherParticipant.value) {
-        // Пробуем прямые поля
         const firstName = otherParticipant.value.firstName || ''
         const lastName = otherParticipant.value.lastName || ''
         let fullName = [firstName, lastName].filter(Boolean).join(' ')
         if (fullName) return fullName
         
-        // Пробуем profile
         if (otherParticipant.value.profile) {
           const profileFirstName = otherParticipant.value.profile.firstName || ''
           const profileLastName = otherParticipant.value.profile.lastName || ''
@@ -145,61 +82,37 @@ export default {
           if (fullName) return fullName
         }
         
-        // Пробуем name
-        if (otherParticipant.value.name) {
-          return otherParticipant.value.name
-        }
-        
-        // Пробуем email
-        if (otherParticipant.value.email) {
-          return otherParticipant.value.email.split('@')[0]
-        }
+        if (otherParticipant.value.name) return otherParticipant.value.name
+        if (otherParticipant.value.email) return otherParticipant.value.email.split('@')[0]
       }
       
-      // Fallback - используем chat.name если есть (там может быть имя)
-      if (props.chat.name) {
-        return props.chat.name
-      }
-      
+      if (props.chat.name) return props.chat.name
       return 'Чат'
     })
 
-    // Аватар
     const avatarUrl = computed(() => {
       if (props.chat.type === 'group') {
         return props.chat.avatar || '/assets/images/default-avatar.svg'
       }
-      
       if (otherParticipant.value) {
         return getUserAvatar(otherParticipant.value)
       }
-      
       return '/assets/images/default-avatar.svg'
     })
 
-    // Статус онлайн
     const onlineStatus = computed(() => {
-      if (props.chat.type === 'group') {
-        return 'group' // Для групп не показываем статус
-      }
-      
+      if (props.chat.type === 'group') return 'group'
       if (otherParticipant.value) {
         const isOnline = props.onlineUsers.includes(otherParticipant.value.id) ||
                          props.onlineUsers.includes(String(otherParticipant.value.id))
         return isOnline ? 'online' : 'offline'
       }
-      
       return 'offline'
     })
 
-    // Время последнего сообщения
     const lastMessageTime = computed(() => {
-      if (props.chat.lastMessage?.createdAt) {
-        return props.chat.lastMessage.createdAt
-      }
-      if (props.chat.lastMessage?.timestamp) {
-        return props.chat.lastMessage.timestamp
-      }
+      if (props.chat.lastMessage?.createdAt) return props.chat.lastMessage.createdAt
+      if (props.chat.lastMessage?.timestamp) return props.chat.lastMessage.timestamp
       if (props.chat.messages?.length > 0) {
         const lastMsg = props.chat.messages[props.chat.messages.length - 1]
         return lastMsg.createdAt || lastMsg.timestamp
@@ -207,7 +120,6 @@ export default {
       return props.chat.updatedAt || props.chat.createdAt
     })
 
-    // Текст последнего сообщения
     const lastMessageText = computed(() => {
       let text = ''
       let senderName = ''
@@ -227,21 +139,13 @@ export default {
         return 'Нет сообщений'
       }
       
-      // Для групп показываем имя отправителя
       if (senderName && props.chat.type === 'group') {
         return `${senderName}: ${text}`
       }
-      
       return text
     })
 
     return {
-      showMenu,
-      toggleMenu,
-      closeMenu,
-      handlePin,
-      handleMute,
-      handleLeave,
       avatarUrl,
       chatDisplayName,
       onlineStatus,
@@ -306,7 +210,7 @@ export default {
 }
 
 .status-indicator.group {
-  display: none; /* Скрываем индикатор для групп */
+  display: none;
 }
 
 .chat-info {
@@ -362,7 +266,6 @@ export default {
   font-weight: 500;
 }
 
-/* Маркировка непрочитанных чатов */
 .chat-item.has-unread {
   background: #f0f9ff;
 }
@@ -397,62 +300,5 @@ export default {
   border-radius: 10px;
   min-width: 18px;
   text-align: center;
-}
-
-.chat-actions-menu {
-  position: relative;
-}
-
-.chat-actions-menu .action-btn {
-  background: none;
-  border: none;
-  padding: 8px;
-  cursor: pointer;
-  color: #94a3b8;
-  font-size: 16px;
-  border-radius: 50%;
-  transition: all 0.2s ease;
-}
-
-.chat-actions-menu .action-btn:hover {
-  background: #f1f5f9;
-  color: #64748b;
-}
-
-.chat-menu {
-  position: absolute;
-  right: 0;
-  top: 100%;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  z-index: 100;
-  min-width: 180px;
-  overflow: hidden;
-}
-
-.chat-menu button {
-  display: block;
-  width: 100%;
-  padding: 10px 16px;
-  border: none;
-  background: none;
-  text-align: left;
-  cursor: pointer;
-  font-size: 13px;
-  color: #334155;
-  transition: background 0.2s ease;
-}
-
-.chat-menu button:hover {
-  background: #f1f5f9;
-}
-
-.chat-menu button.danger {
-  color: #ef4444;
-}
-
-.chat-menu button.danger:hover {
-  background: #fef2f2;
 }
 </style>

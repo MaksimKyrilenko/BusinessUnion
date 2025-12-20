@@ -1,53 +1,60 @@
 <template>
   <div class="message-input-container">
-    <!-- Reply bar -->
-    <div v-if="replyingTo" class="reply-bar">
-      <div class="reply-preview">
-        <div class="reply-line"></div>
-        <div class="reply-content">
-          <span class="reply-author">{{ getReplyAuthorName(replyingTo) }}</span>
-          <p>{{ replyingTo.text || 'Сообщение' }}</p>
-        </div>
-        <button class="close-reply" @click="$emit('cancelReply')">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
+    <!-- Blocked message -->
+    <div v-if="isBlocked" class="blocked-message">
+      <i class="fas fa-ban"></i>
+      <span>Этот пользователь вас заблокировал. Вы не можете отправлять сообщения.</span>
     </div>
+    
+    <template v-else>
+      <!-- Reply bar -->
+      <div v-if="replyingTo" class="reply-bar">
+        <div class="reply-preview">
+          <div class="reply-line"></div>
+          <div class="reply-content">
+            <span class="reply-author">{{ getReplyAuthorName(replyingTo) }}</span>
+            <p>{{ replyingTo.text || 'Сообщение' }}</p>
+          </div>
+          <button class="close-reply" @click="$emit('cancelReply')">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      </div>
 
-    <div class="message-input">
-      <div class="attach-btn-container">
-        <button class="attach-btn" @click="$emit('toggleAttachMenu')">
-          <i class="fas fa-paperclip"></i>
-        </button>
-        <div v-if="showAttachMenu" class="attach-menu" @click.stop>
-          <div class="attach-options">
-            <button @click="$emit('attachImage')">
-              <i class="fas fa-image"></i>
-              <span>Изображение</span>
-            </button>
-            <button @click="$emit('attachFile')">
-              <i class="fas fa-file"></i>
-              <span>Файл</span>
-            </button>
+      <div class="message-input">
+        <div class="attach-btn-container">
+          <button class="attach-btn" @click="$emit('toggleAttachMenu')">
+            <i class="fas fa-paperclip"></i>
+          </button>
+          <div v-if="showAttachMenu" class="attach-menu" @click.stop>
+            <div class="attach-options">
+              <button @click="$emit('attachImage')">
+                <i class="fas fa-image"></i>
+                <span>Изображение</span>
+              </button>
+              <button @click="$emit('attachFile')">
+                <i class="fas fa-file"></i>
+                <span>Файл</span>
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="input-wrapper">
-        <textarea
-          ref="inputRef"
-          :value="modelValue"
-          @input="handleInput"
-          placeholder="Введите сообщение..."
-          @keydown.enter.prevent="$emit('send')"
-          rows="1"
-        ></textarea>
-        <div class="format-toolbar" v-if="showFormatting">
-          <button @click="$emit('formatText', 'bold')" title="Жирный">B</button>
-          <button @click="$emit('formatText', 'italic')" title="Курсив">I</button>
-          <button @click="$emit('formatText', 'code')" title="Код">{}</button>
-        </div>
-        <button class="emoji-btn" @click="$emit('toggleEmojiPicker')">
-          <i class="far fa-smile"></i>
+        <div class="input-wrapper">
+          <textarea
+            ref="inputRef"
+            :value="modelValue"
+            @input="handleInput"
+            placeholder="Введите сообщение..."
+            @keydown.enter.prevent="$emit('send')"
+            rows="1"
+          ></textarea>
+          <div class="format-toolbar" v-if="showFormatting">
+            <button @click="$emit('formatText', 'bold')" title="Жирный">B</button>
+            <button @click="$emit('formatText', 'italic')" title="Курсив">I</button>
+            <button @click="$emit('formatText', 'code')" title="Код">{}</button>
+          </div>
+          <button class="emoji-btn" @click="$emit('toggleEmojiPicker')">
+            <i class="far fa-smile"></i>
         </button>
       </div>
       <button 
@@ -88,6 +95,7 @@
         </button>
       </div>
     </div>
+    </template>
   </div>
 </template>
 
@@ -105,7 +113,8 @@ export default {
     canSend: { type: Boolean, default: false },
     emojiCategories: { type: Array, default: () => [] },
     currentEmojiCategory: { type: String, default: 'smileys' },
-    currentCategoryEmojis: { type: Array, default: () => [] }
+    currentCategoryEmojis: { type: Array, default: () => [] },
+    isBlocked: { type: Boolean, default: false }
   },
   emits: [
     'update:modelValue',
@@ -171,6 +180,22 @@ export default {
   position: relative;
   flex-shrink: 0; /* Не сжимаем поле ввода */
   background: #fff;
+}
+
+.blocked-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px;
+  background: #fef2f2;
+  border-top: 1px solid #fecaca;
+  color: #dc2626;
+  font-size: 14px;
+}
+
+.blocked-message i {
+  font-size: 18px;
 }
 
 .reply-bar {

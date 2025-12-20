@@ -673,4 +673,118 @@ export class ChatService {
       throw new InternalServerErrorException('Ошибка при добавлении пользователя в группу');
     }
   }
+
+  // Блокировка пользователя в личном чате
+  async blockUser(chatId: number, userId: number): Promise<{ isBlocked: boolean; blockedUserId: number }> {
+    this.logger.log(`[blockUser] Пользователь ${userId} блокирует в чате ${chatId}`);
+    
+    // Проверяем, что это личный чат
+    const chat = await this.chatRepository.findOne({ where: { id: chatId } });
+    if (!chat) {
+      throw new NotFoundException(`Чат с ID ${chatId} не найден`);
+    }
+    
+    if (chat.type !== ChatType.PERSONAL) {
+      throw new BadRequestException('Блокировка доступна только в личных чатах');
+    }
+    
+    // Находим другого участника чата
+    const chatUsers = await this.chatUserRepository.find({ where: { chatId } });
+    const otherChatUser = chatUsers.find(cu => cu.userId !== userId);
+    
+    if (!otherChatUser) {
+      throw new NotFoundException('Собеседник не найден');
+    }
+    
+    // Переключаем статус блокировки
+    const newBlockedState = !otherChatUser.isBlocked;
+    otherChatUser.isBlocked = newBlockedState;
+    otherChatUser.blockedByUserId = newBlockedState ? userId : null;
+    await this.chatUserRepository.save(otherChatUser);
+    
+    // Отправляем уведомление через Redis
+    try {
+      await this.redisPublisher.publish('chat:userBlocked', {
+        chatId,
+        blockedUserId: otherChatUser.userId,
+        blockedByUserId: userId,
+        isBlocked: newBlockedState
+      });
+    } catch (error) {
+      this.logger.error('Ошибка при отправке уведомления о блокировке:', error);
+    }
+    
+    this.logger.log(`[blockUser] Пользователь ${otherChatUser.userId} ${newBlockedState ? 'заблокирован' : 'разблокирован'} в чате ${chatId}`);
+    
+    return { isBlocked: newBlockedState, blockedUserId: otherChatUser.userId };
+  }
+
+  // Удаление личного чата (для обоих пользователей)
+  async deletePersonalChat(chatId: number, userId: number): Promise<void> {
+    this.logger.log(`[deletePersonalChat] Удаление чата ${chatId} пользователем ${userId}`);
+    
+    // Проверяем, что пользователь участник чата
+    const chatUser = await this.chatUserRepository.findOne({
+      where: { chatId, userId },
+      relations: ['chat'],
+    });
+    
+    if (!chatUser) {
+      throw new NotFoundException(`Чат с ID ${chatId} не найден или вы не имеете доступа`);
+    }
+    
+    // Проверяем, что это личный чат
+    if (chatUser.chat.type !== ChatType.PERSONAL) {
+      throw new BadRequestException('Этот метод только для личных чатов');
+    }
+    
+    // Получаем всех участников чата для уведомления
+    const chatUsers = await this.chatUserRepository.find({ where: { chatId } });
+    const participantIds = chatUsers.map(cu => cu.userId);
+    
+    // Удаляем все сообщения чата
+    await this.messageRepository.delete({ chatId });
+    
+    // Удаляем связи пользователей с чатом
+    await this.chatUserRepository.delete({ chatId });
+    
+    // Удаляем сам чат
+    await this.chatRepository.delete({ id: chatId });
+    
+    // Отправляем уведомление через Redis всем участникам
+    try {
+      await this.redisPublisher.publish('chat:deleted', {
+        chatId,
+        participantIds,
+        deletedByUserId: userId
+      });
+    } catch (error) {
+      this.logger.error('Ошибка при отправке уведомления об удалении чата:', error);
+    }
+    
+    this.logger.log(`[deletePersonalChat] Чат ${chatId} успешно удалён`);
+  }
+
+  // Проверка блокировки в чате
+  async checkBlockStatus(chatId: number, userId: number): Promise<{ isBlocked: boolean; blockedByMe: boolean }> {
+    const chatUsers = await this.chatUserRepository.find({ where: { chatId } });
+    
+    const myChatUser = chatUsers.find(cu => cu.userId === userId);
+    const otherChatUser = chatUsers.find(cu => cu.userId !== userId);
+    
+    if (!myChatUser || !otherChatUser) {
+      return { isBlocked: false, blockedByMe: false };
+    }
+    
+    // Проверяем, заблокирован ли я другим пользователем
+    const isBlockedByOther = myChatUser.isBlocked && myChatUser.blockedByUserId === otherChatUser.userId;
+    
+    // Проверяем, заблокировал ли я другого пользователя
+    const blockedByMe = otherChatUser.isBlocked && otherChatUser.blockedByUserId === userId;
+    
+    return { 
+      isBlocked: isBlockedByOther, 
+      blockedByMe 
+    };
+  }
 } 

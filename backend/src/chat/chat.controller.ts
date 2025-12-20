@@ -380,4 +380,59 @@ export class ChatController {
       throw error;
     }
   }
+
+  @Post(':id/block')
+  async blockUser(
+    @Param('id', ParseIntPipe) id: number,
+    @Request() req,
+  ): Promise<{ isBlocked: boolean; blockedUserId: number }> {
+    const userId = req.user.sub;
+    if (!userId) {
+      throw new BadRequestException('ID пользователя не найден в токене');
+    }
+
+    const userIdNum = parseInt(String(userId).trim(), 10);
+    if (isNaN(userIdNum)) {
+      throw new BadRequestException('Некорректный ID пользователя');
+    }
+
+    return this.chatService.blockUser(id, userIdNum);
+  }
+
+  @Post(':id/delete')
+  async deletePersonalChat(
+    @Param('id', ParseIntPipe) id: number,
+    @Request() req,
+  ): Promise<{ success: boolean }> {
+    const userId = req.user.sub;
+    if (!userId) {
+      throw new BadRequestException('ID пользователя не найден в токене');
+    }
+
+    const userIdNum = parseInt(String(userId).trim(), 10);
+    if (isNaN(userIdNum)) {
+      throw new BadRequestException('Некорректный ID пользователя');
+    }
+
+    await this.chatService.deletePersonalChat(id, userIdNum);
+    return { success: true };
+  }
+
+  @Get(':id/block-status')
+  async checkBlockStatus(
+    @Param('id', ParseIntPipe) id: number,
+    @Request() req,
+  ): Promise<{ isBlocked: boolean; blockedByMe: boolean }> {
+    const userId = req.user.sub;
+    if (!userId) {
+      throw new BadRequestException('ID пользователя не найден в токене');
+    }
+
+    const userIdNum = parseInt(String(userId).trim(), 10);
+    if (isNaN(userIdNum)) {
+      throw new BadRequestException('Некорректный ID пользователя');
+    }
+
+    return this.chatService.checkBlockStatus(id, userIdNum);
+  }
 } 

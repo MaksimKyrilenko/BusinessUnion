@@ -54,9 +54,6 @@
           :currentUserId="currentUserId"
           :onlineUsers="onlineUsers"
           @select="$emit('selectChat', chat.id)"
-          @pin="$emit('pinChat', chat)"
-          @mute="$emit('muteChat', chat)"
-          @leave="$emit('leaveGroup', chat)"
         />
       </template>
     </div>
@@ -89,10 +86,7 @@ export default {
     'update:activeTab',
     'update:searchQuery',
     'selectChat',
-    'createGroup',
-    'pinChat',
-    'muteChat',
-    'leaveGroup'
+    'createGroup'
   ]
 }
 </script>
