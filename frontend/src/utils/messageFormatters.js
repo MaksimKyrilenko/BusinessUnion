@@ -68,15 +68,33 @@ export const formatFullDateTime = (timestamp) => {
 }
 
 /**
- * Форматирование текста сообщения (markdown-подобное)
+ * Форматирование текста сообщения (markdown-подобное + ссылки)
  */
 export const formatMessageText = (text) => {
   if (!text) return ''
-  return text
+  
+  // Сначала экранируем HTML
+  let formatted = text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+  
+  // Преобразуем ссылки в кликабельные (до markdown форматирования)
+  // Поддерживаем http, https, ftp и www ссылки
+  const urlRegex = /(https?:\/\/[^\s<]+|www\.[^\s<]+)/gi
+  formatted = formatted.replace(urlRegex, (url) => {
+    const href = url.startsWith('www.') ? 'https://' + url : url
+    return `<a href="${href}" target="_blank" rel="noopener noreferrer" class="message-link">${url}</a>`
+  })
+  
+  // Markdown форматирование
+  formatted = formatted
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.*?)\*/g, '<em>$1</em>')
     .replace(/`(.*?)`/g, '<code>$1</code>')
     .replace(/\n/g, '<br>')
+  
+  return formatted
 }
 
 /**

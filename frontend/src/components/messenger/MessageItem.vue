@@ -262,6 +262,25 @@ export default {
   word-wrap: break-word;
 }
 
+.message-text :deep(a.message-link) {
+  color: #1976D2;
+  text-decoration: underline;
+  word-break: break-all;
+}
+
+.message-text :deep(a.message-link:hover) {
+  color: #1565C0;
+}
+
+.message-own .message-text :deep(a.message-link) {
+  color: #fff;
+  text-decoration: underline;
+}
+
+.message-own .message-text :deep(a.message-link:hover) {
+  color: rgba(255, 255, 255, 0.85);
+}
+
 .message-image {
   position: relative;
   border-radius: 12px;

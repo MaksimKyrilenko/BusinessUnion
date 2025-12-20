@@ -40,11 +40,14 @@ export class MessageService {
     // Обновляем счетчик непрочитанных сообщений для всех участников, кроме отправителя
     await this.updateUnreadCounts(createMessageDto.chatId, userId);
 
-    // Возвращаем сообщение с данными об отправителе
+    // Возвращаем сообщение с данными об отправителе и replyTo
     const result = await this.messageRepository
       .createQueryBuilder('message')
       .leftJoinAndSelect('message.sender', 'sender')
       .leftJoinAndSelect('sender.profile', 'senderProfile')
+      .leftJoinAndSelect('message.replyTo', 'replyTo')
+      .leftJoinAndSelect('replyTo.sender', 'replyToSender')
+      .leftJoinAndSelect('replyToSender.profile', 'replyToSenderProfile')
       .where('message.id = :id', { id: savedMessage.id })
       .getOne();
 
@@ -52,7 +55,7 @@ export class MessageService {
       throw new NotFoundException(`Сообщение с ID ${savedMessage.id} не найдено`);
     }
 
-    console.log(`Создано новое сообщение ID: ${result.id} отправитель: ${result.sender?.firstName || ''} ${result.sender?.lastName || ''}`);
+    console.log(`Создано новое сообщение ID: ${result.id} отправитель: ${result.sender?.firstName || ''} ${result.sender?.lastName || ''}, replyTo: ${result.replyTo?.id || 'нет'}`);
 
     // Получаем всех участников чата для отправки уведомлений
     try {
