@@ -94,17 +94,8 @@ export default defineComponent({
         wsUnsubscriber()
       }
       
-      // Загружаем список чатов для получения названий
-      let chatsCache = []
-      try {
-        const messengerService = (await import('@/services/messenger.service')).default
-        const response = await messengerService.getChats()
-        if (response?.data) {
-          chatsCache = response.data
-        }
-      } catch (e) {
-        console.error('Ошибка загрузки чатов для уведомлений:', e)
-      }
+      // Загружаем кэш чатов в store
+      await messengerStore.loadUnreadCount()
       
       wsUnsubscriber = websocketService.on('chat:newMessage', (message) => {
         console.log('[App] Глобальный обработчик: новое сообщение', message.id)
@@ -124,11 +115,8 @@ export default defineComponent({
           return
         }
         
-        // Получаем чат из кэша
-        const chat = chatsCache.find(c => c.id === message.chatId)
-        
-        // Проверяем, не заглушен ли чат
-        if (chat?.isMuted) {
+        // Проверяем, не заглушен ли чат (используем реактивный кэш из store)
+        if (messengerStore.isChatMuted(message.chatId)) {
           console.log('[App] Чат заглушен, уведомление не показываем')
           return
         }
@@ -141,7 +129,10 @@ export default defineComponent({
           ? `${message.sender.firstName || ''} ${message.sender.lastName || ''}`.trim() || 'Пользователь'
           : 'Пользователь'
         
-        // Получаем название чата из кэша
+        // Получаем чат из кэша store
+        const chat = messengerStore.chatsCache.find(c => c.id === message.chatId)
+        
+        // Получаем название чата
         let chatName = ''
         
         if (chat) {

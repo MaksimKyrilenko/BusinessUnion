@@ -580,6 +580,9 @@ export default {
             chats.value[chatIndex].isMuted = response.data.isMuted
           }
           
+          // Обновляем кэш в store для глобальных уведомлений
+          messengerStore.updateChatMuteStatus(selectedChat.value.id, response.data.isMuted)
+          
           console.log(`[togglePersonalChatNotifications] Уведомления ${response.data.isMuted ? 'отключены' : 'включены'}`)
         } else {
           // Fallback
@@ -1056,6 +1059,10 @@ export default {
       onlineUsers.value = websocketService.onlineUsers.value || []
 
       const chatId = await loadChats(currentUserId)
+      
+      // Обновляем кэш чатов в store для глобальных уведомлений
+      messengerStore.setChatsCache(chats.value)
+      
       if (chatId) handleSelectChat(chatId)
     })
 

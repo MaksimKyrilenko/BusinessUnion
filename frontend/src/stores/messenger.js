@@ -1,6 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
-import websocketService from '@/services/websocket.service'
+import { ref } from 'vue'
 
 export const useMessengerStore = defineStore('messenger', () => {
   // Общее количество непрочитанных сообщений
@@ -11,6 +10,9 @@ export const useMessengerStore = defineStore('messenger', () => {
   
   // Текущий открытый чат (для фильтрации уведомлений)
   const currentChatId = ref(null)
+  
+  // Кэш чатов для проверки mute статуса
+  const chatsCache = ref([])
   
   // Таймер для автоскрытия уведомлений
   let hideTimer = null
@@ -33,6 +35,26 @@ export const useMessengerStore = defineStore('messenger', () => {
   // Установить текущий чат
   const setCurrentChat = (chatId) => {
     currentChatId.value = chatId
+  }
+  
+  // Обновить кэш чатов
+  const setChatsCache = (chats) => {
+    chatsCache.value = chats
+  }
+  
+  // Обновить статус mute для конкретного чата в кэше
+  const updateChatMuteStatus = (chatId, isMuted) => {
+    const chatIndex = chatsCache.value.findIndex(c => c.id === chatId)
+    if (chatIndex !== -1) {
+      chatsCache.value[chatIndex].isMuted = isMuted
+      console.log(`[Store] Обновлен статус mute для чата ${chatId}: ${isMuted}`)
+    }
+  }
+  
+  // Проверить, заглушен ли чат
+  const isChatMuted = (chatId) => {
+    const chat = chatsCache.value.find(c => c.id === chatId)
+    return chat?.isMuted || false
   }
   
   // Добавить уведомление о новом сообщении
@@ -94,7 +116,7 @@ export const useMessengerStore = defineStore('messenger', () => {
     }, 4500)
   }
   
-  // Загрузить начальное количество непрочитанных
+  // Загрузить начальное количество непрочитанных и кэш чатов
   const loadUnreadCount = async () => {
     try {
       const messengerService = (await import('@/services/messenger.service')).default
@@ -102,6 +124,8 @@ export const useMessengerStore = defineStore('messenger', () => {
       if (response?.data) {
         const count = response.data.reduce((sum, chat) => sum + (chat.unreadCount || 0), 0)
         totalUnreadCount.value = count
+        // Обновляем кэш чатов
+        chatsCache.value = response.data
       }
     } catch (error) {
       console.error('Ошибка при загрузке количества непрочитанных:', error)
@@ -112,10 +136,14 @@ export const useMessengerStore = defineStore('messenger', () => {
     totalUnreadCount,
     notificationQueue,
     currentChatId,
+    chatsCache,
     setUnreadCount,
     incrementUnread,
     decrementUnread,
     setCurrentChat,
+    setChatsCache,
+    updateChatMuteStatus,
+    isChatMuted,
     addMessageNotification,
     removeNotification,
     clearNotifications,

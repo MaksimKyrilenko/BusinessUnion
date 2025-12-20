@@ -221,7 +221,7 @@ export function useChats() {
   /**
    * Отключение уведомлений
    */
-  const muteChat = async (chat) => {
+  const muteChat = async (chat, messengerStore = null) => {
     try {
       console.log(`[muteChat] Изменение уведомлений чата ${chat.id}, текущее состояние: ${chat.isMuted}`)
       
@@ -230,6 +230,11 @@ export function useChats() {
       // Обновляем состояние из ответа сервера
       if (response?.data?.isMuted !== undefined) {
         chat.isMuted = response.data.isMuted
+        
+        // Обновляем кэш в store если передан
+        if (messengerStore && typeof messengerStore.updateChatMuteStatus === 'function') {
+          messengerStore.updateChatMuteStatus(chat.id, response.data.isMuted)
+        }
       } else {
         // Fallback если сервер не вернул данные
         chat.isMuted = !chat.isMuted

@@ -319,6 +319,12 @@ export default {
   overflow: hidden;
 }
 
+/* Убираем скроллбар из родительского modal-body */
+:deep(.modal-body) {
+  overflow: hidden !important;
+  padding: 0 !important;
+}
+
 /* Header */
 .info-header {
   position: relative;
@@ -459,6 +465,25 @@ export default {
   padding: 16px;
   min-height: 200px;
   max-height: 300px;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+.tab-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.tab-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tab-content::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.tab-content::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
 /* Media Grid */
