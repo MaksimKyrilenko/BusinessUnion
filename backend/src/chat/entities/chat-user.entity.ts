@@ -31,6 +31,9 @@ export class ChatUser {
   @Column({ default: false })
   isMuted: boolean;
 
+  @Column({ default: false })
+  isPinned: boolean;
+
   @CreateDateColumn()
   createdAt: Date;
 } 

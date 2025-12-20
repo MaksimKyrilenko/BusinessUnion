@@ -188,6 +188,13 @@
       @add="addMembersToGroup"
     />
 
+    <EditGroupModal
+      :show="showEditGroupModal"
+      :group="selectedChat"
+      @close="showEditGroupModal = false"
+      @save="handleSaveGroupChanges"
+    />
+
     <PersonalChatInfoModal
       :show="showPersonalChatInfoModal"
       :chat="selectedChat"
@@ -196,7 +203,7 @@
       :notifications="personalChatNotifications"
       :isBlocked="isUserBlocked"
       @close="showPersonalChatInfoModal = false"
-      @update:notifications="personalChatNotifications = $event"
+      @update:notifications="togglePersonalChatNotifications"
       @toggleBlock="toggleBlockUser"
       @deleteChat="confirmDeletePersonalChat"
       @previewImage="handleShowImagePreview"
@@ -221,6 +228,7 @@ import MessageInput from '@/components/messenger/MessageInput.vue'
 import CreateGroupModal from '@/components/messenger/modals/CreateGroupModal.vue'
 import GroupInfoModal from '@/components/messenger/modals/GroupInfoModal.vue'
 import PersonalChatInfoModal from '@/components/messenger/modals/PersonalChatInfoModal.vue'
+import EditGroupModal from '@/components/messenger/modals/EditGroupModal.vue'
 import FileUploadModal from '@/components/messenger/modals/FileUploadModal.vue'
 import ImagePreviewModal from '@/components/messenger/modals/ImagePreviewModal.vue'
 import AddMemberModal from '@/components/messenger/modals/AddMemberModal.vue'
@@ -241,6 +249,7 @@ export default {
     CreateGroupModal,
     GroupInfoModal,
     PersonalChatInfoModal,
+    EditGroupModal,
     FileUploadModal,
     ImagePreviewModal,
     AddMemberModal
@@ -400,6 +409,13 @@ export default {
     const currentCategoryEmojis = computed(() => emojiMap[currentEmojiCategory.value] || [])
     const canSendMessage = computed(() => selectedChat.value && newMessage.value.trim().length > 0)
 
+    // Синхронизация уведомлений с состоянием чата
+    watch(selectedChat, (newChat) => {
+      if (newChat) {
+        personalChatNotifications.value = !newChat.isMuted
+      }
+    })
+
     // Methods
     
     // Функция скролла к последнему сообщению через ref компонента
@@ -469,10 +485,54 @@ export default {
       showImagePreviewModal.value = true
     }
 
+    // Обёртка для сохранения изменений группы из модала
+    const handleSaveGroupChanges = async (data) => {
+      if (!selectedChat.value || !data.name) return
+      
+      try {
+        const messengerService = (await import('@/services/messenger.service')).default
+        await messengerService.updateGroupInfo(selectedChat.value.id, {
+          name: data.name,
+          description: data.description || ''
+        })
+        
+        // Обновляем локально
+        selectedChat.value.name = data.name
+        selectedChat.value.description = data.description
+        
+        // Обновляем в списке чатов
+        const chatIndex = chats.value.findIndex(c => c.id === selectedChat.value.id)
+        if (chatIndex !== -1) {
+          chats.value[chatIndex].name = data.name
+        }
+        
+        showEditGroupModal.value = false
+      } catch (error) {
+        console.error('Ошибка при обновлении группы:', error)
+        alert('Не удалось обновить информацию о группе')
+      }
+    }
+
     // Методы для личного чата
-    const toggleBlockUser = () => {
+    const toggleBlockUser = async () => {
       isUserBlocked.value = !isUserBlocked.value
-      // TODO: Реализовать API для блокировки пользователя
+      // TODO: Реализовать API для блокировки пользователя когда будет готов бэкенд
+      console.log('Блокировка пользователя:', isUserBlocked.value ? 'заблокирован' : 'разблокирован')
+    }
+    
+    const togglePersonalChatNotifications = async (value) => {
+      personalChatNotifications.value = value
+      if (selectedChat.value) {
+        try {
+          const messengerService = (await import('@/services/messenger.service')).default
+          await messengerService.toggleMuteChat(selectedChat.value.id)
+          selectedChat.value.isMuted = !value
+        } catch (error) {
+          console.error('Ошибка при изменении уведомлений:', error)
+          // Откатываем изменение
+          personalChatNotifications.value = !value
+        }
+      }
     }
 
     const confirmDeletePersonalChat = async () => {
@@ -981,6 +1041,7 @@ export default {
       // Group management
       showCreateGroupModal,
       showGroupInfoModal,
+      showEditGroupModal,
       showAddMembersModal,
       groupMembers,
       groupInfoActiveTab,
@@ -1002,13 +1063,16 @@ export default {
       confirmDeleteGroup,
       handleEditGroup,
       handleAddMembers,
+      handleSaveGroupChanges,
       
       // Chat actions
       handleSelectChat,
       handleCreateGroup,
       handleSearchUsers,
       handleShowImagePreview,
+      handleSaveGroupChanges,
       toggleBlockUser,
+      togglePersonalChatNotifications,
       confirmDeletePersonalChat,
       toggleChatMenu,
       pinChat,

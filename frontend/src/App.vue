@@ -127,19 +127,15 @@ export default defineComponent({
         
         // Получаем название чата из кэша
         const chat = chatsCache.find(c => c.id === message.chatId)
-        let chatName = 'Чат'
+        let chatName = ''
         
         if (chat) {
           if (chat.type === 'group') {
+            // Для группового чата показываем название группы
             chatName = chat.name || 'Группа'
           } else {
-            // Для личного чата - имя собеседника
-            const otherUser = chat.participants?.find(p => String(p.id) !== String(myUserId))
-            if (otherUser) {
-              chatName = `${otherUser.firstName || ''} ${otherUser.lastName || ''}`.trim() || 'Личный чат'
-            } else {
-              chatName = 'Личный чат'
-            }
+            // Для личного чата - не показываем название (только имя отправителя)
+            chatName = ''
           }
         }
         

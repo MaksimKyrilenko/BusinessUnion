@@ -73,7 +73,7 @@ export class ChatService {
           role: cu.role
         })) || [];
 
-        // Получаем unreadCount для текущего пользователя
+        // Получаем данные для текущего пользователя (unreadCount, isPinned, isMuted)
         const chatUser = chatUsers.find(cu => cu.chatId === chat.id);
         
         return {
@@ -81,13 +81,20 @@ export class ChatService {
           participants,
           lastMessage,
           messages: [], // Не возвращаем все сообщения в списке чатов
-          unreadCount: chatUser?.unreadCount || 0
+          unreadCount: chatUser?.unreadCount || 0,
+          isPinned: chatUser?.isPinned || false,
+          isMuted: chatUser?.isMuted || false
         };
       })
     );
 
-    // Сортируем по времени последнего сообщения
+    // Сортируем: сначала закреплённые, потом по времени последнего сообщения
     return chatsWithLastMessage.sort((a, b) => {
+      // Сначала закреплённые
+      if (a.isPinned && !b.isPinned) return -1;
+      if (!a.isPinned && b.isPinned) return 1;
+      
+      // Затем по времени последнего сообщения
       const timeA = a.lastMessage?.createdAt ? new Date(a.lastMessage.createdAt).getTime() : 0;
       const timeB = b.lastMessage?.createdAt ? new Date(b.lastMessage.createdAt).getTime() : 0;
       return timeB - timeA;
@@ -343,15 +350,9 @@ export class ChatService {
       throw new NotFoundException(`Чат не найден или вы не имеете доступа`);
     }
 
-    // Обновляем статус закрепления чата
-    const chat = await this.chatRepository.findOne({ where: { id: chatId } });
-    
-    if (!chat) {
-      throw new NotFoundException(`Чат с ID ${chatId} не найден`);
-    }
-    
-    chat.isPinned = isPinned;
-    await this.chatRepository.save(chat);
+    // Обновляем статус закрепления для конкретного пользователя
+    chatUser.isPinned = isPinned;
+    await this.chatUserRepository.save(chatUser);
   }
 
   async toggleMute(chatId: number, userId: number): Promise<void> {

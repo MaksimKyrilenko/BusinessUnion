@@ -568,7 +568,7 @@ export default {
   padding: 6px 8px;
   display: flex;
   gap: 4px;
-  z-index: 100;
+  z-index: 9999;
   margin-bottom: 8px;
 }
 

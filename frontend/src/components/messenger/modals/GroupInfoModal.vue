@@ -7,7 +7,7 @@
         <div class="header-content">
           <div class="avatar-section">
             <div class="avatar-wrapper">
-              <img :src="chat.avatar || '/assets/images/default-group.svg'" alt="Аватар группы">
+              <img :src="groupAvatar" alt="Аватар группы">
               <button v-if="isAdmin" class="avatar-edit-btn" @click="$emit('changeAvatar')">
                 <i class="fas fa-camera"></i>
               </button>
@@ -233,6 +233,15 @@ export default {
     'previewImage'
   ],
   setup(props) {
+    // Дефолтный аватар для группы (генерируем на основе первой буквы названия)
+    const groupAvatar = computed(() => {
+      if (props.chat?.avatar) return props.chat.avatar
+      // Возвращаем data URL с SVG иконкой группы
+      const name = props.chat?.name || 'Г'
+      const letter = name.charAt(0).toUpperCase()
+      return `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%232196F3" width="100" height="100" rx="50"/><text x="50" y="50" font-family="Arial,sans-serif" font-size="40" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="central">${letter}</text></svg>`)}`
+    })
+
     // Получаем медиа сообщения (изображения)
     const mediaMessages = computed(() => {
       if (!props.chat?.messages) return []
@@ -307,7 +316,8 @@ export default {
       mediaMessages,
       fileMessages,
       linkMessages,
-      tabs
+      tabs,
+      groupAvatar
     }
   }
 }

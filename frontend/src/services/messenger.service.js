@@ -125,10 +125,10 @@ class MessengerService {
       })
   }
 
-  togglePinChat(chatId) {
-    return axios.post(`${API_URL}/chats/${chatId}/pin`, {}, { headers: authHeader() })
+  togglePinChat(chatId, isPinned) {
+    return axios.post(`${API_URL}/chats/${chatId}/pin`, { isPinned }, { headers: authHeader() })
       .then(response => {
-        console.log(`Статус закрепления чата ${chatId} изменен`)
+        console.log(`Статус закрепления чата ${chatId} изменен на ${isPinned}`)
         return response
       })
       .catch(error => {

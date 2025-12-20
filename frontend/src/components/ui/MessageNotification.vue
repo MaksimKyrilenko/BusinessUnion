@@ -8,7 +8,7 @@
           </div>
           <div class="island-info">
             <div class="island-sender">{{ currentNotification?.senderName }}</div>
-            <div class="island-chat">{{ currentNotification?.chatName }}</div>
+            <div v-if="currentNotification?.chatName" class="island-chat">{{ currentNotification.chatName }}</div>
             <div class="island-text">{{ truncateText(currentNotification?.text, 50) }}</div>
           </div>
           <button class="island-close" @click.stop="closeNotification">
