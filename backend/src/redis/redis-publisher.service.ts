@@ -76,6 +76,10 @@ export class RedisPublisherService implements OnModuleInit, OnModuleDestroy {
     await this.publish('chat:messageDeleted', { chatId, messageId });
   }
 
+  async sendMessagesRead(chatId: number, readByUserId: number, messageIds: number[]): Promise<void> {
+    await this.publish('chat:messagesRead', { chatId, readByUserId, messageIds });
+  }
+
   async sendNotification(userId: number, notification: any): Promise<void> {
     await this.publish('notification', { userId, notification });
   }

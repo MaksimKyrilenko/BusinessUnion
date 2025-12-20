@@ -68,6 +68,12 @@ export class WebsocketGateway
       this.sendMessageDeleted(data.chatId, data.messageId);
     });
 
+    // Сообщения прочитаны
+    this.redisService.onMessage('chat:messagesRead', (data) => {
+      this.logger.log(`[REDIS->WS] chat:messagesRead for chat ${data.chatId}, readBy: ${data.readByUserId}, messages: ${data.messageIds?.length || 0}`);
+      this.sendMessagesRead(data.chatId, data.readByUserId, data.messageIds);
+    });
+
     // Уведомление пользователю
     this.redisService.onMessage('notification', (data) => {
       this.logger.log(`[REDIS->WS] notification for user ${data.userId}`);
@@ -346,6 +352,12 @@ export class WebsocketGateway
     const room = `chat:${chatId}`;
     this.logger.log(`[SEND:DELETED] Message ${messageId} in room ${room}`);
     this.server.to(room).emit('chat:messageDeleted', { chatId, messageId });
+  }
+
+  sendMessagesRead(chatId: number, readByUserId: number, messageIds: number[]) {
+    const room = `chat:${chatId}`;
+    this.logger.log(`[SEND:READ] ${messageIds.length} messages read by user ${readByUserId} in room ${room}`);
+    this.server.to(room).emit('chat:messagesRead', { chatId, readByUserId, messageIds });
   }
 
   sendNotification(userId: number, notification: any) {

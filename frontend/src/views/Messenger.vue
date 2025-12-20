@@ -769,7 +769,7 @@ export default {
       })
       wsUnsubscribers.push(unsubMessageDeleted)
       
-      // Обработчик прочтения сообщений (для обновления галочек)
+      // Обработчик прочтения сообщений (для обновления галочек) - одиночное
       const unsubMessageRead = websocketService.on('chat:read', (data) => {
         console.log('[WS Handler] Получено событие chat:read:', data)
         
@@ -793,6 +793,32 @@ export default {
         }
       })
       wsUnsubscribers.push(unsubMessageRead)
+      
+      // Обработчик массового прочтения сообщений (когда пользователь заходит в чат)
+      const unsubMessagesRead = websocketService.on('chat:messagesRead', (data) => {
+        console.log('[WS Handler] Получено событие chat:messagesRead:', data)
+        
+        if (selectedChat.value && data.chatId === selectedChat.value.id) {
+          const myUserId = localStorage.getItem('userId')
+          const messageIds = data.messageIds || []
+          
+          // Обновляем статус наших сообщений которые были прочитаны
+          if (selectedChat.value.messages && messageIds.length > 0) {
+            selectedChat.value.messages = selectedChat.value.messages.map(msg => {
+              const senderId = msg.senderId ? String(msg.senderId) : 
+                               msg.sender?.id ? String(msg.sender.id) : null
+              
+              // Обновляем статус только для наших сообщений которые в списке прочитанных
+              if (senderId === String(myUserId) && messageIds.includes(msg.id) && msg.status !== 'read') {
+                console.log(`[READ] Обновляем статус сообщения ${msg.id} на 'read' (массовое прочтение)`)
+                return { ...msg, status: 'read' }
+              }
+              return msg
+            })
+          }
+        }
+      })
+      wsUnsubscribers.push(unsubMessagesRead)
     }
 
     onMounted(async () => {

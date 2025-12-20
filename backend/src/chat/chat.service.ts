@@ -10,6 +10,7 @@ import { ChatUserRole } from './enums/chat-user-role.enum';
 import { MessageStatus } from './enums/message-status.enum';
 import { User } from '../users/user.entity';
 import { Logger } from '@nestjs/common';
+import { RedisPublisherService } from '../redis/redis-publisher.service';
 
 @Injectable()
 export class ChatService {
@@ -24,6 +25,7 @@ export class ChatService {
     private userRepository: Repository<User>,
     @InjectRepository(Message)
     private messageRepository: Repository<Message>,
+    private redisPublisher: RedisPublisherService,
   ) {}
 
   async findAll(userId: number): Promise<Chat[]> {
@@ -284,17 +286,38 @@ export class ChatService {
     chatUser.unreadCount = 0;
     await this.chatUserRepository.save(chatUser);
 
+    // Находим все непрочитанные сообщения от других пользователей
+    const unreadMessages = await this.messageRepository
+      .createQueryBuilder('message')
+      .select('message.id')
+      .where('message.chatId = :chatId', { chatId })
+      .andWhere('message.senderId != :userId', { userId })
+      .andWhere('message.status != :readStatus', { readStatus: MessageStatus.READ })
+      .getMany();
+
+    const messageIds = unreadMessages.map(m => m.id);
+
     // Обновляем статус всех сообщений в чате как прочитанные (кроме своих)
-    await this.messageRepository
-      .createQueryBuilder()
-      .update(Message)
-      .set({ status: MessageStatus.READ })
-      .where('chatId = :chatId AND senderId != :userId AND status != :readStatus', { 
-        chatId, 
-        userId,
-        readStatus: MessageStatus.READ 
-      })
-      .execute();
+    if (messageIds.length > 0) {
+      await this.messageRepository
+        .createQueryBuilder()
+        .update(Message)
+        .set({ status: MessageStatus.READ })
+        .where('chatId = :chatId AND senderId != :userId AND status != :readStatus', { 
+          chatId, 
+          userId,
+          readStatus: MessageStatus.READ 
+        })
+        .execute();
+
+      // Отправляем уведомление через Redis -> WebSocket
+      try {
+        this.logger.log(`[REDIS] Отправка уведомления о прочтении ${messageIds.length} сообщений в чате ${chatId}`);
+        await this.redisPublisher.sendMessagesRead(chatId, userId, messageIds);
+      } catch (error) {
+        this.logger.error('Ошибка при отправке уведомления о прочтении через Redis:', error);
+      }
+    }
   }
 
   async markAsUnread(chatId: number, userId: number): Promise<void> {

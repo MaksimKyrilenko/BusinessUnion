@@ -276,6 +276,12 @@ class WebSocketService {
       this.emit('chat:read', data);
     });
 
+    // Сообщения прочитаны (массово)
+    this.socket.on('chat:messagesRead', (data) => {
+      console.log('WebSocket: Messages read', data);
+      this.emit('chat:messagesRead', data);
+    });
+
     // ==================== PROJECT EVENTS ====================
 
     this.socket.on('project:update', (data) => {
