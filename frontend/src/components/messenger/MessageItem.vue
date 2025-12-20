@@ -85,12 +85,13 @@
         </div>
         <div v-if="message.reactions && Object.keys(message.reactions).length > 0" class="message-reactions">
           <div 
-            v-for="(count, reaction) in message.reactions" 
+            v-for="(users, reaction) in message.reactions" 
             :key="reaction"
-            class="reaction-badge"
+            :class="['reaction-badge', { 'reaction-own': hasMyReaction(reaction) }]"
             @click="$emit('toggleReaction', reaction)"
+            :title="getReactionTooltip(users)"
           >
-            {{ reaction }} {{ count }}
+            {{ reaction }} {{ Array.isArray(users) ? users.length : users }}
           </div>
         </div>
         <span v-if="isOwn" class="message-status">
@@ -161,6 +162,24 @@ export default {
       return text.substring(0, maxLength) + '...'
     }
 
+    // Проверка, поставил ли текущий пользователь эту реакцию
+    const hasMyReaction = (reaction) => {
+      const myUserId = Number(localStorage.getItem('userId'))
+      const users = props.message.reactions?.[reaction]
+      if (Array.isArray(users)) {
+        return users.includes(myUserId)
+      }
+      return false
+    }
+
+    // Получить tooltip для реакции
+    const getReactionTooltip = (users) => {
+      if (Array.isArray(users)) {
+        return `${users.length} реакций`
+      }
+      return ''
+    }
+
     return {
       formatTime,
       formatFullDateTime,
@@ -175,7 +194,9 @@ export default {
       toggleReactionPicker,
       addReaction,
       copyMessage,
-      truncateText
+      truncateText,
+      hasMyReaction,
+      getReactionTooltip
     }
   }
 }
@@ -458,6 +479,11 @@ export default {
 
 .reaction-badge:hover {
   background: #e2e8f0;
+}
+
+.reaction-badge.reaction-own {
+  background: #dbeafe;
+  border: 1px solid #2196F3;
 }
 
 .message-status {

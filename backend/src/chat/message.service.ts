@@ -222,15 +222,18 @@ export class MessageService {
       throw new BadRequestException('Вы не имеете доступа к этому сообщению');
     }
 
-    // Обновляем реакции
+    // Обновляем реакции - теперь храним массив userId
     if (!message.reactions) {
       message.reactions = {};
     }
 
-    if (message.reactions[reaction]) {
-      message.reactions[reaction]++;
-    } else {
-      message.reactions[reaction] = 1;
+    if (!message.reactions[reaction]) {
+      message.reactions[reaction] = [];
+    }
+
+    // Проверяем, не поставил ли пользователь уже эту реакцию
+    if (!message.reactions[reaction].includes(userId)) {
+      message.reactions[reaction].push(userId);
     }
 
     return this.messageRepository.save(message);
@@ -257,11 +260,14 @@ export class MessageService {
 
     // Обновляем реакции
     if (message.reactions && message.reactions[reaction]) {
-      if (message.reactions[reaction] > 1) {
-        message.reactions[reaction]--;
-      } else {
+      // Удаляем userId из массива
+      message.reactions[reaction] = message.reactions[reaction].filter(id => id !== userId);
+      
+      // Если массив пустой - удаляем ключ
+      if (message.reactions[reaction].length === 0) {
         delete message.reactions[reaction];
       }
+      
       return this.messageRepository.save(message);
     }
 

@@ -26,19 +26,16 @@
         <span v-if="chat.unreadCount > 0" class="unread-badge">{{ chat.unreadCount > 99 ? '99+' : chat.unreadCount }}</span>
       </div>
     </div>
-    <div class="chat-actions-menu">
-      <button class="action-btn" @click.stop="$emit('toggleMenu')">⋮</button>
-      <div v-if="chat.showMenu" class="chat-menu">
-        <button @click.stop="$emit('pin')">
+    <div class="chat-actions-menu" v-click-outside="closeMenu">
+      <button class="action-btn" @click.stop="toggleMenu">⋮</button>
+      <div v-if="showMenu" class="chat-menu">
+        <button @click.stop="handlePin">
           {{ chat.isPinned ? 'Открепить' : 'Закрепить' }}
         </button>
-        <button @click.stop="$emit('markUnread')">
-          Отметить как непрочитанное
-        </button>
-        <button @click.stop="$emit('mute')">
+        <button @click.stop="handleMute">
           {{ chat.isMuted ? 'Включить уведомления' : 'Отключить уведомления' }}
         </button>
-        <button v-if="chat.type === 'group'" @click.stop="$emit('leave')" class="danger">
+        <button v-if="chat.type === 'group'" @click.stop="handleLeave" class="danger">
           Покинуть группу
         </button>
       </div>
@@ -47,19 +44,62 @@
 </template>
 
 <script>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { formatTime, getUserAvatar, getUserFullName } from '@/utils/messageFormatters'
+
+// Директива для клика вне элемента
+const vClickOutside = {
+  mounted(el, binding) {
+    el._clickOutside = (event) => {
+      if (!(el === event.target || el.contains(event.target))) {
+        binding.value(event)
+      }
+    }
+    document.addEventListener('click', el._clickOutside)
+  },
+  unmounted(el) {
+    document.removeEventListener('click', el._clickOutside)
+  }
+}
 
 export default {
   name: 'ChatItem',
+  directives: {
+    'click-outside': vClickOutside
+  },
   props: {
     chat: { type: Object, required: true },
     selected: { type: Boolean, default: false },
     currentUserId: { type: [String, Number], default: null },
     onlineUsers: { type: Array, default: () => [] }
   },
-  emits: ['select', 'toggleMenu', 'pin', 'markUnread', 'mute', 'leave'],
-  setup(props) {
+  emits: ['select', 'pin', 'mute', 'leave'],
+  setup(props, { emit }) {
+    const showMenu = ref(false)
+    
+    const toggleMenu = () => {
+      showMenu.value = !showMenu.value
+    }
+    
+    const closeMenu = () => {
+      showMenu.value = false
+    }
+    
+    const handlePin = () => {
+      emit('pin')
+      closeMenu()
+    }
+    
+    const handleMute = () => {
+      emit('mute')
+      closeMenu()
+    }
+    
+    const handleLeave = () => {
+      emit('leave')
+      closeMenu()
+    }
+    
     // Получаем другого участника для личных чатов
     const otherParticipant = computed(() => {
       if (props.chat.type !== 'personal') return null
@@ -196,6 +236,12 @@ export default {
     })
 
     return {
+      showMenu,
+      toggleMenu,
+      closeMenu,
+      handlePin,
+      handleMute,
+      handleLeave,
       avatarUrl,
       chatDisplayName,
       onlineStatus,

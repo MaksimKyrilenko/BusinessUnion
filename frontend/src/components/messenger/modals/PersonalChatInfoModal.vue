@@ -1,26 +1,25 @@
 <template>
   <Modal :show="show" @close="$emit('close')" class="chat-info-modal">
-    <div class="chat-info-container" v-if="chat">
+    <div class="chat-info-container" v-if="chat && otherUser">
       <!-- Header с аватаром и информацией -->
       <div class="info-header">
         <div class="header-bg"></div>
         <div class="header-content">
           <div class="avatar-section">
             <div class="avatar-wrapper">
-              <img :src="chat.avatar || '/assets/images/default-group.svg'" alt="Аватар группы">
-              <button v-if="isAdmin" class="avatar-edit-btn" @click="$emit('changeAvatar')">
-                <i class="fas fa-camera"></i>
-              </button>
+              <img :src="getUserAvatar(otherUser)" :alt="getUserFullName(otherUser)">
+              <span class="status-indicator" :class="{ online: isOnline }"></span>
             </div>
           </div>
           <div class="info-section">
-            <h2 class="chat-name">{{ chat.name || 'Группа' }}</h2>
-            <p class="chat-meta">
-              <i class="fas fa-users"></i>
-              {{ members.length }} участников
+            <h2 class="user-name">{{ getUserFullName(otherUser) }}</h2>
+            <p class="user-status" :class="{ online: isOnline }">
+              {{ isOnline ? 'В сети' : 'Не в сети' }}
             </p>
-            <p v-if="chat.description" class="chat-description">{{ chat.description }}</p>
-            <p v-else class="chat-description empty">Нет описания</p>
+            <p v-if="otherUser.email" class="user-email">
+              <i class="fas fa-envelope"></i>
+              {{ otherUser.email }}
+            </p>
           </div>
         </div>
       </div>
@@ -31,7 +30,7 @@
           v-for="tab in tabs" 
           :key="tab.id"
           :class="['tab-btn', { active: activeTab === tab.id }]"
-          @click="$emit('update:activeTab', tab.id)"
+          @click="activeTab = tab.id"
         >
           <i :class="tab.icon"></i>
           <span>{{ tab.label }}</span>
@@ -41,46 +40,8 @@
 
       <!-- Tab Content -->
       <div class="tab-content">
-        <!-- Members Tab -->
-        <div v-if="activeTab === 'members'" class="members-section">
-          <div class="search-box">
-            <i class="fas fa-search"></i>
-            <input 
-              type="text" 
-              :value="memberSearch" 
-              @input="$emit('update:memberSearch', $event.target.value)"
-              placeholder="Поиск участников..."
-            >
-          </div>
-          
-          <div v-if="filteredMembers.length > 0" class="members-list">
-            <div v-for="member in filteredMembers" :key="member.id" class="member-card">
-              <div class="member-avatar">
-                <img :src="getUserAvatar(member)" :alt="getUserFullName(member)">
-                <span class="status-dot" :class="{ online: member.isOnline }"></span>
-              </div>
-              <div class="member-details">
-                <span class="member-name">{{ getUserFullName(member) }}</span>
-                <span class="member-role" :class="member.role">{{ getMemberRoleText(member.role) }}</span>
-              </div>
-              <button 
-                v-if="isAdmin && member.role !== 'owner'" 
-                class="member-remove-btn"
-                @click="$emit('removeMember', member)"
-                title="Удалить участника"
-              >
-                <i class="fas fa-user-minus"></i>
-              </button>
-            </div>
-          </div>
-          <div v-else class="empty-state">
-            <i class="fas fa-user-slash"></i>
-            <p>Участники не найдены</p>
-          </div>
-        </div>
-
         <!-- Media Tab -->
-        <div v-else-if="activeTab === 'media'" class="media-section">
+        <div v-if="activeTab === 'media'" class="media-section">
           <div v-if="mediaMessages.length > 0" class="media-grid">
             <div 
               v-for="msg in mediaMessages" 
@@ -151,7 +112,7 @@
           </div>
         </div>
 
-        <!-- Settings Tab (Admin only) -->
+        <!-- Settings Tab -->
         <div v-else-if="activeTab === 'settings'" class="settings-section">
           <div class="setting-item">
             <div class="setting-left">
@@ -167,15 +128,29 @@
             </label>
           </div>
           
+          <div class="setting-item">
+            <div class="setting-left">
+              <i class="fas fa-ban"></i>
+              <div class="setting-text">
+                <span class="setting-title">Заблокировать</span>
+                <span class="setting-desc">Пользователь не сможет отправлять вам сообщения</span>
+              </div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" :checked="isBlocked" @change="$emit('toggleBlock')">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          
           <div class="setting-item danger">
             <div class="setting-left">
               <i class="fas fa-trash-alt"></i>
               <div class="setting-text">
-                <span class="setting-title">Удалить группу</span>
-                <span class="setting-desc">Группа будет удалена для всех участников</span>
+                <span class="setting-title">Удалить чат</span>
+                <span class="setting-desc">История сообщений будет удалена</span>
               </div>
             </div>
-            <button class="danger-btn" @click="$emit('deleteGroup')">
+            <button class="danger-btn" @click="$emit('deleteChat')">
               Удалить
             </button>
           </div>
@@ -184,17 +159,9 @@
 
       <!-- Action Buttons -->
       <div class="action-buttons">
-        <button class="action-btn primary" @click="$emit('addMembers')">
-          <i class="fas fa-user-plus"></i>
-          Добавить
-        </button>
-        <button class="action-btn secondary" @click="$emit('editGroup')">
-          <i class="fas fa-edit"></i>
-          Изменить
-        </button>
-        <button class="action-btn danger" @click="$emit('leaveGroup')">
-          <i class="fas fa-sign-out-alt"></i>
-          Выйти
+        <button class="action-btn secondary" @click="$emit('close')">
+          <i class="fas fa-times"></i>
+          Закрыть
         </button>
       </div>
     </div>
@@ -202,38 +169,63 @@
 </template>
 
 <script>
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import Modal from '@/components/ui/Modal.vue'
-import { getUserAvatar, getUserFullName, getMemberRoleText, formatFileSize, getFileIcon } from '@/utils/messageFormatters'
+import { getUserAvatar, getUserFullName, formatFileSize, getFileIcon } from '@/utils/messageFormatters'
 
 export default {
-  name: 'GroupInfoModal',
+  name: 'PersonalChatInfoModal',
   components: { Modal },
   props: {
     show: { type: Boolean, default: false },
     chat: { type: Object, default: null },
-    members: { type: Array, default: () => [] },
-    filteredMembers: { type: Array, default: () => [] },
-    activeTab: { type: String, default: 'members' },
-    memberSearch: { type: String, default: '' },
+    currentUserId: { type: [String, Number], default: null },
+    onlineUsers: { type: Array, default: () => [] },
     notifications: { type: Boolean, default: true },
-    isAdmin: { type: Boolean, default: false }
+    isBlocked: { type: Boolean, default: false }
   },
   emits: [
     'close',
-    'update:activeTab',
-    'update:memberSearch',
     'update:notifications',
-    'editGroup',
-    'addMembers',
-    'leaveGroup',
-    'deleteGroup',
-    'changeAvatar',
-    'removeMember',
+    'toggleBlock',
+    'deleteChat',
     'previewImage'
   ],
   setup(props) {
-    // Получаем медиа сообщения (изображения)
+    const activeTab = ref('media')
+
+    // Получаем другого участника чата
+    const otherUser = computed(() => {
+      if (!props.chat) return null
+      
+      // Пробуем participants
+      if (props.chat.participants?.length) {
+        const found = props.chat.participants.find(
+          p => String(p.id) !== String(props.currentUserId)
+        )
+        if (found) return found
+      }
+      
+      // Пробуем users (структура chatUser.user)
+      if (props.chat.users?.length) {
+        const chatUser = props.chat.users.find(
+          cu => cu.user && String(cu.user.id) !== String(props.currentUserId)
+        )
+        if (chatUser?.user) return chatUser.user
+      }
+      
+      return null
+    })
+
+    // Проверка онлайн статуса
+    const isOnline = computed(() => {
+      if (!otherUser.value) return false
+      const userId = otherUser.value.id
+      return props.onlineUsers.includes(userId) || 
+             props.onlineUsers.includes(String(userId))
+    })
+
+    // Получаем медиа сообщения
     const mediaMessages = computed(() => {
       if (!props.chat?.messages) return []
       return props.chat.messages.filter(msg => msg.type === 'image')
@@ -271,11 +263,10 @@ export default {
 
     // Tabs configuration
     const tabs = computed(() => [
-      { id: 'members', label: 'Участники', icon: 'fas fa-users', count: props.members.length },
       { id: 'media', label: 'Медиа', icon: 'fas fa-images', count: mediaMessages.value.length },
       { id: 'files', label: 'Файлы', icon: 'fas fa-file-alt', count: fileMessages.value.length },
       { id: 'links', label: 'Ссылки', icon: 'fas fa-link', count: linkMessages.value.length },
-      ...(props.isAdmin ? [{ id: 'settings', label: 'Настройки', icon: 'fas fa-cog', count: 0 }] : [])
+      { id: 'settings', label: 'Настройки', icon: 'fas fa-cog', count: 0 }
     ])
 
     const formatDate = (dateStr) => {
@@ -297,9 +288,11 @@ export default {
     }
 
     return {
+      activeTab,
+      otherUser,
+      isOnline,
       getUserAvatar,
       getUserFullName,
-      getMemberRoleText,
       formatFileSize,
       getFileIcon,
       formatDate,
@@ -316,7 +309,7 @@ export default {
 
 <style scoped>
 .chat-info-container {
-  width: 480px;
+  width: 420px;
   max-width: 95vw;
   max-height: 85vh;
   display: flex;
@@ -364,40 +357,44 @@ export default {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.avatar-edit-btn {
+.status-indicator {
   position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 32px;
-  height: 32px;
-  background: #2196F3;
-  border: 3px solid #fff;
+  bottom: 4px;
+  right: 4px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
-  color: #fff;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.2s;
+  background: #94a3b8;
+  border: 3px solid #fff;
 }
 
-.avatar-edit-btn:hover {
-  background: #1976D2;
+.status-indicator.online {
+  background: #22c55e;
 }
 
 .info-section {
   margin-top: 12px;
 }
 
-.chat-name {
+.user-name {
   margin: 0;
   font-size: 20px;
   font-weight: 600;
   color: #1e293b;
 }
 
-.chat-meta {
+.user-status {
   margin: 6px 0 0;
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+.user-status.online {
+  color: #22c55e;
+}
+
+.user-email {
+  margin: 10px 0 0;
   font-size: 13px;
   color: #64748b;
   display: flex;
@@ -406,29 +403,15 @@ export default {
   gap: 6px;
 }
 
-.chat-description {
-  margin: 10px 0 0;
-  font-size: 14px;
-  color: #475569;
-  max-width: 350px;
-}
-
-.chat-description.empty {
-  color: #94a3b8;
-  font-style: italic;
-}
-
 /* Tabs */
 .info-tabs {
   display: flex;
   border-bottom: 1px solid #e2e8f0;
   padding: 0 12px;
-  overflow-x: auto;
 }
 
 .tab-btn {
   flex: 1;
-  min-width: 70px;
   padding: 12px 8px;
   background: none;
   border: none;
@@ -476,119 +459,6 @@ export default {
   padding: 16px;
   min-height: 200px;
   max-height: 300px;
-}
-
-/* Search Box */
-.search-box {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  padding: 10px 14px;
-  margin-bottom: 12px;
-}
-
-.search-box i {
-  color: #94a3b8;
-}
-
-.search-box input {
-  flex: 1;
-  border: none;
-  background: none;
-  font-size: 14px;
-  color: #334155;
-  outline: none;
-}
-
-/* Members List */
-.members-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.member-card {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px;
-  border-radius: 10px;
-  transition: background 0.2s;
-}
-
-.member-card:hover {
-  background: #f8fafc;
-}
-
-.member-avatar {
-  position: relative;
-  flex-shrink: 0;
-}
-
-.member-avatar img {
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.status-dot {
-  position: absolute;
-  bottom: 1px;
-  right: 1px;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: #94a3b8;
-  border: 2px solid #fff;
-}
-
-.status-dot.online {
-  background: #22c55e;
-}
-
-.member-details {
-  flex: 1;
-  min-width: 0;
-}
-
-.member-name {
-  display: block;
-  font-size: 14px;
-  font-weight: 500;
-  color: #1e293b;
-}
-
-.member-role {
-  display: block;
-  font-size: 12px;
-  color: #64748b;
-}
-
-.member-role.owner {
-  color: #f59e0b;
-}
-
-.member-role.admin {
-  color: #2196F3;
-}
-
-.member-remove-btn {
-  background: none;
-  border: none;
-  padding: 8px;
-  color: #94a3b8;
-  cursor: pointer;
-  border-radius: 8px;
-  transition: all 0.2s;
-}
-
-.member-remove-btn:hover {
-  background: #fef2f2;
-  color: #ef4444;
 }
 
 /* Media Grid */
@@ -926,15 +796,6 @@ input:checked + .toggle-slider:before {
   transition: all 0.2s;
 }
 
-.action-btn.primary {
-  background: #2196F3;
-  color: #fff;
-}
-
-.action-btn.primary:hover {
-  background: #1976D2;
-}
-
 .action-btn.secondary {
   background: #f1f5f9;
   color: #475569;
@@ -942,14 +803,5 @@ input:checked + .toggle-slider:before {
 
 .action-btn.secondary:hover {
   background: #e2e8f0;
-}
-
-.action-btn.danger {
-  background: #fef2f2;
-  color: #ef4444;
-}
-
-.action-btn.danger:hover {
-  background: #fee2e2;
 }
 </style>

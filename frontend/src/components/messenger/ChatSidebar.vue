@@ -54,9 +54,7 @@
           :currentUserId="currentUserId"
           :onlineUsers="onlineUsers"
           @select="$emit('selectChat', chat.id)"
-          @toggleMenu="$emit('toggleChatMenu', chat)"
           @pin="$emit('pinChat', chat)"
-          @markUnread="$emit('markAsUnread', chat)"
           @mute="$emit('muteChat', chat)"
           @leave="$emit('leaveGroup', chat)"
         />
@@ -92,9 +90,7 @@ export default {
     'update:searchQuery',
     'selectChat',
     'createGroup',
-    'toggleChatMenu',
     'pinChat',
-    'markAsUnread',
     'muteChat',
     'leaveGroup'
   ]

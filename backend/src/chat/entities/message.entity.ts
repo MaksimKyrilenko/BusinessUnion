@@ -56,7 +56,7 @@ export class Message {
   chat: Chat;
 
   @Column({ type: 'simple-json', nullable: true })
-  reactions: Record<string, number>;
+  reactions: Record<string, number[]>; // { emoji: [userId1, userId2, ...] }
 
   @Column({ default: false })
   isEdited: boolean;

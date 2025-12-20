@@ -236,14 +236,49 @@ export function useMessages(selectedChat, currentUserId) {
 
   const toggleReaction = async (message, reaction) => {
     try {
-      await messengerService.removeReaction(message.id, reaction)
+      const myUserId = Number(localStorage.getItem('userId'))
+      const currentReactions = message.reactions?.[reaction] || []
+      const hasMyReaction = Array.isArray(currentReactions) && currentReactions.includes(myUserId)
       
-      const updatedMessages = selectedChat.value.messages.map(m => 
-        m.id === message.id 
-          ? { ...m, reactions: { ...m.reactions, [reaction]: Math.max(0, m.reactions[reaction] - 1) } }
-          : m
-      )
-      selectedChat.value.messages = updatedMessages
+      if (hasMyReaction) {
+        // Удаляем реакцию
+        await messengerService.removeReaction(message.id, reaction)
+        
+        // Обновляем локально - удаляем userId из массива
+        const updatedMessages = selectedChat.value.messages.map(m => {
+          if (m.id === message.id) {
+            const newReactions = { ...m.reactions }
+            if (newReactions[reaction]) {
+              newReactions[reaction] = newReactions[reaction].filter(id => id !== myUserId)
+              if (newReactions[reaction].length === 0) {
+                delete newReactions[reaction]
+              }
+            }
+            return { ...m, reactions: newReactions }
+          }
+          return m
+        })
+        selectedChat.value.messages = updatedMessages
+      } else {
+        // Добавляем реакцию
+        await messengerService.addReaction(message.id, reaction)
+        
+        // Обновляем локально - добавляем userId в массив
+        const updatedMessages = selectedChat.value.messages.map(m => {
+          if (m.id === message.id) {
+            const newReactions = { ...m.reactions }
+            if (!newReactions[reaction]) {
+              newReactions[reaction] = []
+            }
+            if (!newReactions[reaction].includes(myUserId)) {
+              newReactions[reaction] = [...newReactions[reaction], myUserId]
+            }
+            return { ...m, reactions: newReactions }
+          }
+          return m
+        })
+        selectedChat.value.messages = updatedMessages
+      }
     } catch (error) {
       console.error('Ошибка при управлении реакцией:', error)
     }

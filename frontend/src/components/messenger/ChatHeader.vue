@@ -1,9 +1,8 @@
 <template>
   <div class="main-chat-header" v-if="chat">
     <div 
-      class="chat-info" 
-      @click="chat.type === 'group' ? $emit('showGroupInfo') : null" 
-      :class="{ 'clickable': chat.type === 'group' }"
+      class="chat-info clickable" 
+      @click="chat.type === 'group' ? $emit('showGroupInfo') : $emit('showPersonalInfo')"
     >
       <img :src="avatarUrl" :alt="chatName">
       <div>
@@ -19,8 +18,8 @@
         </span>
       </div>
     </div>
-    <div class="chat-actions" v-if="chat.type === 'personal'">
-      <button @click="$emit('showSettings')">
+    <div class="chat-actions">
+      <button @click="chat.type === 'group' ? $emit('showGroupInfo') : $emit('showPersonalInfo')">
         <i class="fas fa-ellipsis-v"></i>
       </button>
     </div>
@@ -40,7 +39,7 @@ export default {
     isTyping: { type: Boolean, default: false },
     onlineUsers: { type: Array, default: () => [] }
   },
-  emits: ['showGroupInfo', 'showSettings'],
+  emits: ['showGroupInfo', 'showPersonalInfo'],
   setup(props) {
     // Получаем другого участника для личных чатов
     const otherParticipant = computed(() => {

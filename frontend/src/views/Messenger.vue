@@ -66,7 +66,7 @@
           :isTyping="typingInCurrentChat"
           :onlineUsers="onlineUsers"
           @showGroupInfo="showGroupInfoModal = true"
-          @showSettings="showChatSettings = true"
+          @showPersonalInfo="showPersonalChatInfoModal = true"
         />
 
         <MessageList
@@ -150,6 +150,7 @@
       @deleteGroup="confirmDeleteGroup"
       @changeAvatar="changeGroupAvatar"
       @removeMember="removeMember"
+      @previewImage="handleShowImagePreview"
     />
 
     <FileUploadModal
@@ -186,6 +187,20 @@
       @removeUser="removeSelectedUser"
       @add="addMembersToGroup"
     />
+
+    <PersonalChatInfoModal
+      :show="showPersonalChatInfoModal"
+      :chat="selectedChat"
+      :currentUserId="currentUserId"
+      :onlineUsers="onlineUsers"
+      :notifications="personalChatNotifications"
+      :isBlocked="isUserBlocked"
+      @close="showPersonalChatInfoModal = false"
+      @update:notifications="personalChatNotifications = $event"
+      @toggleBlock="toggleBlockUser"
+      @deleteChat="confirmDeletePersonalChat"
+      @previewImage="handleShowImagePreview"
+    />
   </div>
 </template>
 
@@ -205,6 +220,7 @@ import MessageInput from '@/components/messenger/MessageInput.vue'
 // Modals
 import CreateGroupModal from '@/components/messenger/modals/CreateGroupModal.vue'
 import GroupInfoModal from '@/components/messenger/modals/GroupInfoModal.vue'
+import PersonalChatInfoModal from '@/components/messenger/modals/PersonalChatInfoModal.vue'
 import FileUploadModal from '@/components/messenger/modals/FileUploadModal.vue'
 import ImagePreviewModal from '@/components/messenger/modals/ImagePreviewModal.vue'
 import AddMemberModal from '@/components/messenger/modals/AddMemberModal.vue'
@@ -224,6 +240,7 @@ export default {
     MessageInput,
     CreateGroupModal,
     GroupInfoModal,
+    PersonalChatInfoModal,
     FileUploadModal,
     ImagePreviewModal,
     AddMemberModal
@@ -341,6 +358,9 @@ export default {
     const showFormatting = ref(false)
     const showChatSettings = ref(false)
     const showImagePreviewModal = ref(false)
+    const showPersonalChatInfoModal = ref(false)
+    const personalChatNotifications = ref(true)
+    const isUserBlocked = ref(false)
     const previewMessage = ref(null)
     const messageListRef = ref(null)
     const isTyping = ref(false)
@@ -447,6 +467,33 @@ export default {
     const handleShowImagePreview = (message) => {
       previewMessage.value = message
       showImagePreviewModal.value = true
+    }
+
+    // Методы для личного чата
+    const toggleBlockUser = () => {
+      isUserBlocked.value = !isUserBlocked.value
+      // TODO: Реализовать API для блокировки пользователя
+    }
+
+    const confirmDeletePersonalChat = async () => {
+      if (!confirm('Удалить этот чат? История сообщений будет удалена.')) return
+      
+      try {
+        const messengerService = (await import('@/services/messenger.service')).default
+        await messengerService.deleteChat(selectedChat.value.id)
+        
+        // Удаляем чат из списка
+        const chatIndex = chats.value.findIndex(c => c.id === selectedChat.value.id)
+        if (chatIndex !== -1) {
+          chats.value.splice(chatIndex, 1)
+        }
+        
+        selectedChat.value = null
+        showPersonalChatInfoModal.value = false
+      } catch (error) {
+        console.error('Ошибка при удалении чата:', error)
+        alert('Не удалось удалить чат')
+      }
     }
 
     const sendMessage = async () => {
@@ -600,6 +647,8 @@ export default {
     const addReaction = async (message, emoji) => {
       try {
         const messengerService = (await import('@/services/messenger.service')).default
+        const myUserId = Number(localStorage.getItem('userId'))
+        
         // Проверяем есть ли метод addReaction в сервисе
         if (typeof messengerService.addReaction === 'function') {
           await messengerService.addReaction(message.id, emoji)
@@ -611,7 +660,12 @@ export default {
           if (msgIndex !== -1) {
             const msg = selectedChat.value.messages[msgIndex]
             if (!msg.reactions) msg.reactions = {}
-            msg.reactions[emoji] = (msg.reactions[emoji] || 0) + 1
+            if (!msg.reactions[emoji]) msg.reactions[emoji] = []
+            
+            // Добавляем userId если его ещё нет
+            if (!msg.reactions[emoji].includes(myUserId)) {
+              msg.reactions[emoji] = [...msg.reactions[emoji], myUserId]
+            }
           }
         }
       } catch (error) {
@@ -876,6 +930,9 @@ export default {
       showFormatting,
       showChatSettings,
       showImagePreviewModal,
+      showPersonalChatInfoModal,
+      personalChatNotifications,
+      isUserBlocked,
       previewMessage,
       messageListRef,
       onlineUsers,
@@ -951,6 +1008,8 @@ export default {
       handleCreateGroup,
       handleSearchUsers,
       handleShowImagePreview,
+      toggleBlockUser,
+      confirmDeletePersonalChat,
       toggleChatMenu,
       pinChat,
       markAsUnread,
