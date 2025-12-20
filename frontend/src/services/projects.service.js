@@ -97,6 +97,16 @@ class ProjectsService {
         console.log('Добавлено изображение в base64, длина:', projectData.image.length);
       }
 
+      // Добавляем URL файлов из MinIO, если они есть
+      if (projectData.businessPlanUrl) {
+        formattedData.businessPlanUrl = projectData.businessPlanUrl;
+        console.log('Добавлен бизнес-план:', projectData.businessPlanUrl);
+      }
+      if (projectData.presentationUrl) {
+        formattedData.presentationUrl = projectData.presentationUrl;
+        console.log('Добавлена презентация:', projectData.presentationUrl);
+      }
+
       console.log('Форматированные данные:', formattedData);
       
       const response = await axios.post(`${API_URL}/projects`, formattedData, {
@@ -132,6 +142,16 @@ class ProjectsService {
       if (projectData.image) {
         formattedData.image = projectData.image;
         console.log('Добавлено изображение для обновления, длина:', projectData.image.length);
+      }
+
+      // Добавляем URL файлов из MinIO, если они есть
+      if (projectData.businessPlanUrl) {
+        formattedData.businessPlanUrl = projectData.businessPlanUrl;
+        console.log('Добавлен бизнес-план:', projectData.businessPlanUrl);
+      }
+      if (projectData.presentationUrl) {
+        formattedData.presentationUrl = projectData.presentationUrl;
+        console.log('Добавлена презентация:', projectData.presentationUrl);
       }
       
       console.log('Обновление проекта:', id, formattedData);

@@ -9,6 +9,7 @@ import { ProjectTeamMember } from './entities/project-team-member.entity';
 import { ProjectTeamRole } from './enums/project-team-role.enum';
 import { ChatService } from '../chat/chat.service';
 import { ChatType } from '../chat/enums/chat-type.enum';
+import { ProjectCategory } from './categories.entity';
 import * as fs from 'fs';
 import * as path from 'path';
 import axios from 'axios';
@@ -23,6 +24,8 @@ export class ProjectsService {
     private teamMemberRepository: Repository<ProjectTeamMember>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    @InjectRepository(ProjectCategory)
+    private categoryRepository: Repository<ProjectCategory>,
     private chatService: ChatService,
   ) {}
 
@@ -96,9 +99,22 @@ export class ProjectsService {
       throw new NotFoundException(`Пользователь с ID ${userId} не найден`);
     }
     
+    // Получаем полную информацию о категории
+    let categoryData = createProjectDto.category;
+    if (categoryData && categoryData.id) {
+      const fullCategory = await this.categoryRepository.findOne({ where: { id: categoryData.id } });
+      if (fullCategory) {
+        categoryData = { id: fullCategory.id, name: fullCategory.name };
+        console.log('Категория найдена:', categoryData);
+      } else {
+        console.log('Категория не найдена по ID:', categoryData.id);
+      }
+    }
+    
     // Создаем объект проекта
     const projectData: any = {
       ...createProjectDto,
+      category: categoryData,
       author
     };
     
