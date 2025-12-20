@@ -1,0 +1,1047 @@
+<template>
+  <div class="startup-catalog">
+    <!-- Blue Header -->
+    <div class="page-header-blue">
+      <div class="header-left">
+        <div class="header-badge">
+          <i class="fas fa-rocket"></i>
+          <span>Стартапы</span>
+        </div>
+        <h1 class="header-title">Каталог стартапов</h1>
+        <p class="header-subtitle">Найдите перспективные проекты для инвестирования</p>
+      </div>
+      <div class="header-stats">
+        <div class="stat-card">
+          <div class="stat-icon"><i class="fas fa-lightbulb"></i></div>
+          <div class="stat-content">
+            <span class="stat-number">{{ startups.length }}</span>
+            <span class="stat-label">Стартапов</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon"><i class="fas fa-industry"></i></div>
+          <div class="stat-content">
+            <span class="stat-number">{{ sectors.length }}</span>
+            <span class="stat-label">Секторов</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon"><i class="fas fa-map-marker-alt"></i></div>
+          <div class="stat-content">
+            <span class="stat-number">{{ uniqueLocations.length }}</span>
+            <span class="stat-label">Городов</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Поиск и фильтры (горизонтально) -->
+    <div class="filters-horizontal">
+      <div class="search-box">
+        <div class="search-input-container">
+          <i class="fas fa-search search-icon"></i>
+          <input 
+            type="text" 
+            v-model="searchQuery" 
+            placeholder="Поиск по имени, компании или специализации..."
+            class="search-input"
+          >
+        </div>
+      </div>
+      
+      <div class="filters-row">
+        <div class="filter-item">
+          <select v-model="filters.stage" class="filter-select">
+            <option value="">Все типы</option>
+            <option value="idea">Идея</option>
+            <option value="mvp">MVP</option>
+            <option value="growth">Рост</option>
+            <option value="scaling">Масштабирование</option>
+          </select>
+        </div>
+        
+        <div class="filter-item">
+          <select v-model="filters.sector" class="filter-select">
+            <option value="">Все отрасли</option>
+            <option v-for="sector in sectors" 
+                    :key="sector.id" 
+                    :value="sector.id"
+            >
+              {{ sector.name }}
+            </option>
+          </select>
+        </div>
+        
+        <div class="filter-item">
+          <select v-model="filters.location" class="filter-select">
+            <option value="">Все локации</option>
+            <option v-for="location in uniqueLocations" 
+                    :key="location" 
+                    :value="location"
+            >
+              {{ location }}
+            </option>
+          </select>
+        </div>
+      </div>
+    </div>
+    
+    <div class="catalog-container">
+      <!-- Индикатор загрузки -->
+      <div v-if="loading" class="loading-indicator">
+        <div class="spinner"></div>
+        <p>Загрузка стартапов...</p>
+      </div>
+
+      <!-- Список стартапов -->
+      <div v-else-if="filteredStartups.length === 0" class="no-results">
+        <p>По вашему запросу ничего не найдено</p>
+      </div>
+
+      <div v-else class="startups-grid">
+        <div v-for="startup in paginatedStartups" 
+             :key="startup.id" 
+             class="startup-card"
+        >
+          <div class="startup-image">
+            <img 
+              :src="getImageSrc(startup.image)" 
+              :alt="startup.title"
+              @error="handleImageError"
+            >
+            <div class="startup-stage">{{ getStageText(startup.stage) }}</div>
+          </div>
+          
+          <div class="startup-content">
+            <div class="startup-header">
+              <div class="startup-info">
+                <h3>{{ startup.title }}</h3>
+                <div class="startup-meta">
+                  <span v-if="startup.category" class="sector">{{ startup.category.name }}</span>
+                  <span v-if="startup.location" class="location">{{ startup.location }}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="startup-description">
+              {{ startup.description.length > 150 ? startup.description.substring(0, 150) + '...' : startup.description }}
+            </div>
+            
+            <div class="startup-metrics">
+              <div class="metric">
+                <div class="metric-label">Инвестиции</div>
+                <div class="metric-value">{{ formatMoney(startup.investmentNeeded) }}</div>
+              </div>
+              <div class="metric">
+                <div class="metric-label">ROI</div>
+                <div class="metric-value">{{ startup.expectedRoi }}%</div>
+              </div>
+            </div>
+            
+            <div class="startup-actions">
+              <BaseButton 
+                variant="primary" 
+                @click="viewDetails(startup.id)"
+              >
+                Подробнее
+              </BaseButton>
+              <BaseButton 
+                variant="secondary" 
+                @click="contactStartup(startup.id)"
+              >
+                Связаться
+              </BaseButton>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Пагинация -->
+    <div v-if="filteredStartups.length > itemsPerPage" class="pagination">
+      <button 
+        class="page-btn" 
+        :disabled="currentPage === 1"
+        @click="changePage(currentPage - 1)"
+      >
+        Назад
+      </button>
+      <div class="page-numbers">
+        <button 
+          v-for="page in totalPages" 
+          :key="page"
+          class="page-btn"
+          :class="{ active: currentPage === page }"
+          @click="changePage(page)"
+        >
+          {{ page }}
+        </button>
+      </div>
+      <button 
+        class="page-btn" 
+        :disabled="currentPage === totalPages"
+        @click="changePage(currentPage + 1)"
+      >
+        Вперед
+      </button>
+    </div>
+
+    <!-- Модальное окно с деталями -->
+    <Modal v-if="showDetails" @close="closeDetails">
+      <div class="startup-details" v-if="selectedStartup">
+        <div class="details-header">
+          <img 
+            :src="getImageSrc(selectedStartup.image)" 
+            :alt="selectedStartup.title" 
+            class="details-image"
+            @error="handleImageError"
+          >
+          <div class="details-info">
+            <div>
+              <h2>{{ selectedStartup.title }}</h2>
+              <div class="details-meta">
+                <span class="stage">{{ getStageText(selectedStartup.stage) }}</span>
+                <span v-if="selectedStartup.category" class="sector">{{ selectedStartup.category.name }}</span>
+                <span v-if="selectedStartup.location" class="location">{{ selectedStartup.location }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="details-content">
+          <div class="details-section">
+            <h3>О проекте</h3>
+            <p>{{ selectedStartup.description }}</p>
+          </div>
+          
+          <div class="details-section">
+            <h3>Метрики</h3>
+            <div class="metrics-grid">
+              <div class="metric-item">
+                <div class="metric-label">Требуемые инвестиции</div>
+                <div class="metric-value">{{ formatMoney(selectedStartup.investmentNeeded) }}</div>
+              </div>
+              <div class="metric-item">
+                <div class="metric-label">Минимальная инвестиция</div>
+                <div class="metric-value">{{ formatMoney(selectedStartup.minInvestment || 0) }}</div>
+              </div>
+              <div class="metric-item">
+                <div class="metric-label">Ожидаемая ROI</div>
+                <div class="metric-value">{{ selectedStartup.expectedRoi }}%</div>
+              </div>
+              <div class="metric-item">
+                <div class="metric-label">Статус</div>
+                <div class="metric-value">{{ getStatusText(selectedStartup.status) }}</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="details-section" v-if="selectedStartup.additionalInfo">
+            <h3>Дополнительная информация</h3>
+            <div class="info-grid">
+              <div class="info-item" v-if="selectedStartup.additionalInfo.hasTeam">
+                <div class="info-label">Команда</div>
+                <div class="info-value">Имеется</div>
+              </div>
+              <div class="info-item" v-if="selectedStartup.additionalInfo.teamSize">
+                <div class="info-label">Размер команды</div>
+                <div class="info-value">{{ selectedStartup.additionalInfo.teamSize }} чел.</div>
+              </div>
+              <div class="info-item" v-if="selectedStartup.additionalInfo.hasMVP">
+                <div class="info-label">MVP</div>
+                <div class="info-value">Имеется</div>
+              </div>
+              <div class="info-item" v-if="selectedStartup.additionalInfo.foundedAt">
+                <div class="info-label">Основан</div>
+                <div class="info-value">{{ selectedStartup.additionalInfo.foundedAt }}</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="details-section" v-if="selectedStartup.businessPlanUrl || selectedStartup.presentationUrl">
+            <h3>Документы</h3>
+            <div class="documents-list">
+              <a v-if="selectedStartup.businessPlanUrl" :href="selectedStartup.businessPlanUrl" target="_blank" class="document-link">
+                <i class="fas fa-file-pdf"></i>
+                Бизнес-план
+              </a>
+              <a v-if="selectedStartup.presentationUrl" :href="selectedStartup.presentationUrl" target="_blank" class="document-link">
+                <i class="fas fa-file-powerpoint"></i>
+                Презентация
+              </a>
+            </div>
+          </div>
+          
+          <div class="details-section" v-if="selectedStartup.author">
+            <h3>Автор проекта</h3>
+            <div class="author-info">
+              <div class="author-name">{{ selectedStartup.author.firstName }} {{ selectedStartup.author.lastName }}</div>
+              <div class="author-email">{{ selectedStartup.author.email }}</div>
+            </div>
+          </div>
+          
+          <div class="details-actions">
+            <BaseButton 
+              variant="primary" 
+              @click="contactStartup(selectedStartup.id)"
+            >
+              Связаться с автором
+            </BaseButton>
+          </div>
+        </div>
+      </div>
+    </Modal>
+
+    <!-- Модальное окно для связи с автором стартапа -->
+    <Modal :show="showConnectModal" @close="closeConnectModal">
+      <template #header>
+        <h3>Связаться с создателем стартапа</h3>
+        <div v-if="selectedStartupForContact" class="startup-info-header">
+          <p class="startup-name">
+            Стартап: <strong>{{ selectedStartupForContact.title }}</strong>
+          </p>
+          <p v-if="selectedStartupForContact.author" class="author-name">
+            Создатель: <strong>{{ selectedStartupForContact.author.firstName }} {{ selectedStartupForContact.author.lastName }}</strong>
+          </p>
+        </div>
+      </template>
+      <template #body>
+        <form @submit.prevent="sendMessageToStartup" class="connect-form">
+          <div class="form-group">
+            <label for="message-text-startup">Сообщение</label>
+            <textarea 
+              id="message-text-startup"
+              v-model="messageText" 
+              placeholder="Представьтесь и опишите цель вашего обращения к создателю стартапа..."
+              rows="5"
+              class="message-textarea"
+              required
+            ></textarea>
+          </div>
+        </form>
+      </template>
+      <template #footer>
+        <button class="btn-secondary" @click="closeConnectModal">Отмена</button>
+        <button class="btn-primary" @click="sendMessageToStartup" :disabled="!messageText.trim()">
+          Отправить
+        </button>
+      </template>
+    </Modal>
+  </div>
+</template>
+
+<script>
+import { ref, computed, onMounted, watch } from 'vue'
+import { useRouter } from 'vue-router'
+import BaseButton from '@/components/ui/BaseButton.vue'
+import Modal from '@/components/ui/Modal.vue'
+import { projectsService } from '@/services/projects.service'
+import { chatService } from '@/services/chat.service'
+
+export default {
+  name: 'StartupCatalog',
+  components: {
+    BaseButton,
+    Modal
+  },
+  setup() {
+    const router = useRouter()
+    const searchQuery = ref('')
+    const filters = ref({
+      stage: '',
+      sector: '',
+      minInvestment: '',
+      maxInvestment: '',
+      location: ''
+    })
+    const sectors = ref([])
+    const startups = ref([])
+    const currentPage = ref(1)
+    const itemsPerPage = ref(9)
+    const showDetails = ref(false)
+    const selectedStartup = ref(null)
+    const loading = ref(false)
+    const showConnectModal = ref(false)
+    const selectedStartupForContact = ref(null)
+    const messageText = ref('')
+
+    // Вычисляемые свойства
+    const uniqueLocations = computed(() => {
+      const locations = startups.value
+        .map(startup => startup.location)
+        .filter(location => location && location.trim() !== '')
+      
+      return [...new Set(locations)].sort()
+    })
+    
+    const filteredStartups = computed(() => {
+      let filtered = [...startups.value]
+      
+      // Поиск по запросу
+      if (searchQuery.value) {
+        const query = searchQuery.value.toLowerCase()
+        filtered = filtered.filter(startup => {
+          return (
+            startup.title.toLowerCase().includes(query) ||
+            startup.description.toLowerCase().includes(query) ||
+            (startup.location && startup.location.toLowerCase().includes(query)) ||
+            (startup.category && startup.category.name.toLowerCase().includes(query))
+          )
+        })
+      }
+      
+      // Фильтрация по стадии
+      if (filters.value.stage) {
+        filtered = filtered.filter(startup => startup.stage === filters.value.stage)
+      }
+      
+      // Фильтрация по сектору
+      if (filters.value.sector) {
+        filtered = filtered.filter(startup => 
+          startup.category && startup.category.id === parseInt(filters.value.sector)
+        )
+      }
+      
+      // Фильтрация по минимальным инвестициям
+      if (filters.value.minInvestment) {
+        const min = parseInt(filters.value.minInvestment)
+        filtered = filtered.filter(startup => startup.investmentNeeded >= min)
+      }
+      
+      // Фильтрация по максимальным инвестициям
+      if (filters.value.maxInvestment) {
+        const max = parseInt(filters.value.maxInvestment)
+        filtered = filtered.filter(startup => startup.investmentNeeded <= max)
+      }
+      
+      // Фильтрация по местоположению
+      if (filters.value.location) {
+        filtered = filtered.filter(startup => 
+          startup.location === filters.value.location
+        )
+      }
+      
+      return filtered
+    })
+    
+    const totalPages = computed(() => {
+      return Math.ceil(filteredStartups.value.length / itemsPerPage.value)
+    })
+    
+    const paginatedStartups = computed(() => {
+      const start = (currentPage.value - 1) * itemsPerPage.value
+      const end = start + itemsPerPage.value
+      return filteredStartups.value.slice(start, end)
+    })
+
+    // Методы
+    const fetchStartups = async () => {
+      loading.value = true
+      try {
+        const response = await projectsService.getAllProjects()
+        console.log('Получены стартапы:', response)
+        startups.value = response
+      } catch (error) {
+        console.error('Ошибка при загрузке стартапов:', error)
+      } finally {
+        loading.value = false
+      }
+    }
+    
+    const fetchCategories = async () => {
+      try {
+        const response = await projectsService.getAllCategories()
+        console.log('Получены категории:', response)
+        sectors.value = response
+      } catch (error) {
+        console.error('Ошибка при загрузке категорий:', error)
+      }
+    }
+    
+    const applyFilters = () => {
+      currentPage.value = 1
+    }
+    
+    const resetFilters = () => {
+      filters.value = {
+        stage: '',
+        sector: '',
+        minInvestment: '',
+        maxInvestment: '',
+        location: ''
+      }
+      searchQuery.value = ''
+      currentPage.value = 1
+    }
+    
+    const viewDetails = (id) => {
+      router.push(`/startups/${id}`)
+    }
+    
+    const contactStartup = (id) => {
+      const startup = startups.value.find(s => s.id === id)
+      if (startup) {
+        selectedStartupForContact.value = startup
+        messageText.value = ''
+        showConnectModal.value = true
+      }
+    }
+
+    const sendMessageToStartup = async () => {
+      if (!messageText.value.trim() || !selectedStartupForContact.value) return
+
+      try {
+        const startup = selectedStartupForContact.value
+        if (startup && startup.author) {
+          // Создаем или получаем чат с автором
+          const chatResponse = await chatService.createOrGetDirectChat(startup.author.id)
+          
+          // Отправляем сообщение через messengerService (использует правильный формат)
+          const messengerService = await import('@/services/messenger.service')
+          await messengerService.default.sendMessage({
+            chatId: chatResponse.id,
+            text: messageText.value.trim(),
+            type: 'text'
+          })
+          
+          // Закрываем модальное окно
+          showConnectModal.value = false
+          messageText.value = ''
+          selectedStartupForContact.value = null
+          
+          // Переходим в мессенджер
+          router.push({
+            name: 'Messenger',
+            params: { chatId: chatResponse.id }
+          })
+        } else {
+          throw new Error('Автор стартапа не найден')
+        }
+      } catch (error) {
+        console.error('Ошибка при отправке сообщения:', error)
+        console.error('Детали ошибки:', {
+          message: error.message,
+          response: error.response?.data,
+          status: error.response?.status
+        })
+        alert('Произошла ошибка при отправке сообщения. Пожалуйста, попробуйте снова.')
+      }
+    }
+
+    const closeConnectModal = () => {
+      showConnectModal.value = false
+      messageText.value = ''
+      selectedStartupForContact.value = null
+    }
+    
+    const changePage = (page) => {
+      currentPage.value = page
+    }
+    
+    const closeDetails = () => {
+      showDetails.value = false
+    }
+    
+    const formatMoney = (amount) => {
+      return new Intl.NumberFormat('ru-RU', {
+        style: 'currency',
+        currency: 'RUB',
+        maximumFractionDigits: 0
+      }).format(amount)
+    }
+    
+    const getStatusText = (status) => {
+      const statusMap = {
+        pending: 'На рассмотрении',
+        active: 'Активный',
+        completed: 'Завершен',
+        cancelled: 'Отменен'
+      }
+      return statusMap[status] || status
+    }
+    
+    const getStageText = (stage) => {
+      const stageMap = {
+        idea: 'Идея',
+        mvp: 'MVP',
+        growth: 'Рост',
+        scaling: 'Масштабирование'
+      }
+      return stageMap[stage] || stage
+    }
+
+    const getPlaceholderImage = () => {
+      // Используем простой SVG placeholder в base64, чтобы избежать 404 ошибок
+      const svg = `<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
+        <rect width="400" height="300" fill="#e0e0e0"/>
+        <text x="50%" y="50%" font-family="Arial, sans-serif" font-size="18" fill="#999" text-anchor="middle" dominant-baseline="middle">Нет изображения</text>
+      </svg>`;
+      return 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg)));
+    }
+
+    const getImageSrc = (image) => {
+      if (!image) return getPlaceholderImage()
+      // Если это base64, возвращаем как есть
+      if (image.startsWith('data:image')) {
+        return image
+      }
+      // Если это URL, возвращаем как есть
+      if (image.startsWith('http')) {
+        return image
+      }
+      // Относительный путь
+      return image.startsWith('/') ? image : `/${image}`
+    }
+
+    const handleImageError = (event) => {
+      event.target.src = getPlaceholderImage()
+    }
+
+    // Наблюдение за изменениями фильтров
+    watch(searchQuery, () => {
+      currentPage.value = 1
+    })
+    
+    watch(filters, () => {
+      currentPage.value = 1
+    }, { deep: true })
+
+    // При создании компонента
+    onMounted(() => {
+      fetchStartups()
+      fetchCategories()
+    })
+
+    return {
+      searchQuery,
+      filters,
+      sectors,
+      startups,
+      uniqueLocations,
+      filteredStartups,
+      currentPage,
+      itemsPerPage,
+      showDetails,
+      selectedStartup,
+      loading,
+      totalPages,
+      paginatedStartups,
+      fetchStartups,
+      fetchCategories,
+      viewDetails,
+      contactStartup,
+      sendMessageToStartup,
+      closeConnectModal,
+      showConnectModal,
+      selectedStartupForContact,
+      messageText,
+      changePage,
+      closeDetails,
+      formatMoney,
+      getStatusText,
+      getStageText,
+      getImageSrc,
+      handleImageError,
+      getPlaceholderImage,
+      applyFilters,
+      resetFilters
+    }
+  }
+}
+</script>
+
+<style scoped>
+.startup-catalog {
+  padding: 1rem;
+  background: #f1f5f9;
+  min-height: 100vh;
+}
+
+/* Blue Header */
+.page-header-blue {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 2rem;
+  padding: 1.5rem 2rem;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  border-radius: 16px;
+  margin-bottom: 1rem;
+  color: #fff;
+  box-shadow: 0 8px 30px rgba(37,99,235,0.2);
+}
+.page-header-blue .header-left { flex: 1; }
+.page-header-blue .header-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.8rem;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  margin-bottom: 0.75rem;
+}
+.page-header-blue .header-title { font-size: 1.75rem; font-weight: 700; margin: 0 0 0.5rem; }
+.page-header-blue .header-subtitle { font-size: 0.95rem; opacity: 0.85; margin: 0; max-width: 400px; color: #fff !important; }
+.page-header-blue .header-stats { display: flex; gap: 0.875rem; flex-shrink: 0; }
+.page-header-blue .stat-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+}
+.page-header-blue .stat-icon {
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.page-header-blue .stat-content { display: flex; flex-direction: column; }
+.page-header-blue .stat-number { font-size: 1.25rem; font-weight: 700; line-height: 1; color: #fff !important; }
+.page-header-blue .stat-label { font-size: 0.75rem; opacity: 0.85; margin-top: 0.15rem; color: #fff !important; text-transform: none !important; letter-spacing: normal !important; }
+
+@media (max-width: 900px) {
+  .page-header-blue { flex-direction: column; gap: 1.25rem; }
+  .page-header-blue .header-stats { width: 100%; }
+  .page-header-blue .stat-card { flex: 1; min-width: 90px; }
+}
+
+/* Стили для горизонтальных фильтров */
+.filters-horizontal {
+  background: transparent;
+  border-radius: 0;
+  padding: 20px 0;
+  box-shadow: none;
+  margin-bottom: 24px;
+}
+
+.search-box {
+  margin-bottom: 16px;
+}
+
+.search-input-container {
+  position: relative;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6c757d;
+}
+
+.search-input {
+  width: 100%;
+  padding: 12px 16px 12px 40px;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  font-size: 16px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  background-color: #fff;
+}
+
+.search-input:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+  outline: none;
+}
+
+.filters-row {
+  display: flex;
+  gap: 16px;
+}
+
+.filter-item {
+  flex: 1;
+}
+
+.filter-select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  background-color: white;
+  font-size: 15px;
+  transition: border-color 0.2s;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%236c757d' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+}
+
+.filter-select:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+.catalog-container {
+  margin-bottom: 30px;
+}
+
+.startups-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.startup-card {
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.startup-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.startup-image {
+  position: relative;
+  height: 160px;
+  overflow: hidden;
+}
+
+.startup-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.startup-stage {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 4px 8px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  font-size: 12px;
+  border-radius: 4px;
+}
+
+.startup-content {
+  padding: 20px;
+}
+
+.startup-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.startup-info {
+  flex: 1;
+}
+
+.startup-info h3 {
+  margin: 0 0 4px 0;
+  font-size: 18px;
+}
+
+.startup-meta {
+  display: flex;
+  gap: 12px;
+  font-size: 13px;
+  color: #6c757d;
+}
+
+.startup-description {
+  margin-bottom: 16px;
+  font-size: 14px;
+  color: #495057;
+  line-height: 1.5;
+}
+
+.startup-metrics {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.metric {
+  flex: 1;
+}
+
+.metric-label {
+  font-size: 12px;
+  color: #6c757d;
+  margin-bottom: 4px;
+}
+
+.metric-value {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.startup-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.page-btn {
+  padding: 8px 16px;
+  border: 1px solid #dee2e6;
+  background: white;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.page-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.page-btn.active {
+  background: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+.page-numbers {
+  display: flex;
+  gap: 8px;
+}
+
+.loading-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.no-results {
+  padding: 40px;
+  text-align: center;
+  color: #6c757d;
+}
+
+.connect-form {
+  padding: 0;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #212529;
+}
+
+.message-textarea {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #dee2e6;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  transition: border-color 0.2s;
+}
+
+.message-textarea:focus {
+  outline: none;
+  border-color: #2196F3;
+  box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+}
+
+.startup-info-header {
+  margin-top: 12px;
+}
+
+.startup-name,
+.author-name {
+  margin: 6px 0;
+  font-size: 14px;
+  color: #6c757d;
+}
+
+.startup-name strong,
+.author-name strong {
+  color: #212529;
+  font-weight: 600;
+}
+
+.btn-primary,
+.btn-secondary {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-primary {
+  background: #2196F3;
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #1976D2;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(33, 150, 243, 0.3);
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: #5a6268;
+}
+
+@media (max-width: 768px) {
+  .filters-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .startups-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style> 
