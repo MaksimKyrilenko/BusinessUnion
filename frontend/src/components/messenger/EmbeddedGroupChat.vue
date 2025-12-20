@@ -1151,27 +1151,42 @@ export default {
 .message-reactions {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
-  margin-top: 6px;
+  gap: 6px;
+  margin-top: 10px;
 }
 
 .reaction-btn {
-  background: #f1f5f9;
+  background: rgba(0, 0, 0, 0.06);
   border: none;
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 13px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 15px;
   cursor: pointer;
   transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .reaction-btn:hover {
-  background: #e2e8f0;
+  background: rgba(0, 0, 0, 0.1);
 }
 
 .reaction-btn.own-reaction {
   background: #dbeafe;
-  border: 1px solid #93c5fd;
+}
+
+.message-item.own .reaction-btn {
+  background: rgba(255, 255, 255, 0.25);
+  color: #fff;
+}
+
+.message-item.own .reaction-btn:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.message-item.own .reaction-btn.own-reaction {
+  background: rgba(255, 255, 255, 0.35);
 }
 
 /* Message actions */

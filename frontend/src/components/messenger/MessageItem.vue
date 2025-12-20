@@ -6,9 +6,11 @@
       'message-replied': message.replyTo
     }]"
   >
+    <!-- Avatar for other users (left side) -->
     <div v-if="!isOwn" class="message-avatar">
       <img :src="getUserAvatar(message.sender)" :alt="getUserFullName(message.sender)">
     </div>
+    
     <div class="message-content">
       <!-- Превью ответа на сообщение -->
       <div v-if="message.replyTo" class="message-reply-preview" @click="$emit('scrollToReply', message.replyTo.id)">
@@ -18,55 +20,59 @@
           <p class="reply-text">{{ truncateText(message.replyTo.text, 100) || 'Сообщение' }}</p>
         </div>
       </div>
-      <div class="message-bubble">
-        <div v-if="!isOwn" class="message-author">
-          {{ getUserFullName(message.sender) }}
-        </div>
-        <div v-if="message.type === 'text' || !message.type" class="message-text" v-html="formatMessageText(message.text)"></div>
-        <div v-else-if="message.type === 'image'" class="message-image">
-          <img :src="message.fileUrl || message.url" @click="$emit('showImagePreview')">
-          <div class="image-overlay">
-            <button class="image-action-btn" @click.stop="$emit('downloadImage')">
-              <i class="fas fa-download"></i>
-            </button>
-            <button class="image-action-btn" @click.stop="$emit('showImagePreview')">
-              <i class="fas fa-search-plus"></i>
-            </button>
+      
+      <div class="message-row">
+        <div class="message-bubble">
+          <div class="message-author">
+            {{ getUserFullName(message.sender) }}
           </div>
-        </div>
-        <div v-else-if="message.type === 'file'" class="message-file">
-          <div class="file-info">
-            <i class="fas" :class="getFileIcon(message.fileName || 'file.txt')"></i>
-            <div class="file-details">
-              <span class="file-name">{{ message.fileName }}</span>
-              <span class="file-size">{{ formatFileSize(message.fileSize || message.size || 0) }}</span>
+          <div v-if="message.type === 'text' || !message.type" class="message-text" v-html="formatMessageText(message.text)"></div>
+          <div v-else-if="message.type === 'image'" class="message-image">
+            <img :src="message.fileUrl || message.url" @click="$emit('showImagePreview')">
+            <div class="image-overlay">
+              <button class="image-action-btn" @click.stop="$emit('downloadImage')">
+                <i class="fas fa-download"></i>
+              </button>
+              <button class="image-action-btn" @click.stop="$emit('showImagePreview')">
+                <i class="fas fa-search-plus"></i>
+              </button>
             </div>
           </div>
-          <button @click="$emit('downloadFile')" class="download-btn">
-            <i class="fas fa-download"></i>
-          </button>
-        </div>
-        <!-- Метка редактирования -->
-        <span v-if="message.isEdited" class="edited-label">изменено</span>
-        <!-- Reactions inside bubble -->
-        <div v-if="message.reactions && Object.keys(message.reactions).length > 0" class="message-reactions">
-          <div 
-            v-for="(users, reaction) in message.reactions" 
-            :key="reaction"
-            :class="['reaction-badge', { 'reaction-own': hasMyReaction(reaction) }]"
-            @click="$emit('toggleReaction', reaction)"
-            :title="getReactionTooltip(users)"
-          >
-            {{ reaction }} {{ Array.isArray(users) ? users.length : users }}
+          <div v-else-if="message.type === 'file'" class="message-file">
+            <div class="file-info">
+              <i class="fas" :class="getFileIcon(message.fileName || 'file.txt')"></i>
+              <div class="file-details">
+                <span class="file-name">{{ message.fileName }}</span>
+                <span class="file-size">{{ formatFileSize(message.fileSize || message.size || 0) }}</span>
+              </div>
+            </div>
+            <button @click="$emit('downloadFile')" class="download-btn">
+              <i class="fas fa-download"></i>
+            </button>
+          </div>
+          <!-- Метка редактирования -->
+          <span v-if="message.isEdited" class="edited-label">изменено</span>
+          <!-- Reactions inside bubble -->
+          <div v-if="message.reactions && Object.keys(message.reactions).length > 0" class="message-reactions">
+            <div 
+              v-for="(users, reaction) in message.reactions" 
+              :key="reaction"
+              :class="['reaction-badge', { 'reaction-own': hasMyReaction(reaction) }]"
+              @click="$emit('toggleReaction', reaction)"
+              :title="getReactionTooltip(users)"
+            >
+              {{ reaction }} {{ Array.isArray(users) ? users.length : users }}
+            </div>
           </div>
         </div>
-      </div>
-      <div class="message-meta">
+        
         <span class="message-time" :title="formatFullDateTime(message.createdAt || message.timestamp)">
           {{ formatTime(message.createdAt || message.timestamp) }}
         </span>
+      </div>
+      
+      <div class="message-actions-row">
         <div class="message-actions">
-          <!-- Реакции -->
           <div class="reaction-picker-wrapper">
             <button class="action-btn" @click="toggleReactionPicker">
               <i class="far fa-smile"></i>
@@ -99,6 +105,11 @@
           <i :class="['fas', getStatusIcon(message.status)]"></i>
         </span>
       </div>
+    </div>
+    
+    <!-- Avatar for own messages (right side) -->
+    <div v-if="isOwn" class="message-avatar">
+      <img :src="getUserAvatar(message.sender)" :alt="getUserFullName(message.sender)">
     </div>
   </div>
 </template>
@@ -206,19 +217,23 @@ export default {
 <style scoped>
 .message {
   display: flex;
-  gap: 8px;
-  max-width: 70%;
+  align-items: flex-start;
+  gap: 12px;
+  max-width: 75%;
   align-self: flex-start;
 }
 
 .message-own {
   align-self: flex-end;
-  flex-direction: row-reverse;
+}
+
+.message-avatar {
+  flex-shrink: 0;
 }
 
 .message-avatar img {
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   object-fit: cover;
 }
@@ -226,47 +241,29 @@ export default {
 .message-content {
   display: flex;
   flex-direction: column;
-}
-
-.message-reply-preview {
-  background: rgba(33, 150, 243, 0.1);
-  border-left: 3px solid #2196F3;
-  padding: 8px 12px;
-  border-radius: 8px;
-  margin-bottom: 4px;
-  cursor: pointer;
-  transition: background 0.2s ease;
-}
-
-.message-reply-preview:hover {
-  background: rgba(33, 150, 243, 0.15);
-}
-
-.reply-content .reply-author {
-  font-size: 12px;
-  font-weight: 600;
-  color: #2196F3;
-}
-
-.reply-content p {
-  margin: 4px 0 0;
-  font-size: 13px;
-  color: #64748b;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.message-bubble {
-  background: #f1f5f9;
-  padding: 10px 14px;
-  border-radius: 16px;
-  display: inline-block;
-  max-width: 100%;
+  min-width: 0;
 }
 
 .message-own .message-content {
   align-items: flex-end;
+}
+
+.message-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.message-own .message-row {
+  flex-direction: row-reverse;
+}
+
+.message-bubble {
+  background: #f1f5f9;
+  padding: 12px 16px;
+  border-radius: 18px;
+  display: inline-block;
+  max-width: 100%;
 }
 
 .message-own .message-bubble {
@@ -275,37 +272,170 @@ export default {
 }
 
 .message-author {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
   color: #2196F3;
   margin-bottom: 4px;
 }
 
+.message-own .message-author {
+  color: rgba(255, 255, 255, 0.9);
+}
+
 .message-text {
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.5;
   word-wrap: break-word;
 }
 
+.message-time {
+  font-size: 13px;
+  color: #94a3b8;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.message-actions-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  padding: 0 4px;
+}
+
+.message-own .message-actions-row {
+  justify-content: flex-end;
+}
+
+.message-actions {
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.message:hover .message-actions {
+  opacity: 1;
+}
+
+.message-actions .action-btn {
+  background: none;
+  border: none;
+  padding: 4px 6px;
+  cursor: pointer;
+  color: #94a3b8;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.message-actions .action-btn:hover {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.message-status {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+/* Reply preview */
+.message-reply-preview {
+  display: flex;
+  align-items: stretch;
+  background: rgba(33, 150, 243, 0.08);
+  border-radius: 8px;
+  margin-bottom: 4px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  overflow: hidden;
+}
+
+.message-reply-preview:hover {
+  background: rgba(33, 150, 243, 0.15);
+}
+
+.reply-line {
+  width: 3px;
+  background: #2196F3;
+  flex-shrink: 0;
+}
+
+.reply-content {
+  padding: 8px 12px;
+  min-width: 0;
+  flex: 1;
+}
+
+.reply-content .reply-author {
+  font-size: 13px;
+  font-weight: 600;
+  color: #2196F3;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.reply-content .reply-text {
+  margin: 0;
+  font-size: 14px;
+  color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Reactions */
+.message-reactions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.reaction-badge {
+  background: rgba(0, 0, 0, 0.06);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.message-own .reaction-badge {
+  background: rgba(255, 255, 255, 0.25);
+  color: #fff;
+}
+
+.reaction-badge:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.message-own .reaction-badge:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.reaction-badge.reaction-own {
+  background: #dbeafe;
+}
+
+.message-own .reaction-badge.reaction-own {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+/* Links */
 .message-text :deep(a.message-link) {
   color: #1976D2;
   text-decoration: underline;
   word-break: break-all;
 }
 
-.message-text :deep(a.message-link:hover) {
-  color: #1565C0;
-}
-
 .message-own .message-text :deep(a.message-link) {
   color: #fff;
-  text-decoration: underline;
 }
 
-.message-own .message-text :deep(a.message-link:hover) {
-  color: rgba(255, 255, 255, 0.85);
-}
-
+/* Image */
 .message-image {
   position: relative;
   border-radius: 12px;
@@ -344,13 +474,9 @@ export default {
   padding: 6px 10px;
   border-radius: 6px;
   cursor: pointer;
-  transition: background 0.2s ease;
 }
 
-.image-action-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
-}
-
+/* File */
 .message-file {
   display: flex;
   align-items: center;
@@ -413,114 +539,13 @@ export default {
   padding: 8px 12px;
   border-radius: 8px;
   cursor: pointer;
-  transition: background 0.2s ease;
-}
-
-.download-btn:hover {
-  background: #1976D2;
 }
 
 .message-own .download-btn {
   background: rgba(255, 255, 255, 0.2);
 }
 
-.message-own .download-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
-}
-
-.message-meta {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 4px;
-  padding: 0 4px;
-}
-
-.message-time {
-  font-size: 11px;
-  color: #94a3b8;
-}
-
-.message-actions {
-  display: flex;
-  gap: 4px;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-
-.message:hover .message-actions {
-  opacity: 1;
-}
-
-.message-actions .action-btn {
-  background: none;
-  border: none;
-  padding: 4px 6px;
-  cursor: pointer;
-  color: #94a3b8;
-  border-radius: 4px;
-  transition: all 0.2s ease;
-}
-
-.message-actions .action-btn:hover {
-  background: #f1f5f9;
-  color: #64748b;
-}
-
-.message-reactions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin-top: 8px;
-  padding-top: 8px;
-  border-top: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-.message-own .message-reactions {
-  border-top-color: rgba(255, 255, 255, 0.15);
-}
-
-.reaction-badge {
-  background: rgba(0, 0, 0, 0.05);
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 12px;
-  cursor: pointer;
-  transition: background 0.2s ease;
-}
-
-.message-own .reaction-badge {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-.reaction-badge:hover {
-  background: rgba(0, 0, 0, 0.1);
-}
-
-.message-own .reaction-badge:hover {
-  background: rgba(255, 255, 255, 0.3);
-}
-
-.reaction-badge.reaction-own {
-  background: #dbeafe;
-  border: 1px solid #2196F3;
-}
-
-.message-own .reaction-badge.reaction-own {
-  background: rgba(255, 255, 255, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-}
-
-.message-status {
-  font-size: 12px;
-  color: #94a3b8;
-}
-
-.message-status .text-primary {
-  color: #2196F3;
-}
-
-/* Метка редактирования */
+/* Edited label */
 .edited-label {
   font-size: 11px;
   color: #94a3b8;
@@ -532,52 +557,7 @@ export default {
   color: rgba(255, 255, 255, 0.7);
 }
 
-/* Улучшенный превью ответа */
-.message-reply-preview {
-  display: flex;
-  align-items: stretch;
-  background: rgba(33, 150, 243, 0.08);
-  border-radius: 8px;
-  margin-bottom: 4px;
-  cursor: pointer;
-  transition: background 0.2s ease;
-  overflow: hidden;
-}
-
-.message-reply-preview:hover {
-  background: rgba(33, 150, 243, 0.15);
-}
-
-.reply-line {
-  width: 3px;
-  background: #2196F3;
-  flex-shrink: 0;
-}
-
-.reply-content {
-  padding: 8px 12px;
-  min-width: 0;
-  flex: 1;
-}
-
-.reply-content .reply-author {
-  font-size: 12px;
-  font-weight: 600;
-  color: #2196F3;
-  display: block;
-  margin-bottom: 2px;
-}
-
-.reply-content .reply-text {
-  margin: 0;
-  font-size: 13px;
-  color: #64748b;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* Пикер реакций */
+/* Reaction picker */
 .reaction-picker-wrapper {
   position: relative;
 }
@@ -597,7 +577,6 @@ export default {
   white-space: nowrap;
 }
 
-/* Для своих сообщений (справа) - выравниваем вправо */
 .message-own .reaction-picker {
   left: auto;
   right: 0;
@@ -618,13 +597,13 @@ export default {
   transform: scale(1.2);
 }
 
-/* Кнопка удаления */
+/* Delete button */
 .action-btn-danger:hover {
   color: #ef4444 !important;
   background: #fef2f2 !important;
 }
 
-/* Highlighted message animation */
+/* Highlight animation */
 :global(.highlighted-message) {
   animation: highlight 2s ease;
 }
