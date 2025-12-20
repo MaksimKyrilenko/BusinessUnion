@@ -203,6 +203,44 @@ const routes = [
     name: 'CryptoTracker',
     component: CryptoTracker,
     meta: { requiresAuth: true }
+  },
+  // Админ-панель
+  {
+    path: '/admin',
+    component: () => import('@/views/admin/AdminLayout.vue'),
+    meta: { requiresAuth: true, requiredRole: 'admin' },
+    children: [
+      {
+        path: '',
+        name: 'AdminDashboard',
+        component: () => import('@/views/admin/AdminDashboard.vue')
+      },
+      {
+        path: 'users',
+        name: 'AdminUsers',
+        component: () => import('@/views/admin/AdminUsers.vue')
+      },
+      {
+        path: 'projects',
+        name: 'AdminProjects',
+        component: () => import('@/views/admin/AdminProjects.vue')
+      },
+      {
+        path: 'investments',
+        name: 'AdminInvestments',
+        component: () => import('@/views/admin/AdminInvestments.vue')
+      },
+      {
+        path: 'communities',
+        name: 'AdminCommunities',
+        component: () => import('@/views/admin/AdminCommunities.vue')
+      },
+      {
+        path: 'analytics',
+        name: 'AdminAnalytics',
+        component: () => import('@/views/admin/AdminAnalytics.vue')
+      }
+    ]
   }
 ];
 

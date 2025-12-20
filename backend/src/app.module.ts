@@ -27,6 +27,7 @@ import { CryptoTrackerModule } from './crypto-tracker/crypto-tracker.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { RedisModule } from './redis/redis.module';
 import { MinioModule } from './minio/minio.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -64,6 +65,7 @@ import { MinioModule } from './minio/minio.module';
     CommunitiesModule,
     CryptoTrackerModule,
     DashboardModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService],
