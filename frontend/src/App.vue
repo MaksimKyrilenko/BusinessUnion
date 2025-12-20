@@ -117,6 +117,13 @@ export default defineComponent({
           return
         }
         
+        // Проверяем, не находится ли пользователь в этом чате
+        // Если да - не увеличиваем счётчик непрочитанных
+        if (messengerStore.currentChatId === message.chatId) {
+          console.log('[App] Пользователь в этом чате, счётчик не увеличиваем')
+          return
+        }
+        
         // Получаем чат из кэша
         const chat = chatsCache.find(c => c.id === message.chatId)
         
