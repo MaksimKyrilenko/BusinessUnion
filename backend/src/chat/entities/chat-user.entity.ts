@@ -37,7 +37,7 @@ export class ChatUser {
   @Column({ default: false })
   isBlocked: boolean;
 
-  @Column({ nullable: true })
+  @Column({ type: 'int', nullable: true, default: null })
   blockedByUserId: number | null;
 
   @CreateDateColumn()
