@@ -383,6 +383,29 @@ export default {
       await selectChat(chatId, loadMessages, loadGroupMembers)
       // Обновляем статус сообщений как прочитанных на фронтенде
       markMessagesAsRead()
+      // Отправляем WebSocket событие о прочтении для уведомления отправителя
+      sendReadReceipt()
+    }
+    
+    // Отправка уведомления о прочтении сообщений
+    const sendReadReceipt = () => {
+      if (!selectedChat.value?.messages || !selectedChat.value.id) return
+      
+      const myId = String(currentUserId.value).trim()
+      
+      // Находим последнее непрочитанное сообщение от другого пользователя
+      const unreadMessages = selectedChat.value.messages.filter(msg => {
+        const senderId = msg.senderId ? String(msg.senderId).trim() : 
+                         msg.sender?.id ? String(msg.sender.id).trim() : null
+        return senderId && senderId !== myId && msg.status !== 'read'
+      })
+      
+      if (unreadMessages.length > 0) {
+        // Отправляем событие о прочтении последнего сообщения
+        const lastUnread = unreadMessages[unreadMessages.length - 1]
+        websocketService.markAsRead(selectedChat.value.id, lastUnread.id)
+        console.log(`[READ] Отправлено уведомление о прочтении сообщения ${lastUnread.id} в чате ${selectedChat.value.id}`)
+      }
     }
 
     const handleCreateGroup = () => {
@@ -655,7 +678,14 @@ export default {
           // Добавляем новое сообщение
           console.log('[WS Handler] Добавляем новое сообщение в чат')
           selectedChat.value.messages.push(message)
-          nextTick(() => scrollToBottom())
+          nextTick(() => {
+            scrollToBottom()
+            // Если это не наше сообщение и мы в этом чате - отправляем уведомление о прочтении
+            if (!isOwnMsg) {
+              websocketService.markAsRead(message.chatId, message.id)
+              console.log(`[READ] Автоматически отправлено уведомление о прочтении сообщения ${message.id}`)
+            }
+          })
         }
 
         // Обновляем список чатов
@@ -726,6 +756,31 @@ export default {
         }
       })
       wsUnsubscribers.push(unsubMessageDeleted)
+      
+      // Обработчик прочтения сообщений (для обновления галочек)
+      const unsubMessageRead = websocketService.on('chat:read', (data) => {
+        console.log('[WS Handler] Получено событие chat:read:', data)
+        
+        if (selectedChat.value && data.chatId === selectedChat.value.id) {
+          const myUserId = localStorage.getItem('userId')
+          
+          // Обновляем статус всех наших сообщений до прочитанного messageId
+          if (selectedChat.value.messages) {
+            selectedChat.value.messages = selectedChat.value.messages.map(msg => {
+              const senderId = msg.senderId ? String(msg.senderId) : 
+                               msg.sender?.id ? String(msg.sender.id) : null
+              
+              // Обновляем статус только для наших сообщений
+              if (senderId === String(myUserId) && msg.status !== 'read') {
+                console.log(`[READ] Обновляем статус сообщения ${msg.id} на 'read'`)
+                return { ...msg, status: 'read' }
+              }
+              return msg
+            })
+          }
+        }
+      })
+      wsUnsubscribers.push(unsubMessageRead)
     }
 
     onMounted(async () => {
