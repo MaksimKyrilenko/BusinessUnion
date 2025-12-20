@@ -194,14 +194,54 @@ export default {
 }
 
 @media (max-width: 576px) {
-  .modal-container {
-    max-width: 100%;
-    max-height: 100%;
-    border-radius: 0;
-  }
-  
   .modal-overlay {
     padding: 0;
+    align-items: flex-end;
+  }
+  
+  .modal-container {
+    max-width: 100%;
+    max-height: 90vh;
+    border-radius: 20px 20px 0 0;
+    animation: slideUp 0.3s ease;
+  }
+  
+  .modal-header {
+    padding: 16px;
+    position: sticky;
+    top: 0;
+    background: #fff;
+    z-index: 10;
+    border-radius: 20px 20px 0 0;
+  }
+  
+  .modal-body {
+    padding: 16px;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .modal-footer {
+    padding: 16px;
+    position: sticky;
+    bottom: 0;
+    background: #fff;
+    padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    flex-direction: column;
+  }
+  
+  .modal-footer button {
+    width: 100%;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
   }
 }
 </style> 

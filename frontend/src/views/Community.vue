@@ -1153,6 +1153,7 @@ export default defineComponent({
 @media (max-width: 768px) {
   .community-page {
     padding: 0.75rem;
+    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
   }
   
   .page-header-blue {
@@ -1168,6 +1169,10 @@ export default defineComponent({
     flex-direction: column;
   }
   
+  .search-input {
+    font-size: 16px;
+  }
+  
   .create-button {
     width: 100%;
     justify-content: center;
@@ -1176,11 +1181,23 @@ export default defineComponent({
   .communities-grid {
     grid-template-columns: 1fr;
   }
+  
+  .filter-tags {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 0.5rem;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .filter-tag {
+    flex-shrink: 0;
+  }
 }
 
 @media (max-width: 480px) {
   .community-page {
     padding: 0.5rem;
+    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
   }
   
   .filter-tags {

@@ -1,6 +1,7 @@
 <template>
   <div id="app">
     <Navigation v-if="isAuthenticated" />
+    <MobileBottomNav v-if="isAuthenticated" />
     <main class="main-content" :class="{ 'with-nav': isAuthenticated }">
       <router-view v-slot="{ Component, route }">
         <transition :name="route.meta.transition || 'page-fade'" mode="out-in">
@@ -28,6 +29,7 @@
 <script>
 import { defineComponent, onMounted, onUnmounted, watch } from 'vue'
 import Navigation from '@/components/layout/Navigation.vue'
+import MobileBottomNav from '@/components/layout/MobileBottomNav.vue'
 import MessageNotification from '@/components/ui/MessageNotification.vue'
 import { useUserStore } from '@/stores/user'
 import { useMessengerStore } from '@/stores/messenger'
@@ -40,6 +42,7 @@ export default defineComponent({
   name: 'App',
   components: {
     Navigation,
+    MobileBottomNav,
     MessageNotification
   },
   setup() {

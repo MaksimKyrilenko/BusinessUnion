@@ -933,6 +933,7 @@ export default {
 @media (max-width: 768px) {
   .profile-page {
     padding: 1rem;
+    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
   }
   
   .row-2 {
@@ -951,6 +952,121 @@ export default {
     flex-direction: column;
     gap: 1rem;
     align-items: flex-start;
+  }
+  
+  .page-header {
+    padding: 1rem;
+    border-radius: 12px;
+  }
+  
+  .header-left h1 {
+    font-size: 1.25rem;
+  }
+  
+  .header-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+  }
+  
+  .btn-edit {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .profile-card {
+    padding: 1.25rem;
+    border-radius: 12px;
+  }
+  
+  .avatar-img,
+  .avatar-placeholder {
+    width: 100px;
+    height: 100px;
+    font-size: 2rem;
+  }
+  
+  .user-name h2 {
+    font-size: 1.1rem;
+  }
+  
+  .social-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .social-item {
+    padding: 0.625rem 0.75rem;
+    font-size: 0.8rem;
+  }
+  
+  .social-item span {
+    display: none;
+  }
+  
+  .social-item i {
+    font-size: 1.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-page {
+    padding: 0.75rem;
+  }
+  
+  .page-header {
+    padding: 0.875rem;
+  }
+  
+  .header-left {
+    gap: 0.75rem;
+  }
+  
+  .header-left h1 {
+    font-size: 1.1rem;
+  }
+  
+  .header-subtitle {
+    font-size: 0.8rem;
+  }
+  
+  .profile-card {
+    padding: 1rem;
+  }
+  
+  .card-header {
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+  }
+  
+  .card-header h3 {
+    font-size: 0.9rem;
+  }
+  
+  .card-header i {
+    width: 32px;
+    height: 32px;
+    font-size: 0.9rem;
+  }
+  
+  .avatar-img,
+  .avatar-placeholder {
+    width: 80px;
+    height: 80px;
+    font-size: 1.75rem;
+  }
+  
+  .tags {
+    gap: 0.375rem;
+  }
+  
+  .tag {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+  }
+  
+  .gallery-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
   }
 }
 </style>

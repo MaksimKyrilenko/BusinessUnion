@@ -1,5 +1,8 @@
 <template>
   <div class="main-chat-header" v-if="chat">
+    <button class="back-btn show-mobile" @click="$emit('back')">
+      <i class="fas fa-arrow-left"></i>
+    </button>
     <div 
       class="chat-info clickable" 
       @click="chat.type === 'group' ? $emit('showGroupInfo') : $emit('showPersonalInfo')"
@@ -39,7 +42,7 @@ export default {
     isTyping: { type: Boolean, default: false },
     onlineUsers: { type: Array, default: () => [] }
   },
-  emits: ['showGroupInfo', 'showPersonalInfo'],
+  emits: ['showGroupInfo', 'showPersonalInfo', 'back'],
   setup(props) {
     // Получаем другого участника для личных чатов
     const otherParticipant = computed(() => {
@@ -238,5 +241,57 @@ export default {
 .chat-actions button:hover {
   background: #f1f5f9;
   color: #334155;
+}
+
+/* Mobile back button */
+.back-btn {
+  display: none;
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: #f1f5f9;
+  border-radius: 50%;
+  color: #64748b;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.back-btn:active {
+  background: #e2e8f0;
+}
+
+/* Mobile styles */
+@media (max-width: 768px) {
+  .main-chat-header {
+    padding: 12px 16px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  
+  .back-btn.show-mobile {
+    display: flex;
+  }
+  
+  .chat-info img {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .chat-info h2 {
+    font-size: 15px;
+    max-width: 180px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .chat-info .status,
+  .chat-info .typing-status {
+    font-size: 12px;
+  }
 }
 </style>

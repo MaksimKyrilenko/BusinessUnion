@@ -924,6 +924,7 @@ export default {
 @media (max-width: 768px) {
   .education-page {
     padding: 0.75rem;
+    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
   }
 
   .page-header-blue {
@@ -952,11 +953,16 @@ export default {
 
   .filter-buttons {
     gap: 0.35rem;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 0.5rem;
+    -webkit-overflow-scrolling: touch;
   }
 
   .filter-btn {
     padding: 0.4rem 0.75rem;
     font-size: 0.8rem;
+    flex-shrink: 0;
   }
 
   .course-header {
@@ -977,6 +983,7 @@ export default {
 @media (max-width: 480px) {
   .education-page {
     padding: 0.5rem;
+    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
   }
 
   .stats-container {

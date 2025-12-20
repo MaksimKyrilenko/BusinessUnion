@@ -1043,9 +1043,18 @@ export default {
 }
 
 @media (max-width: 768px) {
+  .startup-catalog {
+    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+  }
+  
   .filters-row {
     flex-direction: column;
     gap: 12px;
+  }
+  
+  .filters-row select,
+  .filters-row input {
+    font-size: 16px;
   }
   
   .startups-grid {

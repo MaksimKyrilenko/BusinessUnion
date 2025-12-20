@@ -35,7 +35,7 @@
       </div>
     </div>
 
-    <div class="messenger">
+    <div class="messenger" :class="{ 'show-chat': selectedChat }">
       <!-- Sidebar -->
       <ChatSidebar
         :chats="chats"
@@ -62,6 +62,7 @@
           :onlineUsers="onlineUsers"
           @showGroupInfo="showGroupInfoModal = true"
           @showPersonalInfo="showPersonalChatInfoModal = true"
+          @back="handleBackToChats"
         />
 
         <MessageList
@@ -481,6 +482,12 @@ export default {
         websocketService.markAsRead(selectedChat.value.id, lastUnread.id)
         console.log(`[READ] Отправлено уведомление о прочтении сообщения ${lastUnread.id} в чате ${selectedChat.value.id}`)
       }
+    }
+
+    // Обработчик кнопки "назад" для мобильных устройств
+    const handleBackToChats = () => {
+      selectedChat.value = null
+      messengerStore.setCurrentChat(null)
     }
 
     const handleCreateGroup = () => {
@@ -1175,6 +1182,7 @@ export default {
       
       // Chat actions
       handleSelectChat,
+      handleBackToChats,
       handleCreateGroup,
       handleSearchUsers,
       handleShowImagePreview,
@@ -1336,5 +1344,96 @@ export default {
   margin: 0;
   font-size: 18px;
   font-weight: 500;
+}
+
+/* Mobile styles */
+@media (max-width: 768px) {
+  .messenger-page {
+    padding: 0;
+    padding-bottom: calc(65px + env(safe-area-inset-bottom, 0px));
+    height: 100vh;
+    height: 100dvh;
+  }
+  
+  .page-header-blue {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+    border-radius: 0;
+    margin-bottom: 0;
+  }
+  
+  .page-header-blue .header-title {
+    font-size: 1.35rem;
+  }
+  
+  .page-header-blue .header-subtitle {
+    font-size: 0.85rem;
+  }
+  
+  .page-header-blue .header-stats {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .page-header-blue .stat-card {
+    flex: 1;
+    padding: 0.6rem 0.5rem;
+    justify-content: center;
+  }
+  
+  .page-header-blue .stat-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 0.9rem;
+  }
+  
+  .page-header-blue .stat-number {
+    font-size: 1rem;
+  }
+  
+  .page-header-blue .stat-label {
+    font-size: 0.65rem;
+  }
+  
+  .messenger {
+    border-radius: 0;
+    flex: 1;
+    min-height: 0;
+  }
+  
+  /* Mobile chat view toggle */
+  .messenger.show-chat .messenger-sidebar {
+    display: none;
+  }
+  
+  .messenger:not(.show-chat) .messenger-main {
+    display: none;
+  }
+  
+  .messenger:not(.show-chat) .messenger-placeholder {
+    display: none;
+  }
+  
+  .placeholder-content i {
+    font-size: 48px;
+  }
+  
+  .placeholder-content h2 {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-header-blue .stat-card {
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.5rem;
+  }
+  
+  .page-header-blue .stat-icon {
+    width: 28px;
+    height: 28px;
+  }
 }
 </style>

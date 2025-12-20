@@ -498,4 +498,95 @@ export default {
 .emoji-btn-item:hover {
   background: #f1f5f9;
 }
+
+/* Mobile styles */
+@media (max-width: 768px) {
+  .message-input {
+    padding: 12px 16px;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    gap: 8px;
+  }
+  
+  .input-wrapper {
+    padding: 2px 10px;
+  }
+  
+  .input-wrapper textarea {
+    font-size: 16px;
+    padding: 8px 6px;
+  }
+  
+  .send-btn {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .attach-btn {
+    padding: 8px;
+  }
+  
+  /* Emoji picker mobile */
+  .emoji-picker {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-height: 50vh;
+    border-radius: 20px 20px 0 0;
+    margin-bottom: 0;
+  }
+  
+  .emoji-picker-arrow {
+    display: none;
+  }
+  
+  .emoji-list {
+    grid-template-columns: repeat(7, 1fr);
+    max-height: 35vh;
+  }
+  
+  .emoji-btn-item {
+    font-size: 24px;
+    padding: 10px;
+  }
+  
+  /* Attach menu mobile */
+  .attach-menu {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    border-radius: 20px 20px 0 0;
+    margin-bottom: 0;
+    padding: 16px;
+    padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  }
+  
+  .attach-options {
+    flex-direction: row;
+    justify-content: space-around;
+  }
+  
+  .attach-options button {
+    flex-direction: column;
+    padding: 16px 24px;
+    gap: 8px;
+  }
+  
+  .attach-options button i {
+    font-size: 24px;
+  }
+  
+  .reply-bar {
+    padding: 8px 12px;
+  }
+  
+  .blocked-message {
+    padding: 12px;
+    font-size: 13px;
+    flex-direction: column;
+    text-align: center;
+  }
+}
 </style>

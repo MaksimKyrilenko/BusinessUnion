@@ -1440,5 +1440,140 @@ export default {
     gap: 1.5rem;
     text-align: center;
   }
+  
+  .nav-container {
+    padding: 0 1rem;
+  }
+  
+  .nav-brand {
+    font-size: 1.25rem;
+  }
+  
+  .brand-icon {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .section-container {
+    padding: 0 1rem;
+  }
+  
+  .section-title {
+    font-size: 1.75rem;
+  }
+  
+  .logos-grid {
+    gap: 2rem;
+  }
+  
+  .logo-item {
+    font-size: 1rem;
+  }
+  
+  .benefit-card {
+    padding: 1rem;
+  }
+  
+  .visual-card {
+    padding: 1rem;
+  }
+  
+  .cta h2 {
+    font-size: 1.75rem;
+  }
+  
+  .cta p {
+    font-size: 1rem;
+  }
+  
+  .footer-top {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+  
+  .footer-bottom {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+  
+  .footer-legal {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero {
+    padding: 5rem 1rem 2rem;
+  }
+  
+  .hero-title {
+    font-size: 1.75rem;
+  }
+  
+  .hero-subtitle {
+    font-size: 1rem;
+  }
+  
+  .hero-badge {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.75rem;
+  }
+  
+  .btn-primary,
+  .btn-secondary {
+    padding: 0.875rem 1.5rem;
+    font-size: 0.9rem;
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .hero-stats {
+    padding: 1rem;
+  }
+  
+  .stat-value {
+    font-size: 1.5rem;
+  }
+  
+  .section-badge {
+    font-size: 0.75rem;
+  }
+  
+  .section-title {
+    font-size: 1.5rem;
+  }
+  
+  .feature-card {
+    padding: 1.5rem;
+  }
+  
+  .feature-icon-wrapper {
+    width: 48px;
+    height: 48px;
+  }
+  
+  .feature-card h3 {
+    font-size: 1.1rem;
+  }
+  
+  .testimonial-card {
+    padding: 1.5rem;
+  }
+  
+  .cta {
+    padding: 4rem 1rem;
+  }
+  
+  .cta-btn-primary {
+    padding: 0.875rem 2rem;
+    font-size: 0.9rem;
+  }
+  
+  .footer {
+    padding: 2rem 1rem;
+  }
 }
 </style>

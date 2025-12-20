@@ -2589,6 +2589,7 @@ export default defineComponent({
 @media (max-width: 768px) {
   .news-page {
     padding: 0.75rem;
+    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
   }
   
   .news-header {
@@ -2609,6 +2610,7 @@ export default defineComponent({
   .search-input-container input {
     width: 100%;
     min-width: auto;
+    font-size: 16px;
   }
   
   .news-cards-grid {
@@ -2627,6 +2629,7 @@ export default defineComponent({
 @media (max-width: 480px) {
   .news-page {
     padding: 0.5rem;
+    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
   }
   
   .events-header {

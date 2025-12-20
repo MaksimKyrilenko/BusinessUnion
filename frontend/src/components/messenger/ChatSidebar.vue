@@ -271,4 +271,45 @@ export default {
 .create-group-btn:hover {
   background: #1976D2;
 }
+
+/* Mobile styles */
+@media (max-width: 768px) {
+  .messenger-sidebar {
+    width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10;
+    border-right: none;
+  }
+  
+  .messenger-sidebar.hidden {
+    display: none;
+  }
+  
+  .search-bar {
+    padding: 12px;
+  }
+  
+  .search-bar input {
+    padding: 10px 16px;
+    font-size: 16px;
+  }
+  
+  .chat-tabs {
+    padding: 8px 12px;
+  }
+  
+  .tab-btn {
+    padding: 10px 8px;
+    font-size: 0.9rem;
+  }
+  
+  .create-group {
+    padding: 12px;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  }
+}
 </style>

@@ -388,7 +388,7 @@ export default defineComponent({
 }
 
 @media (max-width: 700px) {
-  .dashboard-container { padding: 0.75rem; }
+  .dashboard-container { padding: 0.75rem; padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }
   .dashboard-header { padding: 1rem; border-radius: 12px; }
   .header-main { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
   .header-stats { width: 100%; }

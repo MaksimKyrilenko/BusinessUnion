@@ -1123,7 +1123,7 @@ onMounted(async () => {
 }
 
 @media (max-width: 768px) {
-  .analytics-page { padding: 1rem; }
+  .analytics-page { padding: 1rem; padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }
   .page-header-blue { flex-direction: column; gap: 1.25rem; padding: 1.25rem; }
   .page-header-blue .header-title { font-size: 1.35rem; }
   .page-header-blue .header-stats { width: 100%; }

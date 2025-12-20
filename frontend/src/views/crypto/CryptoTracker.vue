@@ -3680,6 +3680,7 @@ function getStrategyLabel(strategy) {
 @media (max-width: 768px) {
   .crypto-tracker {
     padding: 0.75rem;
+    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
   }
   
   .page-header-blue {

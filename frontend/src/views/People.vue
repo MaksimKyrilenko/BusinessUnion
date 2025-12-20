@@ -1126,6 +1126,7 @@ export default {
 @media (max-width: 700px) {
   .people-shell {
     padding: 0.75rem;
+    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
   }
   
   .people-header {
@@ -1159,6 +1160,11 @@ export default {
   
   .filter-select select {
     width: 100%;
+    font-size: 16px;
+  }
+  
+  .search-bar input {
+    font-size: 16px;
   }
   
   .people-grid {

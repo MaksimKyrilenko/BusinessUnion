@@ -11,6 +11,7 @@ import { useVuelidate } from '@vuelidate/core'; // Исправляем импо
 import { animate } from './directives/animate';
 import 'animate.css/animate.min.css'; // Исправленный импорт
 import './assets/styles/global.css'; // Добавляем глобальные стили
+import './assets/styles/mobile.css'; // Мобильная адаптация
 import websocketService from './services/websocket.service'; // WebSocket сервис
 // Font Awesome загружается через CDN в index.html
 
