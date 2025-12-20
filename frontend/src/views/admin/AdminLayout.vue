@@ -40,12 +40,6 @@
         </router-link>
       </nav>
       
-      <div class="sidebar-footer">
-        <router-link to="/" class="back-link">
-          <i class="fas fa-arrow-left"></i>
-          <span>На сайт</span>
-        </router-link>
-      </div>
     </aside>
     
     <main class="admin-main">
@@ -100,18 +94,20 @@ export default {
 
 .admin-sidebar {
   width: 260px;
-  background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
-  color: white;
+  background: #ffffff;
+  color: #1a1a2e;
   display: flex;
   flex-direction: column;
   position: fixed;
   height: 100vh;
   z-index: 100;
+  box-shadow: 2px 0 8px rgba(0,0,0,0.06);
+  border-right: 1px solid #e5e7eb;
 }
 
 .sidebar-header {
   padding: 1.5rem;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .logo {
@@ -120,6 +116,7 @@ export default {
   gap: 0.75rem;
   font-size: 1.25rem;
   font-weight: 700;
+  color: #1a1a2e;
 }
 
 .logo i {
@@ -138,19 +135,19 @@ export default {
   align-items: center;
   gap: 0.75rem;
   padding: 0.875rem 1.5rem;
-  color: rgba(255,255,255,0.7);
+  color: #64748b;
   text-decoration: none;
   transition: all 0.2s;
   border-left: 3px solid transparent;
 }
 
 .nav-item:hover {
-  background: rgba(255,255,255,0.05);
-  color: white;
+  background: #f8fafc;
+  color: #1a1a2e;
 }
 
 .nav-item.active {
-  background: rgba(79, 143, 255, 0.15);
+  background: rgba(79, 143, 255, 0.1);
   color: #4F8FFF;
   border-left-color: #4F8FFF;
 }
@@ -158,25 +155,6 @@ export default {
 .nav-item i {
   width: 20px;
   text-align: center;
-}
-
-.sidebar-footer {
-  padding: 1rem 1.5rem;
-  border-top: 1px solid rgba(255,255,255,0.1);
-}
-
-.back-link {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  color: rgba(255,255,255,0.6);
-  text-decoration: none;
-  font-size: 0.875rem;
-  transition: color 0.2s;
-}
-
-.back-link:hover {
-  color: white;
 }
 
 .admin-main {
@@ -228,8 +206,7 @@ export default {
   }
   
   .sidebar-header span,
-  .nav-item span,
-  .back-link span {
+  .nav-item span {
     display: none;
   }
   
