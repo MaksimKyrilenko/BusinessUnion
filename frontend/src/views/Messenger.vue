@@ -193,6 +193,7 @@
       :group="selectedChat"
       @close="showEditGroupModal = false"
       @save="handleSaveGroupChanges"
+      @avatarUpdated="handleAvatarUpdated"
     />
 
     <PersonalChatInfoModal
@@ -510,6 +511,19 @@ export default {
       } catch (error) {
         console.error('Ошибка при обновлении группы:', error)
         alert('Не удалось обновить информацию о группе')
+      }
+    }
+
+    // Обработчик обновления аватара группы
+    const handleAvatarUpdated = (avatarUrl) => {
+      if (selectedChat.value) {
+        selectedChat.value.avatar = avatarUrl
+        
+        // Обновляем в списке чатов
+        const chatIndex = chats.value.findIndex(c => c.id === selectedChat.value.id)
+        if (chatIndex !== -1) {
+          chats.value[chatIndex].avatar = avatarUrl
+        }
       }
     }
 
@@ -1085,13 +1099,13 @@ export default {
       handleEditGroup,
       handleAddMembers,
       handleSaveGroupChanges,
+      handleAvatarUpdated,
       
       // Chat actions
       handleSelectChat,
       handleCreateGroup,
       handleSearchUsers,
       handleShowImagePreview,
-      handleSaveGroupChanges,
       toggleBlockUser,
       togglePersonalChatNotifications,
       confirmDeletePersonalChat,
