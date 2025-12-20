@@ -336,12 +336,6 @@ export default {
   overflow: hidden;
 }
 
-/* Убираем скроллбар из родительского modal-body */
-:deep(.modal-body) {
-  overflow: hidden !important;
-  padding: 0 !important;
-}
-
 /* Header */
 .info-header {
   position: relative;
@@ -986,5 +980,17 @@ input:checked + .toggle-slider:before {
 
 .action-btn.danger:hover {
   background: #fee2e2;
+}
+</style>
+
+<!-- Глобальные стили для переопределения Modal -->
+<style>
+.chat-info-modal .modal-body {
+  overflow: hidden !important;
+  padding: 0 !important;
+}
+
+.chat-info-modal .modal-content {
+  overflow: hidden !important;
 }
 </style>
