@@ -16,6 +16,7 @@
       <router-link to="/messenger" class="nav-item">
         <i class="fas fa-comments"></i>
         <span>Мессенджер</span>
+        <span v-if="unreadMessagesCount > 0" class="unread-badge">{{ unreadMessagesCount > 99 ? '99+' : unreadMessagesCount }}</span>
       </router-link>
       <router-link to="/people" class="nav-item">
         <i class="fas fa-users"></i>
@@ -93,18 +94,31 @@
 </template>
 
 <script>
-import { defineComponent, computed } from 'vue'
+import { defineComponent, computed, onMounted } from 'vue'
 import { useUserStore } from '@/stores/user'
+import { useMessengerStore } from '@/stores/messenger'
 import { storeToRefs } from 'pinia'
 
 export default defineComponent({
   name: 'Navigation',
   setup() {
     const userStore = useUserStore()
+    const messengerStore = useMessengerStore()
     const { isAuthenticated } = storeToRefs(userStore)
+    const { totalUnreadCount } = storeToRefs(messengerStore)
     
     // Используем computed для реактивного получения типа пользователя
     const userType = computed(() => userStore.user?.userType || localStorage.getItem('userType'))
+    
+    // Количество непрочитанных сообщений
+    const unreadMessagesCount = computed(() => totalUnreadCount.value)
+    
+    // Загружаем количество непрочитанных при монтировании
+    onMounted(() => {
+      if (userStore.isAuthenticated) {
+        messengerStore.loadUnreadCount()
+      }
+    })
     
     const logout = async () => {
       // Добавляем подтверждение выхода
@@ -131,6 +145,7 @@ export default defineComponent({
     return {
       isAuthenticated,
       userType,
+      unreadMessagesCount,
       logout
     }
   }
@@ -210,6 +225,19 @@ export default defineComponent({
   background: rgba(33, 150, 243, 0.1);
   color: #2196F3;
   border-right: 3px solid #2196F3;
+}
+
+/* Badge для непрочитанных сообщений */
+.unread-badge {
+  background: #ef4444;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 10px;
+  min-width: 18px;
+  text-align: center;
+  margin-left: auto;
 }
 
 .nav-divider {

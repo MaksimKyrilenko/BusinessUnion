@@ -9,7 +9,7 @@
       </router-view>
     </main>
     
-    <!-- Уведомления -->
+    <!-- Уведомления системные -->
     <div class="notifications-container">
       <Notification
         v-for="notification in notifications"
@@ -19,28 +19,38 @@
         @close="removeNotification(notification.id)"
       />
     </div>
+    
+    <!-- Уведомления о сообщениях (Dynamic Island) -->
+    <MessageNotification v-if="isAuthenticated" />
   </div>
 </template>
 
 <script>
-import { defineComponent, onMounted, watch } from 'vue'
+import { defineComponent, onMounted, onUnmounted, watch } from 'vue'
 import Navigation from '@/components/layout/Navigation.vue'
+import MessageNotification from '@/components/ui/MessageNotification.vue'
 import { useUserStore } from '@/stores/user'
+import { useMessengerStore } from '@/stores/messenger'
 import { useNotification } from '@/utils/notification'
 import { storeToRefs } from 'pinia'
 import { useRouter, useRoute } from 'vue-router'
+import websocketService from '@/services/websocket.service'
 
 export default defineComponent({
   name: 'App',
   components: {
-    Navigation
+    Navigation,
+    MessageNotification
   },
   setup() {
     const userStore = useUserStore()
+    const messengerStore = useMessengerStore()
     const router = useRouter()
     const route = useRoute()
     const { isAuthenticated } = storeToRefs(userStore)
     const { notifications, remove: removeNotification } = useNotification()
+    
+    let wsUnsubscriber = null
 
     // Проверяем авторизацию при загрузке приложения
     const checkAuth = async () => {
@@ -78,16 +88,109 @@ export default defineComponent({
       }
     }
     
+    // Настройка глобального обработчика WebSocket для уведомлений
+    const setupGlobalWebSocket = async () => {
+      if (wsUnsubscriber) {
+        wsUnsubscriber()
+      }
+      
+      // Загружаем список чатов для получения названий
+      let chatsCache = []
+      try {
+        const messengerService = (await import('@/services/messenger.service')).default
+        const response = await messengerService.getChats()
+        if (response?.data) {
+          chatsCache = response.data
+        }
+      } catch (e) {
+        console.error('Ошибка загрузки чатов для уведомлений:', e)
+      }
+      
+      wsUnsubscriber = websocketService.on('chat:newMessage', (message) => {
+        console.log('[App] Глобальный обработчик: новое сообщение', message.id)
+        
+        const myUserId = localStorage.getItem('userId')
+        const senderId = message.senderId || message.sender?.id
+        
+        // Игнорируем свои сообщения
+        if (String(senderId) === String(myUserId)) {
+          return
+        }
+        
+        // Увеличиваем счётчик непрочитанных
+        messengerStore.incrementUnread()
+        
+        // Получаем имя отправителя
+        const senderName = message.sender 
+          ? `${message.sender.firstName || ''} ${message.sender.lastName || ''}`.trim() || 'Пользователь'
+          : 'Пользователь'
+        
+        // Получаем название чата из кэша
+        const chat = chatsCache.find(c => c.id === message.chatId)
+        let chatName = 'Чат'
+        
+        if (chat) {
+          if (chat.type === 'group') {
+            chatName = chat.name || 'Группа'
+          } else {
+            // Для личного чата - имя собеседника
+            const otherUser = chat.participants?.find(p => String(p.id) !== String(myUserId))
+            if (otherUser) {
+              chatName = `${otherUser.firstName || ''} ${otherUser.lastName || ''}`.trim() || 'Личный чат'
+            } else {
+              chatName = 'Личный чат'
+            }
+          }
+        }
+        
+        // Добавляем уведомление
+        messengerStore.addMessageNotification(message, chatName, senderName)
+      })
+    }
+    
     // Вызываем проверку при загрузке
     onMounted(() => {
       checkAuth()
+      
+      // Если авторизован - настраиваем WebSocket
+      if (userStore.isAuthenticated) {
+        setupGlobalWebSocket()
+        messengerStore.loadUnreadCount()
+        
+        // Подключаемся к WebSocket если ещё не подключены
+        if (!websocketService.isAuthenticated.value) {
+          websocketService.connect()
+        }
+      }
+    })
+    
+    onUnmounted(() => {
+      if (wsUnsubscriber) {
+        wsUnsubscriber()
+      }
     })
     
     // Следим за изменениями авторизации
     watch(isAuthenticated, (newValue) => {
-      if (newValue && route.meta.guest) {
-        console.log('Пользователь авторизован, перенаправление с гостевой страницы на дашборд')
-        router.replace('/dashboard')
+      if (newValue) {
+        if (route.meta.guest) {
+          console.log('Пользователь авторизован, перенаправление с гостевой страницы на дашборд')
+          router.replace('/dashboard')
+        }
+        
+        // Настраиваем WebSocket при авторизации
+        setupGlobalWebSocket()
+        messengerStore.loadUnreadCount()
+        
+        if (!websocketService.isAuthenticated.value) {
+          websocketService.connect()
+        }
+      } else {
+        // Отписываемся при выходе
+        if (wsUnsubscriber) {
+          wsUnsubscriber()
+          wsUnsubscriber = null
+        }
       }
     })
 

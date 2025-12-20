@@ -192,6 +192,7 @@
 <script>
 import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { useUserStore } from '@/stores/user'
+import { useMessengerStore } from '@/stores/messenger'
 import { useRouter } from 'vue-router'
 import websocketService from '@/services/websocket.service'
 
@@ -229,6 +230,7 @@ export default {
   },
   setup() {
     const userStore = useUserStore()
+    const messengerStore = useMessengerStore()
     const router = useRouter()
     const currentUserId = ref(userStore.userId)
     const wsUnsubscribers = []
@@ -390,7 +392,20 @@ export default {
     }
     
     const handleSelectChat = async (chatId) => {
+      // Получаем количество непрочитанных до выбора чата
+      const chat = chats.value.find(c => c.id === chatId)
+      const unreadInChat = chat?.unreadCount || 0
+      
       await selectChat(chatId, loadMessages, loadGroupMembers)
+      
+      // Обновляем currentChatId в store для фильтрации уведомлений
+      messengerStore.setCurrentChat(chatId)
+      
+      // Уменьшаем глобальный счётчик непрочитанных
+      if (unreadInChat > 0) {
+        messengerStore.decrementUnread(unreadInChat)
+      }
+      
       // Обновляем статус сообщений как прочитанных на фронтенде
       markMessagesAsRead()
       // Отправляем WebSocket событие о прочтении для уведомления отправителя
@@ -840,6 +855,9 @@ export default {
       if (selectedChat.value) {
         websocketService.leaveChat(selectedChat.value.id)
       }
+      // Сбрасываем текущий чат в store
+      messengerStore.setCurrentChat(null)
+      
       wsUnsubscribers.forEach(unsub => {
         if (typeof unsub === 'function') unsub()
       })
