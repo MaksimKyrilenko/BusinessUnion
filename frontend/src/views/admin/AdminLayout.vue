@@ -93,7 +93,7 @@ export default {
 }
 
 .admin-sidebar {
-  width: 260px;
+  width: 280px;
   background: #ffffff;
   color: #1a1a2e;
   display: flex;
@@ -163,7 +163,7 @@ export default {
 
 .admin-main {
   flex: 1;
-  margin-left: 260px;
+  margin-left: 280px;
   display: flex;
   flex-direction: column;
 }
