@@ -1,0 +1,365 @@
+import { Injectable, ConflictException, Logger, InternalServerErrorException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { User } from './user.entity';
+import { Profile } from './entities/profile.entity';
+import { CreateUserDto } from './dto/create-user.dto';
+import * as bcrypt from 'bcrypt';
+import { JwtService } from '@nestjs/jwt';
+import { UserType } from './enums/user-type.enum';
+
+interface CreateUserWithVerification extends CreateUserDto {
+  emailVerificationToken?: string;
+  emailVerificationExpires?: Date;
+}
+
+@Injectable()
+export class UsersService {
+  private readonly logger = new Logger(UsersService.name);
+
+  constructor(
+    @InjectRepository(User)
+    private usersRepository: Repository<User>,
+    @InjectRepository(Profile)
+    private profileRepository: Repository<Profile>,
+    private jwtService: JwtService,
+  ) {}
+
+  async create(createUserDto: CreateUserWithVerification): Promise<User> {
+    this.logger.log(`Attempting to create user with email: ${createUserDto.email}`);
+
+    try {
+      // Проверяем, существует ли пользователь с таким email
+      const existingUser = await this.usersRepository.findOne({
+        where: { email: createUserDto.email }
+      });
+
+      if (existingUser) {
+        this.logger.warn(`User with email ${createUserDto.email} already exists`);
+        throw new ConflictException('Пользователь с таким email уже существует');
+      }
+
+      // Хешируем пароль
+      const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
+      
+      // Создаем нового пользователя
+      const user = this.usersRepository.create({
+        ...createUserDto,
+        password: hashedPassword,
+        isEmailVerified: false,
+        emailVerificationToken: createUserDto.emailVerificationToken,
+        emailVerificationExpires: createUserDto.emailVerificationExpires,
+      });
+
+      this.logger.log('Saving new user to database');
+      const savedUser = await this.usersRepository.save(user);
+      this.logger.log(`User successfully created with ID: ${savedUser.id}`);
+      
+      // Автоматически создаем профиль для нового пользователя
+      try {
+        this.logger.log(`Creating profile for user ID: ${savedUser.id}`);
+        const profile = this.profileRepository.create({
+          user: savedUser
+        });
+        
+        const savedProfile = await this.profileRepository.save(profile);
+        this.logger.log(`Profile successfully created for user ID: ${savedUser.id}, profile ID: ${savedProfile.id}`);
+
+        // Обновляем пользователя с профилем
+        savedUser.profile = savedProfile;
+        
+        // Проверяем, что профиль правильно связан с пользователем
+        const userWithProfile = await this.findOne(savedUser.id);
+        if (!userWithProfile?.profile) {
+          this.logger.warn(`Profile not attached to user ID: ${savedUser.id} after creation`);
+        } else {
+          this.logger.log(`Verified profile is attached to user ID: ${savedUser.id}, profile ID: ${userWithProfile.profile.id}`);
+        }
+      } catch (profileError) {
+        this.logger.error(`Error creating profile for user ${savedUser.id}:`, profileError);
+        // Продолжаем выполнение, даже если не удалось создать профиль
+      }
+      
+      return savedUser;
+    } catch (error) {
+      this.logger.error('Error creating user:', error);
+      if (error instanceof ConflictException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Ошибка при создании пользователя: ' + error.message);
+    }
+  }
+
+  async findOne(id: number): Promise<User | null> {
+    try {
+      if (id === undefined || id === null || isNaN(id)) {
+        this.logger.warn(`Попытка найти пользователя с некорректным ID: ${id}`);
+        return null;
+      }
+      
+      return await this.usersRepository.findOne({ 
+        where: { id },
+        relations: ['profile']
+      });
+    } catch (error) {
+      this.logger.error(`Error finding user with ID ${id}:`, error);
+      throw new InternalServerErrorException('Ошибка при поиске пользователя');
+    }
+  }
+
+  async findByEmail(email: string): Promise<User | null> {
+    try {
+      return await this.usersRepository.findOne({ 
+        where: { email },
+        relations: ['profile']
+      });
+    } catch (error) {
+      this.logger.error(`Error finding user with email ${email}:`, error);
+      throw new InternalServerErrorException('Ошибка при поиске пользователя');
+    }
+  }
+
+  async findAll(): Promise<User[]> {
+    try {
+      return await this.usersRepository.find({
+        relations: ['profile']
+      });
+    } catch (error) {
+      this.logger.error('Error finding all users:', error);
+      throw new InternalServerErrorException('Ошибка при получении списка пользователей');
+    }
+  }
+
+  async validateUser(email: string, password: string): Promise<User | null> {
+    try {
+      const user = await this.findByEmail(email);
+      if (user && await bcrypt.compare(password, user.password)) {
+        return user;
+      }
+      return null;
+    } catch (error) {
+      this.logger.error(`Error validating user with email ${email}:`, error);
+      throw new InternalServerErrorException('Ошибка при валидации пользователя');
+    }
+  }
+
+  async generateJwt(user: User) {
+    try {
+      const payload = { 
+        email: user.email, 
+        sub: user.id, 
+        userType: user.userType 
+      };
+      const token = this.jwtService.sign(payload);
+      return {
+        access_token: token,
+      };
+    } catch (error) {
+      this.logger.error(`Error generating JWT for user ${user.id}:`, error);
+      throw new InternalServerErrorException('Ошибка при генерации токена');
+    }
+  }
+
+  async createProfile(userId: number, profileData: Partial<Profile>): Promise<Profile> {
+    try {
+      this.logger.log(`Creating profile for user ID: ${userId}`);
+      
+      const user = await this.findOne(userId);
+      if (!user) {
+        this.logger.error(`User with ID ${userId} not found when creating profile`);
+        throw new Error('Пользователь не найден');
+      }
+
+      if (user.profile) {
+        this.logger.warn(`User with ID ${userId} already has a profile`);
+        // Возвращаем существующий профиль
+        return user.profile;
+      }
+
+      const profile = this.profileRepository.create({
+        ...profileData,
+        user
+      });
+
+      const savedProfile = await this.profileRepository.save(profile);
+      this.logger.log(`Profile created for user ID: ${userId}, profile ID: ${savedProfile.id}`);
+      
+      // Дополнительная проверка, что профиль действительно привязан к пользователю
+      const userAfterProfileCreation = await this.findOne(userId);
+      if (!userAfterProfileCreation?.profile) {
+        this.logger.warn(`Profile appears to be created but not attached to user ID: ${userId}`);
+      }
+      
+      return savedProfile;
+    } catch (error) {
+      this.logger.error(`Error creating profile for user ${userId}:`, error);
+      throw new InternalServerErrorException('Ошибка при создании профиля: ' + error.message);
+    }
+  }
+
+  async updateProfile(userId: number, profileData: Partial<Profile>): Promise<Profile> {
+    try {
+      this.logger.log(`Updating profile for user ID: ${userId}`);
+      
+      const user = await this.findOne(userId);
+      if (!user) {
+        this.logger.error(`User with ID ${userId} not found when updating profile`);
+        throw new Error('Пользователь не найден');
+      }
+
+      if (!user.profile) {
+        this.logger.warn(`User with ID ${userId} does not have a profile, creating one`);
+        // Если профиля нет, создаем его
+        return await this.createProfile(userId, profileData);
+      }
+
+      // Предварительная обработка данных
+      const processedData = { ...profileData };
+      
+      // Обрабатываем числовые поля
+      if (processedData.investmentSize !== undefined) {
+        // Убедимся, что investmentSize - число
+        processedData.investmentSize = Number(processedData.investmentSize);
+        
+        // Если получился NaN, устанавливаем 0
+        if (isNaN(processedData.investmentSize)) {
+          processedData.investmentSize = 0;
+        }
+      }
+      
+      // Обновляем профиль
+      this.logger.log(`Updating profile ID: ${user.profile.id} for user ID: ${userId}`);
+      await this.profileRepository.update(user.profile.id, processedData);
+      
+      // Получаем обновленный профиль
+      const updatedProfile = await this.profileRepository.findOne({
+        where: { id: user.profile.id }
+      });
+
+      if (!updatedProfile) {
+        this.logger.error(`Could not find updated profile for user ID: ${userId} after update`);
+        throw new Error('Не удалось получить обновленный профиль');
+      }
+
+      this.logger.log(`Profile successfully updated for user ID: ${userId}, profile ID: ${updatedProfile.id}`);
+      return updatedProfile;
+    } catch (error) {
+      this.logger.error(`Error updating profile for user ${userId}:`, error);
+      throw new InternalServerErrorException('Ошибка при обновлении профиля: ' + error.message);
+    }
+  }
+
+  async searchUsers(query: string): Promise<User[]> {
+    try {
+      this.logger.log(`Searching users by query: ${query}`);
+      
+      // Добавляем подробную отладочную информацию
+      this.logger.log(`Выполняется SQL-запрос на поиск пользователей`);
+      
+      // Используем LIKE для поиска по частичному совпадению в имени, фамилии или email
+      const users = await this.usersRepository
+        .createQueryBuilder('user')
+        .leftJoinAndSelect('user.profile', 'profile')
+        .where('user.firstName LIKE :query OR user.lastName LIKE :query OR user.email LIKE :query', 
+               { query: `%${query}%` })
+        .take(10) // Ограничиваем результаты до 10 пользователей
+        .getMany();
+      
+      this.logger.log(`Found ${users.length} users matching query: "${query}"`);
+      
+      // Выводим найденных пользователей для отладки
+      if (users.length > 0) {
+        users.forEach(user => {
+          this.logger.log(`  - User ID: ${user.id}, Name: ${user.firstName} ${user.lastName}, Email: ${user.email}`);
+        });
+      } else {
+        this.logger.log(`Не найдено пользователей по запросу "${query}"`);
+      }
+      
+      return users;
+    } catch (error) {
+      this.logger.error(`Error searching users with query ${query}:`, error);
+      throw new InternalServerErrorException('Ошибка при поиске пользователей');
+    }
+  }
+
+  // Email verification methods
+  async findByVerificationToken(token: string): Promise<User | null> {
+    try {
+      return await this.usersRepository.findOne({
+        where: { emailVerificationToken: token },
+        relations: ['profile']
+      });
+    } catch (error) {
+      this.logger.error(`Error finding user by verification token:`, error);
+      throw new InternalServerErrorException('Ошибка при поиске пользователя');
+    }
+  }
+
+  async verifyEmail(userId: number): Promise<void> {
+    try {
+      await this.usersRepository.update(userId, {
+        isEmailVerified: true,
+        emailVerificationToken: undefined,
+        emailVerificationExpires: undefined,
+      });
+      this.logger.log(`Email verified for user ID: ${userId}`);
+    } catch (error) {
+      this.logger.error(`Error verifying email for user ${userId}:`, error);
+      throw new InternalServerErrorException('Ошибка при подтверждении email');
+    }
+  }
+
+  async updateVerificationToken(userId: number, token: string, expires: Date): Promise<void> {
+    try {
+      await this.usersRepository.update(userId, {
+        emailVerificationToken: token,
+        emailVerificationExpires: expires,
+      });
+      this.logger.log(`Verification token updated for user ID: ${userId}`);
+    } catch (error) {
+      this.logger.error(`Error updating verification token for user ${userId}:`, error);
+      throw new InternalServerErrorException('Ошибка при обновлении токена верификации');
+    }
+  }
+
+  // Password reset methods
+  async findByPasswordResetToken(token: string): Promise<User | null> {
+    try {
+      return await this.usersRepository.findOne({
+        where: { passwordResetToken: token },
+        relations: ['profile']
+      });
+    } catch (error) {
+      this.logger.error(`Error finding user by password reset token:`, error);
+      throw new InternalServerErrorException('Ошибка при поиске пользователя');
+    }
+  }
+
+  async setPasswordResetToken(userId: number, token: string, expires: Date): Promise<void> {
+    try {
+      await this.usersRepository.update(userId, {
+        passwordResetToken: token,
+        passwordResetExpires: expires,
+      });
+      this.logger.log(`Password reset token set for user ID: ${userId}`);
+    } catch (error) {
+      this.logger.error(`Error setting password reset token for user ${userId}:`, error);
+      throw new InternalServerErrorException('Ошибка при установке токена сброса пароля');
+    }
+  }
+
+  async resetPassword(userId: number, hashedPassword: string): Promise<void> {
+    try {
+      await this.usersRepository.update(userId, {
+        password: hashedPassword,
+        passwordResetToken: undefined,
+        passwordResetExpires: undefined,
+      });
+      this.logger.log(`Password reset for user ID: ${userId}`);
+    } catch (error) {
+      this.logger.error(`Error resetting password for user ${userId}:`, error);
+      throw new InternalServerErrorException('Ошибка при сбросе пароля');
+    }
+  }
+}

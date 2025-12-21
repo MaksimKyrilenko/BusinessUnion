@@ -1,0 +1,252 @@
+version: '3.8'
+
+services:
+  # MySQL база данных
+  mysql:
+    image: mysql:8.0
+    container_name: businessunion-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${DB_NAME:-businessunion}
+      MYSQL_USER: ${DB_USER:-businessuser}
+      MYSQL_PASSWORD: ${DB_PASS:-businesspass}
+    ports:
+      - "${DB_PORT:-3306}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./backend/src/database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - businessunion-network
+    command: 
+      - --default-authentication-plugin=mysql_native_password
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --max_connections=1000
+      - --innodb_buffer_pool_size=1G
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD:-rootpassword}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Redis для коммуникации между backend и websocket
+  redis:
+    image: redis:7-alpine
+    container_name: businessunion-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - businessunion-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # MinIO для хранения файлов
+  minio:
+    image: minio/minio:latest
+    container_name: businessunion-minio
+    restart: always
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-minioadmin}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - businessunion-network
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Backend NestJS приложение (REST API)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: businessunion-backend
+    restart: always
+    environment:
+      NODE_ENV: production
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: ${DB_USER:-businessuser}
+      DB_PASS: ${DB_PASS:-businesspass}
+      DB_NAME: ${DB_NAME:-businessunion}
+      DB_LOGGING: ${DB_LOGGING:-false}
+      JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-this}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      # Yandex Cloud AI для анализа стартапов
+      YANDEX_CLOUD_API_KEY: ${YANDEX_CLOUD_API_KEY:-}
+      YANDEX_CLOUD_PROJECT_ID: ${YANDEX_CLOUD_PROJECT_ID:-}
+      YANDEX_CLOUD_AGENT_ID: ${YANDEX_CLOUD_AGENT_ID:-}
+      YANDEX_CLOUD_API_URL: ${YANDEX_CLOUD_API_URL:-https://rest-assistant.api.cloud.yandex.net/v1}
+      # Market Data API Keys
+      COINGECKO_API_KEY: ${COINGECKO_API_KEY:-}
+      ALPHA_VANTAGE_API_KEY: ${ALPHA_VANTAGE_API_KEY:-}
+      FMP_API_KEY: ${FMP_API_KEY:-}
+      EXCHANGE_RATES_API_KEY: ${EXCHANGE_RATES_API_KEY:-}
+      # SMTP для отправки email
+      SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      SMTP_FROM: ${SMTP_FROM:-"BusinessUnion" <noreply@businessunion.ru>}
+      # Redis для WebSocket коммуникации
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      # MinIO для хранения файлов
+      MINIO_ENDPOINT: minio
+      MINIO_PORT: 9000
+      MINIO_USE_SSL: "false"
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-minioadmin}
+      MINIO_PUBLIC_URL: ${MINIO_PUBLIC_URL:-}
+    ports:
+      - "3001:3001"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    networks:
+      - businessunion-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/api/hello"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # WebSocket Server (отдельный контейнер для Socket.IO)
+  websocket:
+    build:
+      context: ./websocket-server
+      dockerfile: Dockerfile
+    container_name: businessunion-websocket
+    restart: always
+    environment:
+      NODE_ENV: production
+      WS_PORT: 3002
+      JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-this}
+      WS_CORS_ORIGIN: ${WS_CORS_ORIGIN:-*}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    ports:
+      - "3002:3002"
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - businessunion-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+
+  # Frontend Vue.js приложение
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VUE_APP_API_URL: ${VUE_APP_API_URL:-}
+    container_name: businessunion-frontend
+    restart: always
+    ports:
+      - "${FRONTEND_PORT:-80}:80"
+    depends_on:
+      - backend
+      - websocket
+    networks:
+      - businessunion-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  mysql_data:
+    driver: local
+  minio_data:
+    driver: local
+
+networks:
+  businessunion-network:
+    driver: bridge
