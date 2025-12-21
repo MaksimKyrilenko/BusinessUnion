@@ -8,14 +8,20 @@ export class EmailService {
   private transporter: nodemailer.Transporter;
 
   constructor(private configService: ConfigService) {
+    const secure = this.configService.get('SMTP_SECURE', 'false') === 'true';
+    const port = parseInt(this.configService.get('SMTP_PORT', '587'));
+    
     this.transporter = nodemailer.createTransport({
-      host: this.configService.get('SMTP_HOST', 'smtp.gmail.com'),
-      port: this.configService.get('SMTP_PORT', 587),
-      secure: this.configService.get('SMTP_SECURE', 'false') === 'true',
+      host: this.configService.get('SMTP_HOST', 'smtp.yandex.com'),
+      port: port,
+      secure: secure, // true для 465, false для 587
       auth: {
         user: this.configService.get('SMTP_USER'),
         pass: this.configService.get('SMTP_PASS'),
       },
+      tls: {
+        rejectUnauthorized: false
+      }
     });
   }
 
