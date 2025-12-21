@@ -7,32 +7,31 @@ export class EmailService {
   private readonly logger = new Logger(EmailService.name);
   private readonly apiKey: string;
   private readonly senderEmail: string;
-  private readonly senderName: string;
 
   constructor(private configService: ConfigService) {
-    this.apiKey = this.configService.get('BREVO_API_KEY', '');
-    this.senderEmail = this.configService.get('SMTP_FROM_EMAIL', 'businessunionofficial@yandex.com');
-    this.senderName = this.configService.get('SMTP_FROM_NAME', 'BusinessUnion');
+    this.apiKey = this.configService.get('RESEND_API_KEY', '');
+    // Resend требует верифицированный домен или использовать onboarding@resend.dev для тестов
+    this.senderEmail = this.configService.get('SMTP_FROM_EMAIL', 'onboarding@resend.dev');
   }
 
   private async sendEmail(to: string, subject: string, htmlContent: string): Promise<void> {
     try {
-      await axios.post(
-        'https://api.brevo.com/v3/smtp/email',
+      const response = await axios.post(
+        'https://api.resend.com/emails',
         {
-          sender: { name: this.senderName, email: this.senderEmail },
-          to: [{ email: to }],
+          from: this.senderEmail,
+          to: [to],
           subject,
-          htmlContent,
+          html: htmlContent,
         },
         {
           headers: {
-            'api-key': this.apiKey,
+            'Authorization': `Bearer ${this.apiKey}`,
             'Content-Type': 'application/json',
           },
         }
       );
-      this.logger.log(`Email sent to ${to}`);
+      this.logger.log(`Email sent to ${to}, id: ${response.data.id}`);
     } catch (error) {
       this.logger.error(`Failed to send email to ${to}:`, error.response?.data || error.message);
       throw error;

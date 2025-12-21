@@ -112,10 +112,9 @@ services:
       ALPHA_VANTAGE_API_KEY: ${ALPHA_VANTAGE_API_KEY:-}
       FMP_API_KEY: ${FMP_API_KEY:-}
       EXCHANGE_RATES_API_KEY: ${EXCHANGE_RATES_API_KEY:-}
-      # Email via Brevo API
-      BREVO_API_KEY: ${BREVO_API_KEY:-}
-      SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:-businessunionofficial@yandex.com}
-      SMTP_FROM_NAME: ${SMTP_FROM_NAME:-BusinessUnion}
+      # Email via Resend API
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:-onboarding@resend.dev}
       # Redis для WebSocket коммуникации
       REDIS_HOST: redis
       REDIS_PORT: 6379
