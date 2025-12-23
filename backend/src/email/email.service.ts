@@ -1,44 +1,44 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as nodemailer from 'nodemailer';
+import axios from 'axios';
 
 @Injectable()
 export class EmailService {
   private readonly logger = new Logger(EmailService.name);
-  private transporter: nodemailer.Transporter;
+  private readonly apiKey: string;
   private readonly senderEmail: string;
 
   constructor(private configService: ConfigService) {
-    this.senderEmail = this.configService.get('SMTP_FROM', 'noreply@businessunion-web.ru');
-    
-    this.transporter = nodemailer.createTransport({
-      host: this.configService.get('SMTP_HOST', 'smtp.businessunion-web.ru'),
-      port: parseInt(this.configService.get('SMTP_PORT', '465')),
-      secure: this.configService.get('SMTP_SECURE', 'true') === 'true',
-      auth: {
-        user: this.configService.get('SMTP_USER', ''),
-        pass: this.configService.get('SMTP_PASS', ''),
-      },
-    });
+    this.apiKey = this.configService.get('RESEND_API_KEY', '');
+    this.senderEmail = this.configService.get('RESEND_FROM_EMAIL', 'noreply@businessunion-web.ru');
   }
 
   private async sendEmail(to: string, subject: string, htmlContent: string): Promise<void> {
     try {
-      const info = await this.transporter.sendMail({
-        from: `"BusinessUnion" <${this.senderEmail}>`,
-        to,
-        subject,
-        html: htmlContent,
-      });
-      this.logger.log(`Email sent to ${to}, messageId: ${info.messageId}`);
+      const response = await axios.post(
+        'https://api.resend.com/emails',
+        {
+          from: this.senderEmail,
+          to: [to],
+          subject,
+          html: htmlContent,
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${this.apiKey}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      this.logger.log(`Email sent to ${to}, id: ${response.data.id}`);
     } catch (error) {
-      this.logger.error(`Failed to send email to ${to}:`, error.message);
+      this.logger.error(`Failed to send email to ${to}:`, error.response?.data || error.message);
       throw error;
     }
   }
 
   async sendVerificationEmail(email: string, token: string): Promise<void> {
-    const frontendUrl = this.configService.get('FRONTEND_URL', 'http://localhost:8081');
+    const frontendUrl = this.configService.get('FRONTEND_URL', 'https://businessunion-web.ru');
     const verificationUrl = `${frontendUrl}/verify-email?token=${token}`;
 
     const htmlContent = `
@@ -64,7 +64,7 @@ export class EmailService {
   }
 
   async sendPasswordResetEmail(email: string, token: string): Promise<void> {
-    const frontendUrl = this.configService.get('FRONTEND_URL', 'http://localhost:8081');
+    const frontendUrl = this.configService.get('FRONTEND_URL', 'https://businessunion-web.ru');
     const resetUrl = `${frontendUrl}/reset-password?token=${token}`;
 
     const htmlContent = `
