@@ -24,8 +24,10 @@ async function bootstrap() {
   // Включаем CORS с расширенной конфигурацией
   const allowedOrigins = [
     process.env.FRONTEND_URL || 'http://localhost:8081',
-    'http://businessunion.mooo.com',
-    'https://businessunion.mooo.com',
+    'https://businessunion-web.ru',
+    'http://businessunion-web.ru',
+    'https://www.businessunion-web.ru',
+    'http://www.businessunion-web.ru',
     'http://localhost',
     'http://localhost:8081',
   ];

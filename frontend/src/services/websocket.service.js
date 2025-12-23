@@ -143,9 +143,10 @@ class WebSocketService {
       return 'http://localhost:3002';
     }
     
-    // В остальных случаях (Docker, production) используем текущий origin
+    // В production используем текущий протокол (http или https)
     // nginx проксирует /socket.io на websocket контейнер
-    return window.location.origin;
+    const protocol = window.location.protocol === 'https:' ? 'https:' : 'http:';
+    return `${protocol}//${window.location.host}`;
   }
 
   /**

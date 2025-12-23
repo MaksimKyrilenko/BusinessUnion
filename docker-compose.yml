@@ -115,6 +115,13 @@ services:
       # Email via Resend API
       RESEND_API_KEY: ${RESEND_API_KEY:-}
       SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:-onboarding@resend.dev}
+      # SMTP настройки для nodemailer
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-465}
+      SMTP_SECURE: ${SMTP_SECURE:-true}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      SMTP_FROM: ${SMTP_FROM:-}
       # Redis для WebSocket коммуникации
       REDIS_HOST: redis
       REDIS_PORT: 6379
