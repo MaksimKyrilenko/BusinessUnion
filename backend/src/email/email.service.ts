@@ -1,39 +1,38 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import axios from 'axios';
+import * as nodemailer from 'nodemailer';
 
 @Injectable()
 export class EmailService {
   private readonly logger = new Logger(EmailService.name);
-  private readonly apiKey: string;
+  private transporter: nodemailer.Transporter;
   private readonly senderEmail: string;
 
   constructor(private configService: ConfigService) {
-    this.apiKey = this.configService.get('RESEND_API_KEY', '');
-    // Resend требует верифицированный домен или использовать onboarding@resend.dev для тестов
-    this.senderEmail = this.configService.get('SMTP_FROM_EMAIL', 'onboarding@resend.dev');
+    this.senderEmail = this.configService.get('SMTP_FROM', 'noreply@businessunion-web.ru');
+    
+    this.transporter = nodemailer.createTransport({
+      host: this.configService.get('SMTP_HOST', 'smtp.businessunion-web.ru'),
+      port: parseInt(this.configService.get('SMTP_PORT', '465')),
+      secure: this.configService.get('SMTP_SECURE', 'true') === 'true',
+      auth: {
+        user: this.configService.get('SMTP_USER', ''),
+        pass: this.configService.get('SMTP_PASS', ''),
+      },
+    });
   }
 
   private async sendEmail(to: string, subject: string, htmlContent: string): Promise<void> {
     try {
-      const response = await axios.post(
-        'https://api.resend.com/emails',
-        {
-          from: this.senderEmail,
-          to: [to],
-          subject,
-          html: htmlContent,
-        },
-        {
-          headers: {
-            'Authorization': `Bearer ${this.apiKey}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-      this.logger.log(`Email sent to ${to}, id: ${response.data.id}`);
+      const info = await this.transporter.sendMail({
+        from: `"BusinessUnion" <${this.senderEmail}>`,
+        to,
+        subject,
+        html: htmlContent,
+      });
+      this.logger.log(`Email sent to ${to}, messageId: ${info.messageId}`);
     } catch (error) {
-      this.logger.error(`Failed to send email to ${to}:`, error.response?.data || error.message);
+      this.logger.error(`Failed to send email to ${to}:`, error.message);
       throw error;
     }
   }
