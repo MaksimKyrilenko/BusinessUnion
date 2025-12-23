@@ -298,7 +298,8 @@ export default {
         startup_founder: 'Стартапер',
         investor: 'Инвестор',
         businessman: 'Бизнесмен',
-        crypto_trader: 'Трейдер'
+        crypto_trader: 'Трейдер',
+        admin: 'Администратор'
       }
       return types[type] || 'Участник'
     }
@@ -737,6 +738,10 @@ export default {
   background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
 }
 
+.avatar-placeholder.admin {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+}
+
 .user-type-badge {
   position: absolute;
   bottom: -6px;
@@ -770,6 +775,11 @@ export default {
 .user-type-badge.crypto_trader {
   background: #fef3c7;
   color: #b45309;
+}
+
+.user-type-badge.admin {
+  background: #fee2e2;
+  color: #dc2626;
 }
 
 .user-main-info {
