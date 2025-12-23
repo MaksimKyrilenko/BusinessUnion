@@ -299,7 +299,7 @@ export default {
         investor: 'Инвестор',
         businessman: 'Бизнесмен',
         crypto_trader: 'Трейдер',
-        admin: 'Администратор'
+        admin: 'Админ'
       }
       return types[type] || 'Участник'
     }
