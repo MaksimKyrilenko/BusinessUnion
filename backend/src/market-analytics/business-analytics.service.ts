@@ -676,11 +676,13 @@ export class BusinessAnalyticsService {
     }
 
     // Вариант 2: используем уже полученные американские индексы + статический fallback по остальным регионам
+    // Проверяем, что stockIndices не null
+    const defaultIndex = { price: 0, change: 0, changePercent: '0%' };
     return {
       globalBenchmarks: {
-        sp500: stockIndices.sp500,
-        nasdaq: stockIndices.nasdaq,
-        dow: stockIndices.dow,
+        sp500: stockIndices?.sp500 ?? defaultIndex,
+        nasdaq: stockIndices?.nasdaq ?? defaultIndex,
+        dow: stockIndices?.dow ?? defaultIndex,
       },
       russian: [
         { name: 'MOEX', price: 3250, changePercent: '+0.4%' },
