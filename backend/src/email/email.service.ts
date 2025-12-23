@@ -10,7 +10,7 @@ export class EmailService {
 
   constructor(private configService: ConfigService) {
     this.apiKey = this.configService.get('RESEND_API_KEY', '');
-    this.senderEmail = this.configService.get('RESEND_FROM_EMAIL', 'noreply@businessunion-web.ru');
+    this.senderEmail = this.configService.get('RESEND_FROM_EMAIL', 'onboarding@resend.dev');
   }
 
   private async sendEmail(to: string, subject: string, htmlContent: string): Promise<void> {
