@@ -8,6 +8,10 @@ import axios from 'axios';
 
 @Injectable()
 export class BusinessAnalyticsService {
+  // Кэш для stock indices (Alpha Vantage имеет лимит 25 запросов/день)
+  private stockIndicesCache: { data: any; timestamp: number } | null = null;
+  private readonly STOCK_CACHE_TTL = 60 * 60 * 1000; // 1 час
+
   constructor(
     @InjectRepository(Project)
     private projectRepository: Repository<Project>,
@@ -499,6 +503,12 @@ export class BusinessAnalyticsService {
 
   private async getStockIndices() {
     try {
+      // Проверяем кэш (Alpha Vantage имеет лимит 25 запросов/день)
+      if (this.stockIndicesCache && Date.now() - this.stockIndicesCache.timestamp < this.STOCK_CACHE_TTL) {
+        console.log('Using cached stock indices');
+        return this.stockIndicesCache.data;
+      }
+
       // Используем Alpha Vantage API для получения индексов
       const apiKey = process.env.ALPHA_VANTAGE_API_KEY;
       if (!apiKey) {
@@ -508,12 +518,15 @@ export class BusinessAnalyticsService {
 
       console.log('Fetching stock indices from Alpha Vantage...');
       
-      // Используем ETF символы, которые точно работают
-      const [sp500, nasdaq, dow] = await Promise.all([
-        axios.get(`https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=SPY&apikey=${apiKey}`, { timeout: 10000 }),
-        axios.get(`https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=QQQ&apikey=${apiKey}`, { timeout: 10000 }),
-        axios.get(`https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=DIA&apikey=${apiKey}`, { timeout: 10000 })
-      ]);
+      // Функция задержки для соблюдения лимита 1 запрос/сек
+      const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+      
+      // Используем ETF символы, запросы последовательно с задержкой 1.2 сек
+      const sp500 = await axios.get(`https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=SPY&apikey=${apiKey}`, { timeout: 10000 });
+      await delay(1200);
+      const nasdaq = await axios.get(`https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=QQQ&apikey=${apiKey}`, { timeout: 10000 });
+      await delay(1200);
+      const dow = await axios.get(`https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=DIA&apikey=${apiKey}`, { timeout: 10000 });
 
       console.log('Alpha Vantage responses:', {
         sp500: sp500.data,
@@ -527,7 +540,7 @@ export class BusinessAnalyticsService {
         return null;
       }
       
-      return {
+      const result = {
         sp500: {
           price: parseFloat(sp500.data['Global Quote']['05. price'] || 0),
           change: parseFloat(sp500.data['Global Quote']['09. change'] || 0),
@@ -544,9 +557,19 @@ export class BusinessAnalyticsService {
           changePercent: dow.data['Global Quote']['10. change percent'] || '0%'
         }
       };
+
+      // Сохраняем в кэш
+      this.stockIndicesCache = { data: result, timestamp: Date.now() };
+      console.log('Stock indices cached for 1 hour');
+
+      return result;
     } catch (error) {
       console.error('Stock indices API error:', error.message);
-      // Только реальные данные: при ошибке вернем null
+      // Возвращаем кэш если есть, иначе null
+      if (this.stockIndicesCache) {
+        console.log('Using stale cache due to API error');
+        return this.stockIndicesCache.data;
+      }
       return null;
     }
   }
