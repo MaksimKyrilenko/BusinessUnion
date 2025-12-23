@@ -20,7 +20,7 @@
       </router-link>
       <router-link to="/people" class="nav-item">
         <i class="fas fa-users"></i>
-        <span>Люди</span>
+        <span>Поиск партнеров</span>
       </router-link>
       <router-link to="/news" class="nav-item">
         <i class="fas fa-newspaper"></i>
