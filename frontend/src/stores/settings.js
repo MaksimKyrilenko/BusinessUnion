@@ -95,6 +95,43 @@ export const useSettingsStore = defineStore('settings', () => {
     }
   }
   
+  // Сброс всех настроек к значениям по умолчанию
+  const resetToDefaults = () => {
+    // Удаляем все настройки из localStorage
+    localStorage.removeItem('theme')
+    localStorage.removeItem('fontSize')
+    localStorage.removeItem('language')
+    localStorage.removeItem('notif_messages')
+    localStorage.removeItem('notif_sounds')
+    localStorage.removeItem('notif_email')
+    localStorage.removeItem('notif_desktop')
+    localStorage.removeItem('privacy_online')
+    localStorage.removeItem('privacy_lastseen')
+    localStorage.removeItem('privacy_profile')
+    
+    // Сбрасываем значения в store
+    theme.value = 'light'
+    fontSize.value = 'medium'
+    language.value = 'ru'
+    
+    notifications.value = {
+      messages: true,
+      sounds: true,
+      email: true,
+      desktop: true
+    }
+    
+    privacy.value = {
+      showOnline: true,
+      showLastSeen: true,
+      showProfile: 'all'
+    }
+    
+    // Применяем тему и размер шрифта
+    applyTheme('light')
+    document.documentElement.setAttribute('data-font-size', 'medium')
+  }
+  
   return {
     theme,
     notifications,
@@ -106,6 +143,7 @@ export const useSettingsStore = defineStore('settings', () => {
     savePrivacy,
     saveLanguage,
     saveFontSize,
-    init
+    init,
+    resetToDefaults
   }
 })

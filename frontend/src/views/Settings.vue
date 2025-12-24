@@ -294,9 +294,44 @@
 
             <p class="copyright">© 2024 BusinessUnion. Все права защищены.</p>
           </div>
+          
+          <!-- Сброс настроек -->
+          <div class="settings-card reset-card">
+            <div class="reset-content">
+              <div class="reset-icon">
+                <i class="fas fa-undo-alt"></i>
+              </div>
+              <div class="reset-info">
+                <h3>Сбросить настройки</h3>
+                <p>Вернуть все настройки к значениям по умолчанию</p>
+              </div>
+              <button class="reset-btn" @click="showResetConfirm = true">
+                Сбросить
+              </button>
+            </div>
+          </div>
         </section>
       </main>
     </div>
+    
+    <!-- Модальное окно подтверждения сброса -->
+    <Teleport to="body">
+      <Transition name="modal-fade">
+        <div v-if="showResetConfirm" class="modal-overlay" @click="showResetConfirm = false">
+          <div class="modal-content" @click.stop>
+            <div class="modal-icon warning">
+              <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h3>Сбросить настройки?</h3>
+            <p>Все ваши настройки будут возвращены к значениям по умолчанию. Это действие нельзя отменить.</p>
+            <div class="modal-actions">
+              <button class="btn-cancel" @click="showResetConfirm = false">Отмена</button>
+              <button class="btn-confirm" @click="resetSettings">Сбросить</button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
@@ -353,6 +388,8 @@ export default defineComponent({
       showProfile: 'all'
     })
     
+    const showResetConfirm = ref(false)
+    
     onMounted(() => {
       // Загружаем настройки из store
       const stored = settingsStore.notifications
@@ -399,6 +436,22 @@ export default defineComponent({
       alert('Двухфакторная аутентификация будет доступна в ближайшем обновлении')
     }
     
+    const resetSettings = () => {
+      settingsStore.resetToDefaults()
+      
+      // Обновляем локальные reactive объекты
+      notifications.messages = true
+      notifications.sounds = true
+      notifications.email = true
+      notifications.desktop = true
+      
+      privacy.showOnline = true
+      privacy.showLastSeen = true
+      privacy.showProfile = 'all'
+      
+      showResetConfirm.value = false
+    }
+    
     return {
       activeSection,
       sections,
@@ -410,6 +463,7 @@ export default defineComponent({
       language,
       notifications,
       privacy,
+      showResetConfirm,
       setTheme,
       setFontSize,
       setLanguage,
@@ -417,7 +471,8 @@ export default defineComponent({
       savePrivacySettings,
       changePassword,
       manageSessions,
-      twoFactorAuth
+      twoFactorAuth,
+      resetSettings
     }
   }
 })
@@ -1012,6 +1067,178 @@ export default defineComponent({
   margin: 0;
 }
 
+/* Reset Card */
+.reset-card {
+  margin-top: 1rem;
+}
+
+.reset-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.reset-icon {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #d97706;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.reset-info {
+  flex: 1;
+}
+
+.reset-info h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin: 0 0 0.25rem 0;
+}
+
+.reset-info p {
+  font-size: 0.8125rem;
+  color: #64748b;
+  margin: 0;
+}
+
+.reset-btn {
+  padding: 0.625rem 1.25rem;
+  background: #fef3c7;
+  color: #d97706;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.reset-btn:hover {
+  background: #fde68a;
+  color: #b45309;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 1rem;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 20px;
+  padding: 2rem;
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+}
+
+.modal-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+  font-size: 1.75rem;
+}
+
+.modal-icon.warning {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.modal-content h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0 0 0.75rem 0;
+}
+
+.modal-content > p {
+  font-size: 0.9375rem;
+  color: #64748b;
+  margin: 0 0 1.5rem 0;
+  line-height: 1.5;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.btn-cancel {
+  flex: 1;
+  padding: 0.875rem;
+  background: #f1f5f9;
+  color: #64748b;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-cancel:hover {
+  background: #e2e8f0;
+  color: #475569;
+}
+
+.btn-confirm {
+  flex: 1;
+  padding: 0.875rem;
+  background: linear-gradient(135deg, #ef4444 0%, #f87171 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-confirm:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+}
+
+/* Modal Transitions */
+.modal-fade-enter-active,
+.modal-fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.modal-fade-enter-active .modal-content,
+.modal-fade-leave-active .modal-content {
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.modal-fade-enter-from,
+.modal-fade-leave-to {
+  opacity: 0;
+}
+
+.modal-fade-enter-from .modal-content,
+.modal-fade-leave-to .modal-content {
+  transform: scale(0.9);
+  opacity: 0;
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
   .settings-container {
@@ -1233,6 +1460,36 @@ export default defineComponent({
 :global(.dark-theme) .check-icon,
 :global(.dark-theme) .language-option i {
   color: #60a5fa !important;
+}
+
+:global(.dark-theme) .reset-info h3 {
+  color: #f1f5f9 !important;
+}
+
+:global(.dark-theme) .reset-info p {
+  color: #94a3b8 !important;
+}
+
+:global(.dark-theme) .modal-content {
+  background: #1e293b !important;
+}
+
+:global(.dark-theme) .modal-content h3 {
+  color: #f1f5f9 !important;
+}
+
+:global(.dark-theme) .modal-content > p {
+  color: #94a3b8 !important;
+}
+
+:global(.dark-theme) .btn-cancel {
+  background: #334155 !important;
+  color: #94a3b8 !important;
+}
+
+:global(.dark-theme) .btn-cancel:hover {
+  background: #475569 !important;
+  color: #e2e8f0 !important;
 }
 
 </style>
