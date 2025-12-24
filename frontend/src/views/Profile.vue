@@ -73,8 +73,38 @@
             </div>
             <div class="info-item">
               <span class="info-label">Email</span>
-              <span class="info-value">{{ userData.email }}</span>
+              <div class="email-status">
+                <span class="info-value">{{ userData.email }}</span>
+                <span v-if="isOwnProfile" :class="['verification-badge', userData.isEmailVerified ? 'verified' : 'not-verified']">
+                  <i :class="userData.isEmailVerified ? 'fas fa-check-circle' : 'fas fa-exclamation-circle'"></i>
+                  {{ userData.isEmailVerified ? 'Подтверждён' : 'Не подтверждён' }}
+                </span>
+              </div>
             </div>
+          </div>
+          
+          <!-- Блок подтверждения email -->
+          <div v-if="isOwnProfile && !userData.isEmailVerified" class="email-verification-block">
+            <div class="verification-warning">
+              <i class="fas fa-envelope-open-text"></i>
+              <div class="warning-content">
+                <h4>Подтвердите ваш email</h4>
+                <p>Для полного доступа к функциям платформы необходимо подтвердить email адрес</p>
+              </div>
+            </div>
+            <button 
+              class="btn-resend" 
+              @click="resendVerification" 
+              :disabled="resendLoading || resendCooldown > 0"
+            >
+              <i v-if="resendLoading" class="fas fa-spinner fa-spin"></i>
+              <i v-else class="fas fa-paper-plane"></i>
+              <span v-if="resendCooldown > 0">Повторить через {{ resendCooldown }}с</span>
+              <span v-else>Отправить письмо повторно</span>
+            </button>
+            <p v-if="verificationMessage" :class="['verification-message', verificationMessageType]">
+              {{ verificationMessage }}
+            </p>
           </div>
         </div>
       </div>
@@ -320,7 +350,11 @@ export default {
       userData: null,
       isOwnProfile: false,
       showConnectModal: false,
-      messageText: ''
+      messageText: '',
+      resendLoading: false,
+      resendCooldown: 0,
+      verificationMessage: '',
+      verificationMessageType: 'success'
     }
   },
   computed: {
@@ -450,6 +484,38 @@ export default {
         alert('Сообщение успешно отправлено');
       } catch (error) {
         console.error('Ошибка при отправке сообщения:', error);
+      }
+    },
+    
+    async resendVerification() {
+      if (this.resendLoading || this.resendCooldown > 0) return;
+      
+      this.resendLoading = true;
+      this.verificationMessage = '';
+      
+      try {
+        await api.post('/auth/resend-verification', { email: this.userData.email });
+        this.verificationMessage = 'Письмо отправлено! Проверьте вашу почту.';
+        this.verificationMessageType = 'success';
+        
+        // Запускаем cooldown на 60 секунд
+        this.resendCooldown = 60;
+        const interval = setInterval(() => {
+          this.resendCooldown--;
+          if (this.resendCooldown <= 0) {
+            clearInterval(interval);
+          }
+        }, 1000);
+      } catch (error) {
+        console.error('Ошибка при отправке письма:', error);
+        if (error.response?.data?.message) {
+          this.verificationMessage = error.response.data.message;
+        } else {
+          this.verificationMessage = 'Не удалось отправить письмо. Попробуйте позже.';
+        }
+        this.verificationMessageType = 'error';
+      } finally {
+        this.resendLoading = false;
       }
     }
   }
@@ -697,6 +763,124 @@ export default {
 
 .info-link:hover {
   text-decoration: underline;
+}
+
+/* Email Status */
+.email-status {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.verification-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  width: fit-content;
+}
+
+.verification-badge.verified {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.verification-badge.not-verified {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.verification-badge i {
+  font-size: 0.7rem;
+}
+
+/* Email Verification Block */
+.email-verification-block {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+.verification-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-radius: 12px;
+  margin-bottom: 1rem;
+}
+
+.verification-warning > i {
+  font-size: 1.5rem;
+  color: #d97706;
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.warning-content h4 {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #92400e;
+  margin: 0 0 0.25rem 0;
+}
+
+.warning-content p {
+  font-size: 0.8125rem;
+  color: #a16207;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.btn-resend {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: linear-gradient(135deg, #1E6BFF 0%, #4F8FFF 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-resend:hover:not(:disabled) {
+  background: linear-gradient(135deg, #1557d9 0%, #3b7dff 100%);
+  transform: translateY(-1px);
+}
+
+.btn-resend:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-resend i {
+  font-size: 0.875rem;
+}
+
+.verification-message {
+  margin-top: 0.75rem;
+  padding: 0.625rem 1rem;
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.verification-message.success {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.verification-message.error {
+  background: #fee2e2;
+  color: #dc2626;
 }
 
 /* Bio */
