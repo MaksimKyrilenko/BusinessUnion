@@ -68,13 +68,17 @@
       </router-link>
     </div>
     
-    <!-- Профиль и выход -->
+    <!-- Профиль, настройки и выход -->
     <div class="nav-profile" v-if="isAuthenticated">
       <router-link to="/profile" class="nav-item">
         <i class="fas fa-user"></i>
         <span>Профиль</span>
       </router-link>
-      <a href="#" @click.prevent="logout" class="nav-item">
+      <router-link to="/settings" class="nav-item">
+        <i class="fas fa-cog"></i>
+        <span>Настройки</span>
+      </router-link>
+      <a href="#" @click.prevent="logout" class="nav-item logout-link">
         <i class="fas fa-sign-out-alt"></i>
         <span>Выйти</span>
       </a>
@@ -286,6 +290,16 @@ export default defineComponent({
   background: rgba(156, 39, 176, 0.15);
   color: #7b1fa2;
   border-right: 3px solid #9c27b0;
+}
+
+/* Стиль для кнопки выхода */
+.nav-item.logout-link {
+  color: #ef4444;
+}
+
+.nav-item.logout-link:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
 }
 
 @media (max-width: 768px) {

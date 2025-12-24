@@ -33,6 +33,7 @@ import MobileBottomNav from '@/components/layout/MobileBottomNav.vue'
 import MessageNotification from '@/components/ui/MessageNotification.vue'
 import { useUserStore } from '@/stores/user'
 import { useMessengerStore } from '@/stores/messenger'
+import { useSettingsStore } from '@/stores/settings'
 import { useNotification } from '@/utils/notification'
 import { storeToRefs } from 'pinia'
 import { useRouter, useRoute } from 'vue-router'
@@ -48,12 +49,16 @@ export default defineComponent({
   setup() {
     const userStore = useUserStore()
     const messengerStore = useMessengerStore()
+    const settingsStore = useSettingsStore()
     const router = useRouter()
     const route = useRoute()
     const { isAuthenticated } = storeToRefs(userStore)
     const { notifications, remove: removeNotification } = useNotification()
     
     let wsUnsubscriber = null
+    
+    // Инициализируем настройки темы
+    settingsStore.init()
 
     // Проверяем авторизацию при загрузке приложения
     const checkAuth = async () => {
@@ -287,5 +292,63 @@ body {
 .page-slide-leave-to {
   opacity: 0;
   transform: translateX(-30px);
+}
+
+/* Dark Theme */
+.dark-theme {
+  --primary-color: #7C4DFF;
+  --primary-hover: #651FFF;
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --background: #0f172a;
+  --card-background: #1e293b;
+  --card-hover: #334155;
+  --border-color: #334155;
+}
+
+.dark-theme body,
+.dark-theme #app {
+  background-color: var(--background);
+  color: var(--text-primary);
+}
+
+.dark-theme .navigation {
+  background-color: #1e293b;
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.3);
+}
+
+.dark-theme .nav-brand {
+  border-bottom-color: #334155;
+}
+
+.dark-theme .nav-item {
+  color: #e2e8f0;
+}
+
+.dark-theme .nav-item:hover {
+  background: rgba(30, 107, 255, 0.15);
+  color: #60a5fa;
+}
+
+.dark-theme .nav-item.router-link-active {
+  background: rgba(30, 107, 255, 0.15);
+  color: #60a5fa;
+}
+
+.dark-theme .nav-profile {
+  border-top-color: #334155;
+}
+
+/* Font Size Variables */
+[data-font-size="small"] {
+  font-size: 14px;
+}
+
+[data-font-size="medium"] {
+  font-size: 16px;
+}
+
+[data-font-size="large"] {
+  font-size: 18px;
 }
 </style>

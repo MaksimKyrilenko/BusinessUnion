@@ -7,6 +7,7 @@ import Messenger from '../views/Messenger.vue';
 import People from '../views/People.vue';
 import FinancialAnalytics from '../views/FinancialAnalytics.vue';
 import Profile from '../views/Profile.vue';
+import Settings from '../views/Settings.vue';
 import UserProfile from '../views/UserProfile.vue';
 import EditProfile from '../views/EditProfile.vue';
 import News from '../views/News.vue';
@@ -131,6 +132,12 @@ const routes = [
     path: '/profile',
     name: 'Profile',
     component: Profile,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/settings',
+    name: 'Settings',
+    component: Settings,
     meta: { requiresAuth: true }
   },
   {

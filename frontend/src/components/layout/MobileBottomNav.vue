@@ -86,6 +86,11 @@
                 <span>Профиль</span>
               </router-link>
               
+              <router-link to="/settings" class="menu-item" @click="showMoreMenu = false">
+                <i class="fas fa-cog"></i>
+                <span>Настройки</span>
+              </router-link>
+              
               <button class="menu-item logout" @click="handleLogout">
                 <i class="fas fa-sign-out-alt"></i>
                 <span>Выйти</span>
