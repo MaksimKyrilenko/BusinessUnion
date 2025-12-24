@@ -400,7 +400,31 @@ export default {
       await this.loadUserProfile(this.id);
     }
   },
+  // Перезагружаем данные при возврате на страницу
+  async activated() {
+    if (this.isOwnProfile) {
+      await this.refreshProfile();
+    }
+  },
+  watch: {
+    // Обновляем данные при переходе на страницу профиля
+    '$route': {
+      async handler(to, from) {
+        if (to.name === 'Profile' && this.isOwnProfile) {
+          await this.refreshProfile();
+        }
+      }
+    }
+  },
   methods: {
+    async refreshProfile() {
+      try {
+        const response = await api.get('/users/profile');
+        this.userData = response.data;
+      } catch (error) {
+        console.error('Ошибка при обновлении профиля:', error);
+      }
+    },
     async loadOwnProfile() {
       try {
         const userId = localStorage.getItem('userId');
@@ -508,12 +532,18 @@ export default {
         }, 1000);
       } catch (error) {
         console.error('Ошибка при отправке письма:', error);
-        if (error.response?.data?.message) {
-          this.verificationMessage = error.response.data.message;
+        const errorMessage = error.response?.data?.message || '';
+        
+        // Если email уже подтверждён, обновляем данные профиля
+        if (errorMessage.includes('уже подтверждён') || errorMessage.includes('already verified')) {
+          this.verificationMessage = 'Email уже подтверждён!';
+          this.verificationMessageType = 'success';
+          // Обновляем данные профиля
+          await this.refreshProfile();
         } else {
-          this.verificationMessage = 'Не удалось отправить письмо. Попробуйте позже.';
+          this.verificationMessage = errorMessage || 'Не удалось отправить письмо. Попробуйте позже.';
+          this.verificationMessageType = 'error';
         }
-        this.verificationMessageType = 'error';
       } finally {
         this.resendLoading = false;
       }

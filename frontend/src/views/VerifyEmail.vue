@@ -22,7 +22,7 @@
           </div>
           <h2>Email подтверждён!</h2>
           <p>Ваш email успешно подтверждён. Теперь вы можете пользоваться всеми функциями платформы.</p>
-          <router-link to="/dashboard" class="btn-primary">Перейти в личный кабинет</router-link>
+          <router-link to="/profile" class="btn-primary">Перейти в профиль</router-link>
         </div>
 
         <div v-else class="verify-status error">
