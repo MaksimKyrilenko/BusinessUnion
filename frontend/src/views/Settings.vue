@@ -1121,4 +1121,118 @@ export default defineComponent({
     font-size: 1.1rem;
   }
 }
+
+/* Dark Theme for Settings Page */
+:global(.dark-theme) .settings-page {
+  background: #0f172a !important;
+}
+
+:global(.dark-theme) .page-header,
+:global(.dark-theme) .settings-card,
+:global(.dark-theme) .settings-sidebar {
+  background: #1e293b !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+}
+
+:global(.dark-theme) .header-left h1,
+:global(.dark-theme) .settings-card h3,
+:global(.dark-theme) .section-header h2,
+:global(.dark-theme) .setting-info h4,
+:global(.dark-theme) .security-info h4,
+:global(.dark-theme) .app-info h3 {
+  color: #f1f5f9 !important;
+}
+
+:global(.dark-theme) .header-subtitle,
+:global(.dark-theme) .section-header p,
+:global(.dark-theme) .setting-info p,
+:global(.dark-theme) .security-info p,
+:global(.dark-theme) .size-label,
+:global(.dark-theme) .app-version,
+:global(.dark-theme) .copyright {
+  color: #94a3b8 !important;
+}
+
+:global(.dark-theme) .theme-name,
+:global(.dark-theme) .lang-name,
+:global(.dark-theme) .size-option span:first-child {
+  color: #e2e8f0 !important;
+}
+
+:global(.dark-theme) .settings-nav .nav-item {
+  color: #94a3b8 !important;
+}
+
+:global(.dark-theme) .settings-nav .nav-item:hover {
+  background: rgba(96, 165, 250, 0.1) !important;
+  color: #60a5fa !important;
+}
+
+:global(.dark-theme) .settings-nav .nav-item.active {
+  background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%) !important;
+  color: white !important;
+}
+
+:global(.dark-theme) .theme-option,
+:global(.dark-theme) .size-option,
+:global(.dark-theme) .language-option {
+  border-color: #334155 !important;
+}
+
+:global(.dark-theme) .theme-option:hover,
+:global(.dark-theme) .size-option:hover,
+:global(.dark-theme) .language-option:hover {
+  border-color: #60a5fa !important;
+}
+
+:global(.dark-theme) .theme-option.active,
+:global(.dark-theme) .size-option.active,
+:global(.dark-theme) .language-option.active {
+  border-color: #60a5fa !important;
+  background: rgba(96, 165, 250, 0.1) !important;
+}
+
+:global(.dark-theme) .setting-row {
+  border-bottom-color: #334155 !important;
+}
+
+:global(.dark-theme) .toggle-slider {
+  background-color: #475569 !important;
+}
+
+:global(.dark-theme) .select-input {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  color: #e2e8f0 !important;
+}
+
+:global(.dark-theme) .security-item:hover {
+  background: #334155 !important;
+}
+
+:global(.dark-theme) .security-icon {
+  background: rgba(96, 165, 250, 0.15) !important;
+  color: #60a5fa !important;
+}
+
+:global(.dark-theme) .about-link {
+  background: #334155 !important;
+  color: #94a3b8 !important;
+}
+
+:global(.dark-theme) .about-link:hover {
+  background: rgba(96, 165, 250, 0.15) !important;
+  color: #60a5fa !important;
+}
+
+:global(.dark-theme) .section-header > i {
+  background: rgba(96, 165, 250, 0.15) !important;
+  color: #60a5fa !important;
+}
+
+:global(.dark-theme) .check-icon,
+:global(.dark-theme) .language-option i {
+  color: #60a5fa !important;
+}
+
 </style>
