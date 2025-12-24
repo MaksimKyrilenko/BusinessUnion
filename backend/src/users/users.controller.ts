@@ -28,6 +28,7 @@ export class UsersController {
             firstName: user.firstName,
             lastName: user.lastName,
             userType: user.userType,
+            isEmailVerified: user.isEmailVerified,
             profile: user.profile
           }
         };
@@ -73,6 +74,7 @@ export class UsersController {
         lastName: user.lastName,
         middleName: user.middleName,
         userType: user.userType,
+        isEmailVerified: user.isEmailVerified,
         profile: user.profile
       };
     } catch (error) {
