@@ -38,18 +38,18 @@ export class User {
   @Column({ default: false })
   isEmailVerified: boolean;
 
-  @Column({ nullable: true })
-  emailVerificationToken?: string;
+  @Column({ nullable: true, type: 'varchar' })
+  emailVerificationToken: string | null;
 
   @Column({ nullable: true, type: 'datetime' })
-  emailVerificationExpires?: Date;
+  emailVerificationExpires: Date | null;
 
   // Password reset
-  @Column({ nullable: true })
-  passwordResetToken?: string;
+  @Column({ nullable: true, type: 'varchar' })
+  passwordResetToken: string | null;
 
   @Column({ nullable: true, type: 'datetime' })
-  passwordResetExpires?: Date;
+  passwordResetExpires: Date | null;
 
   @OneToOne(() => Profile, profile => profile.user)
   profile: Profile;
