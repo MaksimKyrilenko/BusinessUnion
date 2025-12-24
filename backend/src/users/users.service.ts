@@ -300,8 +300,8 @@ export class UsersService {
     try {
       await this.usersRepository.update(userId, {
         isEmailVerified: true,
-        emailVerificationToken: undefined,
-        emailVerificationExpires: undefined,
+        emailVerificationToken: null,
+        emailVerificationExpires: null,
       });
       this.logger.log(`Email verified for user ID: ${userId}`);
     } catch (error) {
@@ -353,8 +353,8 @@ export class UsersService {
     try {
       await this.usersRepository.update(userId, {
         password: hashedPassword,
-        passwordResetToken: undefined,
-        passwordResetExpires: undefined,
+        passwordResetToken: null,
+        passwordResetExpires: null,
       });
       this.logger.log(`Password reset for user ID: ${userId}`);
     } catch (error) {

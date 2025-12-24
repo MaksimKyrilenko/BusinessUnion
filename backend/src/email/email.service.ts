@@ -11,10 +11,22 @@ export class EmailService {
   constructor(private configService: ConfigService) {
     this.apiKey = this.configService.get('RESEND_API_KEY', '');
     this.senderEmail = this.configService.get('RESEND_FROM_EMAIL', 'noreply@businessunion-web.ru');
+    
+    if (!this.apiKey) {
+      this.logger.warn('RESEND_API_KEY не настроен! Email отправка будет недоступна.');
+    } else {
+      this.logger.log('Email сервис инициализирован с Resend API');
+    }
   }
 
   private async sendEmail(to: string, subject: string, htmlContent: string): Promise<void> {
+    if (!this.apiKey) {
+      this.logger.error('Невозможно отправить email: RESEND_API_KEY не настроен');
+      throw new Error('Email сервис не настроен');
+    }
+    
     try {
+      this.logger.log(`Отправка email на ${to}, тема: ${subject}`);
       const response = await axios.post(
         'https://api.resend.com/emails',
         {
@@ -30,9 +42,9 @@ export class EmailService {
           },
         }
       );
-      this.logger.log(`Email sent to ${to}, id: ${response.data.id}`);
+      this.logger.log(`Email успешно отправлен на ${to}, id: ${response.data.id}`);
     } catch (error) {
-      this.logger.error(`Failed to send email to ${to}:`, error.response?.data || error.message);
+      this.logger.error(`Ошибка отправки email на ${to}:`, error.response?.data || error.message);
       throw error;
     }
   }

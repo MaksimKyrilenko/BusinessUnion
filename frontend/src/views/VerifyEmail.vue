@@ -46,7 +46,7 @@
 </template>
 
 <script>
-import axios from 'axios';
+import api from '@/axios';
 
 export default {
   name: 'VerifyEmail',
@@ -70,7 +70,7 @@ export default {
   methods: {
     async verifyEmail(token) {
       try {
-        await axios.get(`/api/auth/verify-email?token=${token}`);
+        await api.get(`/auth/verify-email?token=${token}`);
         this.success = true;
       } catch (err) {
         this.error = err.response?.data?.message || 'Не удалось подтвердить email. Возможно, ссылка устарела.';
@@ -86,7 +86,7 @@ export default {
       }
       this.resending = true;
       try {
-        await axios.post('/api/auth/resend-verification', { email });
+        await api.post('/auth/resend-verification', { email });
         alert('Письмо отправлено! Проверьте вашу почту.');
       } catch (err) {
         this.error = err.response?.data?.message || 'Не удалось отправить письмо';
