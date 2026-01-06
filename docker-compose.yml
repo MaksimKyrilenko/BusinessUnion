@@ -100,7 +100,7 @@ services:
       DB_NAME: ${DB_NAME:-businessunion}
       DB_LOGGING: ${DB_LOGGING:-false}
       JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-this}
-      FRONTEND_URL: ${FRONTEND_URL:-http://localhost}
+      FRONTEND_URL: ${FRONTEND_URL:-https://businessunion-web.ru}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       # Yandex Cloud AI для анализа стартапов
       YANDEX_CLOUD_API_KEY: ${YANDEX_CLOUD_API_KEY:-}
@@ -114,14 +114,7 @@ services:
       EXCHANGE_RATES_API_KEY: ${EXCHANGE_RATES_API_KEY:-}
       # Email via Resend API
       RESEND_API_KEY: ${RESEND_API_KEY:-}
-      SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:-onboarding@resend.dev}
-      # SMTP настройки для nodemailer
-      SMTP_HOST: ${SMTP_HOST:-}
-      SMTP_PORT: ${SMTP_PORT:-465}
-      SMTP_SECURE: ${SMTP_SECURE:-true}
-      SMTP_USER: ${SMTP_USER:-}
-      SMTP_PASS: ${SMTP_PASS:-}
-      SMTP_FROM: ${SMTP_FROM:-}
+      RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL:-noreply@businessunion-web.ru}
       # Redis для WebSocket коммуникации
       REDIS_HOST: redis
       REDIS_PORT: 6379

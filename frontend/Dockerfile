@@ -5,6 +5,9 @@ FROM node:18-alpine AS builder
 ARG VUE_APP_API_URL=
 ENV VUE_APP_API_URL=${VUE_APP_API_URL}
 
+# Увеличиваем лимит памяти для Node.js
+ENV NODE_OPTIONS="--max-old-space-size=2048"
+
 # Устанавливаем рабочую директорию
 WORKDIR /app
 
