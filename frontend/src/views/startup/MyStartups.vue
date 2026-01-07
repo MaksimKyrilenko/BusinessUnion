@@ -79,9 +79,6 @@
             <div v-if="createdByMeExpanded" class="list-content">
               <div v-if="createdByMe.length === 0" class="empty-state">
                 <p>У вас пока нет созданных стартапов</p>
-                <button @click="showCreateModal = true" class="btn btn-primary">
-                  Создать стартап
-                </button>
               </div>
               <div v-else class="startups-grid">
           <div 
@@ -609,14 +606,22 @@ export default {
   display: flex;
   justify-content: space-between;
   margin-bottom: 0.5rem;
+  min-width: 0;
 }
 
 .label {
   color: #666;
+  flex-shrink: 0;
 }
 
 .value {
   font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  max-width: 50%;
+  text-align: right;
 }
 
 .status-badge {

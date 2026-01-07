@@ -71,18 +71,6 @@
             </option>
           </select>
         </div>
-        
-        <div class="filter-item">
-          <select v-model="filters.location" class="filter-select">
-            <option value="">Все локации</option>
-            <option v-for="location in uniqueLocations" 
-                    :key="location" 
-                    :value="location"
-            >
-              {{ location }}
-            </option>
-          </select>
-        </div>
       </div>
     </div>
     

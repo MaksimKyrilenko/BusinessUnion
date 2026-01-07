@@ -35,20 +35,6 @@
       </div>
     </div>
 
-    <div class="filters">
-      <SearchBar 
-        placeholder="Поиск по рынку..." 
-        @search="handleSearch"
-        class="market-search"
-      />
-      <select v-model="selectedCategory" class="filter-select">
-        <option value="">Все категории</option>
-        <option v-for="cat in categories" :key="cat.id" :value="cat.id">
-          {{ cat.name }}
-        </option>
-      </select>
-    </div>
-
     <!-- Row 1: Stats + Investment Chart -->
     <div class="row row-2">
       <div class="analytics-card">

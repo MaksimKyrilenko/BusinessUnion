@@ -45,14 +45,6 @@
           </option>
         </select>
       </div>
-      <div class="filter-group">
-        <label>Сортировка</label>
-        <select v-model="sortBy">
-          <option value="members">По участникам</option>
-          <option value="posts">По активности</option>
-          <option value="name">По названию</option>
-        </select>
-      </div>
       <div class="search-group">
         <label>Поиск</label>
         <div class="search-input-container">
