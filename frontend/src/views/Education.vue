@@ -1255,6 +1255,10 @@ export default {
   color: #1e293b;
 }
 
+.modal-close-btn i {
+  font-size: 0.85rem;
+}
+
 .course-modal-body {
   padding: 1.5rem;
   max-height: calc(90vh - 200px);
