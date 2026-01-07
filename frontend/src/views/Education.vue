@@ -1234,10 +1234,10 @@ export default {
 
 .modal-close-btn {
   position: absolute;
-  top: 12px;
-  right: 12px;
-  width: 32px;
-  height: 32px;
+  top: 10px;
+  right: 10px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.9);
   border: none;
@@ -1246,13 +1246,13 @@ export default {
   align-items: center;
   justify-content: center;
   color: #64748b;
+  font-size: 0.85rem;
   transition: all 0.2s;
 }
 
 .modal-close-btn:hover {
   background: #fff;
   color: #1e293b;
-  transform: scale(1.1);
 }
 
 .course-modal-body {
