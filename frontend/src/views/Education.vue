@@ -148,6 +148,77 @@
         <p>Попробуйте изменить поисковый запрос или выберите другую категорию</p>
       </div>
     </div>
+
+    <!-- Модальное окно с деталями курса -->
+    <div v-if="showCourseModal && selectedCourse" class="course-modal-overlay" @click="closeCourseModal">
+      <div class="course-modal" @click.stop>
+        <div class="course-modal-header" :style="{ backgroundColor: selectedCourse.color || '#eff6ff' }">
+          <i :class="selectedCourse.icon || 'fas fa-graduation-cap'"></i>
+          <button class="modal-close-btn" @click="closeCourseModal">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="course-modal-body">
+          <div class="modal-platform-badge" :class="selectedCourse.platform">
+            <i :class="getPlatformIcon(selectedCourse.platform)"></i>
+            {{ getPlatformName(selectedCourse.platform) }}
+          </div>
+          <h2>{{ selectedCourse.title }}</h2>
+          <p class="modal-description">{{ selectedCourse.description }}</p>
+          
+          <div class="modal-details">
+            <div class="detail-item">
+              <i class="fas fa-clock"></i>
+              <div>
+                <span class="detail-label">Длительность</span>
+                <span class="detail-value">{{ selectedCourse.duration }}</span>
+              </div>
+            </div>
+            <div class="detail-item">
+              <i class="fas fa-signal"></i>
+              <div>
+                <span class="detail-label">Уровень</span>
+                <span class="detail-value">{{ selectedCourse.level }}</span>
+              </div>
+            </div>
+            <div class="detail-item" v-if="selectedCourse.rating">
+              <i class="fas fa-star"></i>
+              <div>
+                <span class="detail-label">Рейтинг</span>
+                <span class="detail-value">{{ selectedCourse.rating }}/5</span>
+              </div>
+            </div>
+            <div class="detail-item">
+              <i class="fas fa-ruble-sign"></i>
+              <div>
+                <span class="detail-label">Цена</span>
+                <span class="detail-value">
+                  {{ selectedCourse.price > 0 ? formatMoney(selectedCourse.price) : 'Бесплатно' }}
+                  <span v-if="selectedCourse.oldPrice" class="old-price-modal">{{ formatMoney(selectedCourse.oldPrice) }}</span>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-features" v-if="selectedCourse.features && selectedCourse.features.length">
+            <h4>Особенности курса</h4>
+            <ul>
+              <li v-for="(feature, index) in selectedCourse.features" :key="index">
+                <i class="fas fa-check"></i>
+                {{ feature }}
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="course-modal-footer">
+          <button class="modal-btn-secondary" @click="closeCourseModal">Закрыть</button>
+          <button class="modal-btn-primary" @click="goToCourse(selectedCourse)">
+            <i class="fas fa-external-link-alt"></i>
+            Перейти к курсу
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -171,6 +242,8 @@ export default {
     const courses = ref([])
     const platforms = ref([])
     const loading = ref(false)
+    const showCourseModal = ref(false)
+    const selectedCourse = ref(null)
 
     // Ключи для сохранения состояния фильтров
     const EDUCATION_CATEGORY_KEY = 'education_selected_category'
@@ -463,24 +536,13 @@ export default {
     }
 
     const viewCourseDetails = (course) => {
-      // Показываем детальную информацию о курсе
-      const details = `
-        Курс: ${course.title}
-        Платформа: ${getPlatformName(course.platform)}
-        Описание: ${course.description}
-        Длительность: ${course.duration}
-        Уровень: ${course.level}
-        ${course.price > 0 ? `Цена: ${formatMoney(course.price)}` : 'Бесплатно'}
-        ${course.oldPrice ? `Старая цена: ${formatMoney(course.oldPrice)}` : ''}
-        ${course.rating ? `Рейтинг: ${course.rating}/5` : ''}
-        
-        Особенности:
-        ${course.features.map(f => `• ${f}`).join('\n')}
-        
-        Ссылка: ${course.url}
-      `
-      
-      alert(details)
+      selectedCourse.value = course
+      showCourseModal.value = true
+    }
+
+    const closeCourseModal = () => {
+      showCourseModal.value = false
+      selectedCourse.value = null
     }
 
     // Загружаем данные при монтировании компонента
@@ -502,6 +564,9 @@ export default {
       filteredCourses,
       goToCourse,
       viewCourseDetails,
+      closeCourseModal,
+      showCourseModal,
+      selectedCourse,
       getPlatformIcon,
       getPlatformName,
       formatMoney
@@ -1115,6 +1180,293 @@ export default {
 
   .stat-label {
     order: 1;
+  }
+}
+
+/* Course Modal Styles */
+.course-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  backdrop-filter: blur(4px);
+}
+
+.course-modal {
+  background: #fff;
+  border-radius: 16px;
+  max-width: 500px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.course-modal-header {
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  background: linear-gradient(135deg, #eff6ff, #dbeafe);
+}
+
+.course-modal-header i {
+  font-size: 3rem;
+  color: #2563eb;
+}
+
+.modal-close-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  transition: all 0.2s;
+}
+
+.modal-close-btn:hover {
+  background: #fff;
+  color: #1e293b;
+  transform: scale(1.1);
+}
+
+.course-modal-body {
+  padding: 1.5rem;
+  max-height: calc(90vh - 200px);
+  overflow-y: auto;
+}
+
+.modal-platform-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.modal-platform-badge.coursera {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.modal-platform-badge.udemy {
+  background: #f3e8ff;
+  color: #7c3aed;
+}
+
+.modal-platform-badge.skillbox {
+  background: #ffedd5;
+  color: #c2410c;
+}
+
+.modal-platform-badge.netology {
+  background: #fed7aa;
+  color: #c2410c;
+}
+
+.modal-platform-badge.geekbrains {
+  background: #d1fae5;
+  color: #047857;
+}
+
+.modal-platform-badge.yandex {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.course-modal-body h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 0.75rem;
+  line-height: 1.3;
+}
+
+.modal-description {
+  color: #64748b;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin-bottom: 1.25rem;
+}
+
+.modal-details {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.detail-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: #f8fafc;
+  border-radius: 10px;
+}
+
+.detail-item i {
+  width: 32px;
+  height: 32px;
+  background: #e0e7ff;
+  color: #2563eb;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.detail-item div {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.detail-label {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-bottom: 0.15rem;
+}
+
+.detail-value {
+  font-size: 0.85rem;
+  color: #1e293b;
+  font-weight: 600;
+}
+
+.old-price-modal {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  text-decoration: line-through;
+  margin-left: 0.5rem;
+  font-weight: 400;
+}
+
+.modal-features {
+  background: #f8fafc;
+  border-radius: 10px;
+  padding: 1rem;
+}
+
+.modal-features h4 {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 0.75rem;
+}
+
+.modal-features ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.modal-features li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.modal-features li i {
+  color: #10b981;
+  font-size: 0.75rem;
+}
+
+.course-modal-footer {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+}
+
+.modal-btn-secondary,
+.modal-btn-primary {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.modal-btn-secondary {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
+}
+
+.modal-btn-secondary:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #1e293b;
+}
+
+.modal-btn-primary {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  border: none;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+}
+
+.modal-btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
+}
+
+@media (max-width: 480px) {
+  .course-modal {
+    max-height: 95vh;
+  }
+
+  .modal-details {
+    grid-template-columns: 1fr;
+  }
+
+  .course-modal-footer {
+    flex-direction: column;
   }
 }
 </style> 
