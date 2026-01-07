@@ -135,9 +135,11 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import axios from '@/axios'
+
+const EDUCATION_CATEGORY_KEY = 'education_selected_category'
 
 export default {
   name: 'Education',
@@ -150,6 +152,23 @@ export default {
     const courses = ref([])
     const platforms = ref([])
     const loading = ref(false)
+
+    // Сохранение и загрузка фильтра
+    const saveFilter = () => {
+      sessionStorage.setItem(EDUCATION_CATEGORY_KEY, selectedCategory.value)
+    }
+
+    const loadSavedFilter = () => {
+      const saved = sessionStorage.getItem(EDUCATION_CATEGORY_KEY)
+      if (saved) {
+        selectedCategory.value = saved
+      }
+    }
+
+    // Следим за изменением категории
+    watch(selectedCategory, () => {
+      saveFilter()
+    })
 
     const formatMoney = (amount) => {
       return new Intl.NumberFormat('ru-RU', {
@@ -400,6 +419,7 @@ export default {
 
     // Загружаем данные при монтировании компонента
     onMounted(() => {
+      loadSavedFilter()
       loadCourses()
       loadPlatforms()
     })

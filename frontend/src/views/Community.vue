@@ -239,6 +239,29 @@ export default defineComponent({
     const searchQuery = ref('')
     const selectedCategories = ref([])
     const showCreateModal = ref(false)
+
+    // Ключ для сохранения состояния фильтра
+    const COMMUNITY_FILTER_KEY = 'community_selected_categories'
+
+    // Сохранение и загрузка фильтра
+    const saveFilter = () => {
+      if (selectedCategories.value.length > 0) {
+        sessionStorage.setItem(COMMUNITY_FILTER_KEY, JSON.stringify(selectedCategories.value))
+      } else {
+        sessionStorage.removeItem(COMMUNITY_FILTER_KEY)
+      }
+    }
+
+    const loadSavedFilter = () => {
+      const saved = sessionStorage.getItem(COMMUNITY_FILTER_KEY)
+      if (saved) {
+        try {
+          selectedCategories.value = JSON.parse(saved)
+        } catch (e) {
+          console.error('Error parsing saved filter:', e)
+        }
+      }
+    }
     const newCommunity = ref({
       name: '',
       description: '',
@@ -277,6 +300,7 @@ export default defineComponent({
     }
 
     onMounted(() => {
+      loadSavedFilter()
       loadData()
     })
 
@@ -326,6 +350,7 @@ export default defineComponent({
       } else {
         selectedCategories.value.splice(index, 1)
       }
+      saveFilter()
     }
 
     const getCategoryIcon = (categoryId) => {

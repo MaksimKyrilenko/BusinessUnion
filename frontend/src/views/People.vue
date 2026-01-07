@@ -61,30 +61,12 @@
         <div class="filters-row">
           <div class="filter-select">
             <i class="fas fa-user-tag"></i>
-            <select v-model="selectedType" @change="handleSearch">
+            <select v-model="selectedType" @change="handleTypeChange">
               <option value="">Все типы</option>
               <option value="startup_founder">Стартаперы</option>
               <option value="investor">Инвесторы</option>
               <option value="businessman">Бизнесмены</option>
               <option value="crypto_trader">Крипто-трейдеры</option>
-            </select>
-          </div>
-          <div class="filter-select">
-            <i class="fas fa-industry"></i>
-            <select v-model="selectedIndustry" @change="handleSearch">
-              <option value="">Все отрасли</option>
-              <option v-for="industry in industries" :key="industry.id" :value="industry.id">
-                {{ industry.name }}
-              </option>
-            </select>
-          </div>
-          <div class="filter-select">
-            <i class="fas fa-map-marker-alt"></i>
-            <select v-model="selectedLocation" @change="handleSearch">
-              <option value="">Все локации</option>
-              <option v-for="location in locations" :key="location.id" :value="location.id">
-                {{ location.name }}
-              </option>
             </select>
           </div>
           <button v-if="hasActiveFilters" class="reset-btn" @click="resetFilters">
@@ -259,6 +241,8 @@ import { useRouter } from 'vue-router'
 import Modal from '@/components/ui/Modal.vue'
 import usersApiService from '@/services/usersApi'
 
+const PEOPLE_FILTER_KEY = 'people_selected_type'
+
 export default {
   name: 'People',
   components: { Modal },
@@ -266,8 +250,6 @@ export default {
     const router = useRouter()
     const searchQuery = ref('')
     const selectedType = ref('')
-    const selectedIndustry = ref('')
-    const selectedLocation = ref('')
     const users = ref([])
     const industries = ref([])
     const locations = ref([])
@@ -283,14 +265,12 @@ export default {
           (user.company && user.company.toLowerCase().includes(searchQuery.value.toLowerCase())) ||
           (user.tags && user.tags.some(tag => tag.toLowerCase().includes(searchQuery.value.toLowerCase())))
         const matchesType = !selectedType.value || user.userType === selectedType.value
-        const matchesIndustry = !selectedIndustry.value || user.industryId === selectedIndustry.value
-        const matchesLocation = !selectedLocation.value || user.locationId === selectedLocation.value
-        return matchesQuery && matchesType && matchesIndustry && matchesLocation
+        return matchesQuery && matchesType
       })
     })
 
     const hasActiveFilters = computed(() => {
-      return selectedType.value || selectedIndustry.value || selectedLocation.value || searchQuery.value
+      return selectedType.value || searchQuery.value
     })
 
     const getUserTypeLabel = (type) => {
@@ -312,8 +292,22 @@ export default {
     const resetFilters = () => {
       searchQuery.value = ''
       selectedType.value = ''
-      selectedIndustry.value = ''
-      selectedLocation.value = ''
+      sessionStorage.removeItem(PEOPLE_FILTER_KEY)
+    }
+
+    const handleTypeChange = () => {
+      if (selectedType.value) {
+        sessionStorage.setItem(PEOPLE_FILTER_KEY, selectedType.value)
+      } else {
+        sessionStorage.removeItem(PEOPLE_FILTER_KEY)
+      }
+    }
+
+    const loadSavedFilter = () => {
+      const savedType = sessionStorage.getItem(PEOPLE_FILTER_KEY)
+      if (savedType) {
+        selectedType.value = savedType
+      }
     }
 
     const loadUsers = async () => {
@@ -336,9 +330,7 @@ export default {
             address: profile.address || null,
             telegram: socialLinks.telegram || null,
             phoneNumber: profile.phoneNumber || null,
-            tags: Array.isArray(profile.specialization) ? profile.specialization : [],
-            industryId: profile.industryId || null,
-            locationId: profile.locationId || null
+            tags: Array.isArray(profile.specialization) ? profile.specialization : []
           }
         })
       } catch (error) {
@@ -396,16 +388,17 @@ export default {
     }
 
     onMounted(() => {
+      loadSavedFilter()
       loadUsers()
       loadFilters()
     })
 
     return {
-      searchQuery, selectedType, selectedIndustry, selectedLocation,
+      searchQuery, selectedType,
       users, industries, locations, loading, showConnectModal,
       selectedUser, messageText, filteredUsers, hasActiveFilters,
       getUserTypeLabel, getInitials, resetFilters, handleSearch,
-      connectWithUser, viewProfile, sendMessage, hasUserData
+      handleTypeChange, connectWithUser, viewProfile, sendMessage, hasUserData
     }
   }
 }

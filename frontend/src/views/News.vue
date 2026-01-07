@@ -452,6 +452,40 @@ export default defineComponent({
     const selectedCategory = ref('')
     const sortBy = ref('date')
     const searchQuery = ref('')
+
+    // Ключи для сохранения состояния фильтров
+    const NEWS_CATEGORY_KEY = 'news_selected_category'
+    const NEWS_SORT_KEY = 'news_sort_by'
+
+    // Функции для сохранения и загрузки фильтров
+    const saveFilters = () => {
+      if (selectedCategory.value) {
+        sessionStorage.setItem(NEWS_CATEGORY_KEY, selectedCategory.value)
+      } else {
+        sessionStorage.removeItem(NEWS_CATEGORY_KEY)
+      }
+      sessionStorage.setItem(NEWS_SORT_KEY, sortBy.value)
+    }
+
+    const loadSavedFilters = () => {
+      const savedCategory = sessionStorage.getItem(NEWS_CATEGORY_KEY)
+      const savedSort = sessionStorage.getItem(NEWS_SORT_KEY)
+      if (savedCategory) {
+        selectedCategory.value = savedCategory
+      }
+      if (savedSort) {
+        sortBy.value = savedSort
+      }
+    }
+
+    // Следим за изменениями фильтров
+    watch(selectedCategory, () => {
+      saveFilters()
+    })
+
+    watch(sortBy, () => {
+      saveFilters()
+    })
     const currentMonth = ref(new Date())
     const news = ref([])
     const events = ref([])
@@ -1160,6 +1194,7 @@ export default defineComponent({
     })
 
     onMounted(() => {
+      loadSavedFilters()
       loadNews()
       loadEvents()
     })
