@@ -35,28 +35,45 @@
       </div>
     </div>
 
-    <div class="search-container">
-      <div class="search-wrapper">
-        <i class="fas fa-search"></i>
-        <input 
-          type="text" 
-          v-model="searchQuery" 
-          placeholder="Поиск курсов..."
-          class="search-input"
-        >
+    <div class="education-filters">
+      <div class="filter-group">
+        <label>Категория</label>
+        <select v-model="selectedCategory">
+          <option v-for="category in categories" :key="category.value" :value="category.value">
+            {{ category.label }}
+          </option>
+        </select>
       </div>
-    </div>
-
-    <div class="filters">
-      <div class="filter-buttons">
-        <button 
-          v-for="category in categories" 
-          :key="category.value"
-          :class="['filter-btn', { active: selectedCategory === category.value }]"
-          @click="selectedCategory = category.value"
-        >
-          {{ category.label }}
-        </button>
+      <div class="filter-group">
+        <label>Платформа</label>
+        <select v-model="selectedPlatform">
+          <option value="">Все платформы</option>
+          <option v-for="platform in platforms" :key="platform.id" :value="platform.id">
+            {{ platform.name }}
+          </option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Уровень</label>
+        <select v-model="selectedLevel">
+          <option value="">Все уровни</option>
+          <option value="Начальный">Начальный</option>
+          <option value="Средний">Средний</option>
+          <option value="Продвинутый">Продвинутый</option>
+        </select>
+      </div>
+      <div class="search-group">
+        <label>Поиск</label>
+        <div class="search-input-container">
+          <input 
+            type="text" 
+            v-model="searchQuery" 
+            placeholder="Поиск курсов..."
+          >
+          <button class="search-button">
+            <i class="fas fa-search"></i>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -149,25 +166,58 @@ export default {
   setup() {
     const searchQuery = ref('')
     const selectedCategory = ref('all')
+    const selectedPlatform = ref('')
+    const selectedLevel = ref('')
     const courses = ref([])
     const platforms = ref([])
     const loading = ref(false)
 
-    // Сохранение и загрузка фильтра
-    const saveFilter = () => {
-      sessionStorage.setItem(EDUCATION_CATEGORY_KEY, selectedCategory.value)
-    }
+    // Ключи для сохранения состояния фильтров
+    const EDUCATION_CATEGORY_KEY = 'education_selected_category'
+    const EDUCATION_PLATFORM_KEY = 'education_selected_platform'
+    const EDUCATION_LEVEL_KEY = 'education_selected_level'
 
-    const loadSavedFilter = () => {
-      const saved = sessionStorage.getItem(EDUCATION_CATEGORY_KEY)
-      if (saved) {
-        selectedCategory.value = saved
+    // Сохранение и загрузка фильтров
+    const saveFilters = () => {
+      sessionStorage.setItem(EDUCATION_CATEGORY_KEY, selectedCategory.value)
+      if (selectedPlatform.value) {
+        sessionStorage.setItem(EDUCATION_PLATFORM_KEY, selectedPlatform.value)
+      } else {
+        sessionStorage.removeItem(EDUCATION_PLATFORM_KEY)
+      }
+      if (selectedLevel.value) {
+        sessionStorage.setItem(EDUCATION_LEVEL_KEY, selectedLevel.value)
+      } else {
+        sessionStorage.removeItem(EDUCATION_LEVEL_KEY)
       }
     }
 
-    // Следим за изменением категории
+    const loadSavedFilter = () => {
+      const savedCategory = sessionStorage.getItem(EDUCATION_CATEGORY_KEY)
+      const savedPlatform = sessionStorage.getItem(EDUCATION_PLATFORM_KEY)
+      const savedLevel = sessionStorage.getItem(EDUCATION_LEVEL_KEY)
+      if (savedCategory) {
+        selectedCategory.value = savedCategory
+      }
+      if (savedPlatform) {
+        selectedPlatform.value = savedPlatform
+      }
+      if (savedLevel) {
+        selectedLevel.value = savedLevel
+      }
+    }
+
+    // Следим за изменением фильтров
     watch(selectedCategory, () => {
-      saveFilter()
+      saveFilters()
+    })
+
+    watch(selectedPlatform, () => {
+      saveFilters()
+    })
+
+    watch(selectedLevel, () => {
+      saveFilters()
     })
 
     const formatMoney = (amount) => {
@@ -327,6 +377,8 @@ export default {
         courses: courses.value,
         isArray: Array.isArray(courses.value),
         selectedCategory: selectedCategory.value,
+        selectedPlatform: selectedPlatform.value,
+        selectedLevel: selectedLevel.value,
         searchQuery: searchQuery.value
       });
       
@@ -355,6 +407,20 @@ export default {
         console.log('Filtering by category:', selectedCategory.value);
         filtered = filtered.filter(course => course.category === selectedCategory.value)
         console.log('After category filter:', filtered.length);
+      }
+      
+      // Фильтрация по платформе
+      if (selectedPlatform.value) {
+        console.log('Filtering by platform:', selectedPlatform.value);
+        filtered = filtered.filter(course => course.platform === selectedPlatform.value)
+        console.log('After platform filter:', filtered.length);
+      }
+      
+      // Фильтрация по уровню
+      if (selectedLevel.value) {
+        console.log('Filtering by level:', selectedLevel.value);
+        filtered = filtered.filter(course => course.level === selectedLevel.value)
+        console.log('After level filter:', filtered.length);
       }
       
       // Фильтрация по поисковому запросу
@@ -428,6 +494,8 @@ export default {
       categories,
       platforms,
       selectedCategory,
+      selectedPlatform,
+      selectedLevel,
       searchQuery,
       courses,
       loading,
@@ -586,86 +654,106 @@ export default {
   color: #64748b;
 }
 
-.search-container {
+/* Education Filters - стиль как на News */
+.education-filters {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
   background: #fff;
-  border-radius: 14px;
   padding: 1rem 1.25rem;
+  border-radius: 14px;
   margin-bottom: 1rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
-.search-wrapper {
-  position: relative;
-  width: 100%;
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
 }
 
-.search-wrapper i {
-  position: absolute;
-  left: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #94a3b8;
-  font-size: 14px;
+.filter-group label {
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
-.search-input {
-  width: 100%;
-  padding: 0.7rem 1rem 0.7rem 2.5rem;
+.filter-group select {
+  padding: 0.625rem 0.875rem;
   border: 1px solid #e2e8f0;
-  border-radius: 10px;
+  border-radius: 8px;
+  background: #fff;
+  min-width: 160px;
   font-size: 0.9rem;
   color: #1e293b;
-  background: #f8fafc;
-  transition: all 0.2s ease;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
-.search-input:focus {
+.filter-group select:focus {
   outline: none;
   border-color: #2563eb;
-  background: #fff;
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
-.search-input::placeholder {
+.search-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  flex-grow: 1;
+}
+
+.search-group label {
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.search-input-container {
+  display: flex;
+  position: relative;
+}
+
+.search-input-container input {
+  flex-grow: 1;
+  padding: 0.625rem 2.5rem 0.625rem 0.875rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  background: #fff;
+  color: #1e293b;
+  min-width: 200px;
+}
+
+.search-input-container input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.search-input-container input::placeholder {
   color: #94a3b8;
 }
 
-.filters {
-  background: #fff;
-  border-radius: 14px;
-  padding: 1rem 1.25rem;
-  margin-bottom: 1rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-}
-
-.filter-buttons {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.filter-btn {
-  padding: 0.5rem 1rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  background: #f8fafc;
-  color: #64748b;
-  font-weight: 500;
-  font-size: 0.85rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.filter-btn:hover {
-  background: #eff6ff;
-  border-color: #2563eb;
+.search-button {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
   color: #2563eb;
+  cursor: pointer;
+  padding: 0.5rem;
+  transition: color 0.2s;
 }
 
-.filter-btn.active {
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
-  border-color: #2563eb;
-  color: white;
+.search-button:hover {
+  color: #1d4ed8;
 }
 
 .courses-grid {
@@ -967,22 +1055,12 @@ export default {
     min-width: 90px;
   }
 
+  .education-filters {
+    padding: 0.75rem;
+  }
+
   .courses-grid {
     grid-template-columns: 1fr;
-  }
-
-  .filter-buttons {
-    gap: 0.35rem;
-    overflow-x: auto;
-    flex-wrap: nowrap;
-    padding-bottom: 0.5rem;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .filter-btn {
-    padding: 0.4rem 0.75rem;
-    font-size: 0.8rem;
-    flex-shrink: 0;
   }
 
   .course-header {
@@ -1004,6 +1082,20 @@ export default {
   .education-page {
     padding: 0.5rem;
     padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .education-filters {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .filter-group select {
+    width: 100%;
+    font-size: 16px;
+  }
+
+  .search-input-container input {
+    font-size: 16px;
   }
 
   .stats-container {

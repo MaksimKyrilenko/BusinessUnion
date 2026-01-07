@@ -35,32 +35,41 @@
       </div>
     </div>
 
-    <div class="filters">
-      <div class="search-container">
-        <div class="search-box">
-          <i class="fas fa-search search-icon"></i>
+    <div class="community-filters">
+      <div class="filter-group">
+        <label>Категория</label>
+        <select v-model="selectedCategoryFilter">
+          <option value="">Все категории</option>
+          <option v-for="category in categories" :key="category.id" :value="category.id">
+            {{ category.name }}
+          </option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Сортировка</label>
+        <select v-model="sortBy">
+          <option value="members">По участникам</option>
+          <option value="posts">По активности</option>
+          <option value="name">По названию</option>
+        </select>
+      </div>
+      <div class="search-group">
+        <label>Поиск</label>
+        <div class="search-input-container">
           <input 
             type="text" 
             v-model="searchQuery" 
             placeholder="Поиск сообществ..."
-            class="search-input"
           >
+          <button class="search-button">
+            <i class="fas fa-search"></i>
+          </button>
         </div>
+      </div>
+      <div class="filter-actions">
         <BaseButton @click="showCreateModal = true" class="create-button">
           <i class="fas fa-plus"></i> Создать сообщество
         </BaseButton>
-      </div>
-      
-      <div class="filter-tags">
-        <button 
-          v-for="category in categories" 
-          :key="category.id"
-          :class="['filter-tag', { active: selectedCategories.includes(category.id) }]"
-          @click="toggleCategory(category.id)"
-        >
-          <i :class="category.icon"></i>
-          {{ category.name }}
-        </button>
       </div>
     </div>
 
@@ -238,22 +247,35 @@ export default defineComponent({
 
     const searchQuery = ref('')
     const selectedCategories = ref([])
+    const selectedCategoryFilter = ref('')
+    const sortBy = ref('members')
     const showCreateModal = ref(false)
 
     // Ключ для сохранения состояния фильтра
+    // Ключи для сохранения состояния фильтров
     const COMMUNITY_FILTER_KEY = 'community_selected_categories'
+    const COMMUNITY_CATEGORY_KEY = 'community_category_filter'
+    const COMMUNITY_SORT_KEY = 'community_sort_by'
 
-    // Сохранение и загрузка фильтра
-    const saveFilter = () => {
+    // Сохранение и загрузка фильтров
+    const saveFilters = () => {
       if (selectedCategories.value.length > 0) {
         sessionStorage.setItem(COMMUNITY_FILTER_KEY, JSON.stringify(selectedCategories.value))
       } else {
         sessionStorage.removeItem(COMMUNITY_FILTER_KEY)
       }
+      if (selectedCategoryFilter.value) {
+        sessionStorage.setItem(COMMUNITY_CATEGORY_KEY, selectedCategoryFilter.value)
+      } else {
+        sessionStorage.removeItem(COMMUNITY_CATEGORY_KEY)
+      }
+      sessionStorage.setItem(COMMUNITY_SORT_KEY, sortBy.value)
     }
 
     const loadSavedFilter = () => {
       const saved = sessionStorage.getItem(COMMUNITY_FILTER_KEY)
+      const savedCategory = sessionStorage.getItem(COMMUNITY_CATEGORY_KEY)
+      const savedSort = sessionStorage.getItem(COMMUNITY_SORT_KEY)
       if (saved) {
         try {
           selectedCategories.value = JSON.parse(saved)
@@ -261,7 +283,23 @@ export default defineComponent({
           console.error('Error parsing saved filter:', e)
         }
       }
+      if (savedCategory) {
+        selectedCategoryFilter.value = savedCategory
+      }
+      if (savedSort) {
+        sortBy.value = savedSort
+      }
     }
+
+    // Следим за изменениями фильтров
+    watch(selectedCategoryFilter, () => {
+      saveFilters()
+    })
+
+    watch(sortBy, () => {
+      saveFilters()
+    })
+
     const newCommunity = ref({
       name: '',
       description: '',
@@ -326,6 +364,7 @@ export default defineComponent({
     const filteredCommunities = computed(() => {
       let filtered = communities.value
 
+      // Фильтрация по поисковому запросу
       if (searchQuery.value) {
         const query = searchQuery.value.toLowerCase()
         filtered = filtered.filter(community => 
@@ -334,10 +373,31 @@ export default defineComponent({
         )
       }
 
+      // Фильтрация по категории (новый select)
+      if (selectedCategoryFilter.value) {
+        filtered = filtered.filter(community =>
+          community.categoryId === parseInt(selectedCategoryFilter.value)
+        )
+      }
+
+      // Фильтрация по выбранным категориям (старые теги, если используются)
       if (selectedCategories.value.length > 0) {
         filtered = filtered.filter(community =>
           selectedCategories.value.includes(community.categoryId)
         )
+      }
+
+      // Сортировка
+      switch (sortBy.value) {
+        case 'members':
+          filtered = [...filtered].sort((a, b) => (b.membersCount || 0) - (a.membersCount || 0))
+          break
+        case 'posts':
+          filtered = [...filtered].sort((a, b) => (b.posts?.length || 0) - (a.posts?.length || 0))
+          break
+        case 'name':
+          filtered = [...filtered].sort((a, b) => a.name.localeCompare(b.name))
+          break
       }
 
       return filtered
@@ -350,7 +410,7 @@ export default defineComponent({
       } else {
         selectedCategories.value.splice(index, 1)
       }
-      saveFilter()
+      saveFilters()
     }
 
     const getCategoryIcon = (categoryId) => {
@@ -552,6 +612,8 @@ export default defineComponent({
       leaving,
       searchQuery,
       selectedCategories,
+      selectedCategoryFilter,
+      sortBy,
       filteredCommunities,
       totalMembers,
       showCreateModal,
@@ -679,55 +741,112 @@ export default defineComponent({
   border-radius: 2px;
 }
 
-.filters {
+/* Community Filters - стиль как на News */
+.community-filters {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  align-items: flex-end;
   background: #fff;
-  border-radius: 14px;
   padding: 1rem 1.25rem;
+  border-radius: 14px;
   margin-bottom: 1rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
-.search-container {
+.filter-group {
   display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
+  flex-direction: column;
+  gap: 0.35rem;
 }
 
-.search-box {
-  position: relative;
-  flex: 1;
+.filter-group label {
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
-.search-icon {
-  position: absolute;
-  left: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #94a3b8;
-  font-size: 14px;
-}
-
-.search-input {
-  width: 100%;
-  padding: 0.7rem 1rem 0.7rem 2.5rem;
+.filter-group select {
+  padding: 0.625rem 0.875rem;
   border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  background: #f8fafc;
-  color: #1e293b;
+  border-radius: 8px;
+  background: #fff;
+  min-width: 160px;
   font-size: 0.9rem;
-  transition: all 0.2s ease;
+  color: #1e293b;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
-.search-input:focus {
+.filter-group select:focus {
   outline: none;
   border-color: #2563eb;
-  background: #fff;
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
-.search-input::placeholder {
+.search-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  flex-grow: 1;
+}
+
+.search-group label {
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.search-input-container {
+  display: flex;
+  position: relative;
+}
+
+.search-input-container input {
+  flex-grow: 1;
+  padding: 0.625rem 2.5rem 0.625rem 0.875rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  background: #fff;
+  color: #1e293b;
+  min-width: 200px;
+}
+
+.search-input-container input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.search-input-container input::placeholder {
   color: #94a3b8;
+}
+
+.search-button {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #2563eb;
+  cursor: pointer;
+  padding: 0.5rem;
+  transition: color 0.2s;
+}
+
+.search-button:hover {
+  color: #1d4ed8;
+}
+
+.filter-actions {
+  display: flex;
+  align-items: flex-end;
 }
 
 .create-button {
@@ -758,32 +877,6 @@ export default defineComponent({
 
 .create-button i {
   font-size: 0.8rem;
-}
-
-.filter-tags {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.filter-tag {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.5rem 1rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  background: #f8fafc;
-  color: #64748b;
-  font-size: 0.85rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.filter-tag:hover {
-  background: #eff6ff;
-  border-color: #2563eb;
-  color: #2563eb;
 }
 
 .filter-tag.active {
@@ -1190,32 +1283,12 @@ export default defineComponent({
   .page-header-blue .header-stats { width: 100%; justify-content: flex-start; }
   .page-header-blue .stat-card { flex: 1; min-width: 90px; }
   
-  .search-container {
-    flex-direction: column;
-  }
-  
-  .search-input {
-    font-size: 16px;
-  }
-  
-  .create-button {
-    width: 100%;
-    justify-content: center;
+  .community-filters {
+    padding: 0.75rem;
   }
   
   .communities-grid {
     grid-template-columns: 1fr;
-  }
-  
-  .filter-tags {
-    overflow-x: auto;
-    flex-wrap: nowrap;
-    padding-bottom: 0.5rem;
-    -webkit-overflow-scrolling: touch;
-  }
-  
-  .filter-tag {
-    flex-shrink: 0;
   }
 }
 
@@ -1225,13 +1298,27 @@ export default defineComponent({
     padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
   }
   
-  .filter-tags {
-    gap: 0.35rem;
+  .community-filters {
+    flex-direction: column;
+    gap: 0.75rem;
   }
   
-  .filter-tag {
-    padding: 0.4rem 0.75rem;
-    font-size: 0.8rem;
+  .filter-group select {
+    width: 100%;
+    font-size: 16px;
+  }
+  
+  .search-input-container input {
+    font-size: 16px;
+  }
+  
+  .filter-actions {
+    width: 100%;
+  }
+  
+  .create-button {
+    width: 100%;
+    justify-content: center !important;
   }
 }
 </style>
