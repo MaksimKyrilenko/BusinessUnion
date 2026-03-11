@@ -64,6 +64,10 @@
         <i class="fas fa-flask"></i>
         <span>Лабораторная работа 1-3</span>
       </router-link>
+      <router-link to="/lab-work-46" class="nav-item">
+        <i class="fas fa-project-diagram"></i>
+        <span>Лабораторная работа 4-6</span>
+      </router-link>
       
       <!-- Админ-панель (только для админов) -->
       <router-link v-if="userType === 'admin'" to="/admin" class="nav-item admin-link">

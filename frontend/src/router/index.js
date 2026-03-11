@@ -239,6 +239,13 @@ const routes = [
     component: () => import('@/views/LabWork.vue'),
     meta: { requiresAuth: true }
   },
+  // Лабораторная работа 4-6
+  {
+    path: '/lab-work-46',
+    name: 'LabWork46',
+    component: () => import('@/views/LabWork46.vue'),
+    meta: { requiresAuth: true }
+  },
   // Админ-панель
   {
     path: '/admin',
