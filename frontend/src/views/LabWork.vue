@@ -175,22 +175,25 @@
         <v-card>
           <v-card-title>Лог событий балансировки</v-card-title>
           <v-card-text>
-            <v-timeline dense>
+            <v-timeline density="compact" align="start">
               <v-timeline-item
                 v-for="(log, index) in logs"
                 :key="index"
-                :color="log.color"
-                small
+                :dot-color="log.color"
+                size="small"
               >
                 <template v-slot:icon>
-                  <v-icon small>{{ log.icon }}</v-icon>
+                  <v-icon size="small">{{ log.icon }}</v-icon>
                 </template>
-                <div>
-                  <div class="text-caption">{{ log.time }}</div>
-                  <div>{{ log.message }}</div>
+                <div class="log-entry">
+                  <div class="text-caption text-grey">{{ log.time }}</div>
+                  <div class="text-body-2">{{ log.message }}</div>
                 </div>
               </v-timeline-item>
             </v-timeline>
+            <div v-if="logs.length === 0" class="text-center text-grey pa-4">
+              Логи событий появятся здесь
+            </div>
           </v-card-text>
         </v-card>
       </v-col>
@@ -288,33 +291,54 @@ export default {
     },
     async checkAndBalance() {
       this.addLog('Проверка баланса загрузки...', 'warning', 'mdi-scale-balance');
+      await this.sleep(500);
       
-      // Находим перегруженные и недогруженные узлы
-      const avgLoad = this.nodes.reduce((sum, n) => sum + (n.load / n.capacity), 0) / this.nodes.length;
+      // Вычисляем среднюю загрузку
+      const totalLoad = this.nodes.reduce((sum, n) => sum + n.load, 0);
+      const totalCapacity = this.nodes.reduce((sum, n) => sum + n.capacity, 0);
+      const avgLoadPercent = totalLoad / totalCapacity;
       
-      for (const node of this.nodes) {
-        const loadPercent = node.load / node.capacity;
+      this.addLog(`Средняя загрузка системы: ${Math.round(avgLoadPercent * 100)}%`, 'info', 'mdi-information');
+      await this.sleep(500);
+      
+      // Находим перегруженные узлы (загрузка > 80%)
+      const overloadedNodes = this.nodes.filter(n => (n.load / n.capacity) > 0.8 && n.load > 0);
+      
+      // Находим недогруженные узлы (загрузка < 50%)
+      const underloadedNodes = this.nodes.filter(n => (n.load / n.capacity) < 0.5);
+      
+      if (overloadedNodes.length > 0 && underloadedNodes.length > 0) {
+        this.addLog(`Обнаружено перегруженных узлов: ${overloadedNodes.length}`, 'warning', 'mdi-alert');
+        await this.sleep(500);
         
-        if (loadPercent > avgLoad * 1.5 && node.load > 0) {
-          // Узел перегружен, ищем куда переместить
-          const targetNode = this.nodes.find(n => 
-            n.id !== node.id && (n.load / n.capacity) < avgLoad * 0.7
+        // Балансируем нагрузку
+        for (const overloadedNode of overloadedNodes) {
+          // Сортируем недогруженные узлы по загрузке
+          const sortedUnderloaded = [...underloadedNodes].sort((a, b) => 
+            (a.load / a.capacity) - (b.load / b.capacity)
           );
           
-          if (targetNode) {
-            node.load--;
+          const targetNode = sortedUnderloaded[0];
+          
+          if (targetNode && overloadedNode.load > 0) {
+            // Перемещаем одну задачу
+            overloadedNode.load--;
             targetNode.load++;
             this.taskMigrations++;
             
             this.addLog(
-              `Задача перемещена: ${node.name} → ${targetNode.name}`,
+              `Задача перемещена: ${overloadedNode.name} (${Math.round(overloadedNode.load / overloadedNode.capacity * 100)}%) → ${targetNode.name} (${Math.round(targetNode.load / targetNode.capacity * 100)}%)`,
               'warning',
               'mdi-swap-horizontal'
             );
             
-            await this.sleep(800);
+            await this.sleep(1000);
           }
         }
+        
+        this.addLog('Балансировка завершена успешно', 'success', 'mdi-check-circle');
+      } else {
+        this.addLog('Система сбалансирована, перемещение не требуется', 'success', 'mdi-check-circle');
       }
     },
     reset() {
@@ -375,5 +399,117 @@ export default {
 svg {
   display: block;
   margin: 0 auto;
+}
+
+/* Убираем большие отступы в timeline */
+:deep(.v-timeline) {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+:deep(.v-timeline-item) {
+  padding-inline-end: 16px !important;
+  padding-inline-start: 16px !important;
+}
+
+:deep(.v-timeline-divider__dot) {
+  margin-inline-start: 0 !important;
+  margin-inline-end: 0 !important;
+}
+
+.log-entry {
+  padding: 8px 0;
+}
+
+/* Стили для логов */
+.log-container {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.log-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  border-left: 3px solid #e0e0e0;
+  margin-bottom: 8px;
+  background: #f5f5f5;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.log-item:hover {
+  background: #eeeeee;
+  transform: translateX(2px);
+}
+
+.log-item.log-primary {
+  border-left-color: #2196F3;
+  background: #E3F2FD;
+}
+
+.log-item.log-success {
+  border-left-color: #4CAF50;
+  background: #E8F5E9;
+}
+
+.log-item.log-warning {
+  border-left-color: #FF9800;
+  background: #FFF3E0;
+}
+
+.log-item.log-error {
+  border-left-color: #F44336;
+  background: #FFEBEE;
+}
+
+.log-item.log-info {
+  border-left-color: #00BCD4;
+  background: #E0F7FA;
+}
+
+.log-icon {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.log-content {
+  flex: 1;
+}
+
+.log-time {
+  font-size: 11px;
+  color: #666;
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+
+.log-message {
+  font-size: 14px;
+  color: #333;
+  line-height: 1.4;
+}
+
+.log-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.log-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.log-container::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 3px;
+}
+
+.log-container::-webkit-scrollbar-thumb:hover {
+  background: #555;
 }
 </style>
