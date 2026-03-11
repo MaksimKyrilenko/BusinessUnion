@@ -60,6 +60,10 @@
         <i class="fas fa-coins"></i>
         <span>Крипто трекер</span>
       </router-link>
+      <router-link to="/lab-work" class="nav-item">
+        <i class="fas fa-flask"></i>
+        <span>Лабораторная работа 1-3</span>
+      </router-link>
       
       <!-- Админ-панель (только для админов) -->
       <router-link v-if="userType === 'admin'" to="/admin" class="nav-item admin-link">

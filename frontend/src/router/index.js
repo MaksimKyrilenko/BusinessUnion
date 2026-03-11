@@ -232,6 +232,13 @@ const routes = [
     component: CryptoTracker,
     meta: { requiresAuth: true }
   },
+  // Лабораторная работа 1-3
+  {
+    path: '/lab-work',
+    name: 'LabWork',
+    component: () => import('@/views/LabWork.vue'),
+    meta: { requiresAuth: true }
+  },
   // Админ-панель
   {
     path: '/admin',
